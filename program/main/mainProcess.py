@@ -6,7 +6,6 @@ import traceback
 import webbrowser
 import requests
 
-import program.main.mainGui as mainGui
 import program.sub.textSetting as textSetting
 import program.sub.errorLogClass as errorLogClass
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
@@ -142,18 +141,3 @@ def confirmUpdate(version, importDict):
             errObj.write(traceback.format_exc())
     except Exception:
         errObj.write(traceback.format_exc())
-
-
-def callProgram(importDict, programName):
-    global selectedProgram
-
-    mainGui.clearContainer(importDict)
-    selectedProgram = programName
-
-
-def loadFile():
-    global selectedProgram
-
-    if selectedProgram is None:
-        mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E1"])
-        return

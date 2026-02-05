@@ -5,30 +5,27 @@ from functools import partial
 import program.main.mainProcess as mainProcess
 import program.sub.textSetting as textSetting
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QMessageBox
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
+import program.sub.ssUnity.ssUnityGui as ssUnityGui
+
+from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 from PySide6.QtGui import QAction, QActionGroup
 from PySide6.QtCore import QTimer
 
-
-def clearContainer(importDict):
-    window = importDict["window"]
-
-    if hasattr(window, 'container') and window.container:
-        window.container.deleteLater()
-    window.container = QWidget()
-    window.setCentralWidget(window.container)
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
 class MainWindow(QMainWindow):
     def __init__(self, importDict):
         super().__init__()
 
+        self.selectedProgram = None
         self.version = mainProcess.getUpdateVer(importDict)
         self.checkConfig(importDict)
         self.drawMenu(importDict)
 
-        self.container = QWidget()
-        self.setCentralWidget(self.container)
+        self.stack = QStackedWidget()
+        self.setCentralWidget(self.stack)
 
         self.checkUpdate(importDict)
 
@@ -47,25 +44,25 @@ class MainWindow(QMainWindow):
         menubar = self.menuBar()
         progmenu = menubar.addMenu(textSetting.textList["menu"]["program"]["name"])        
 
-        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["SSUnity"], partial(mainProcess.callProgram, importDict, "SSUnity"))
+        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["SSUnity"], partial(self.callProgram, "SSUnity"))
         progmenu.addSeparator()
-        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["orgInfoEditor"], partial(mainProcess.callProgram, importDict, "orgInfoEditor"))
-        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["mdlBin"], partial(mainProcess.callProgram, importDict, "mdlBin"))
-        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["mdlinfo"], partial(mainProcess.callProgram, importDict, "mdlinfo"))
+        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["orgInfoEditor"], partial(self.callProgram, "orgInfoEditor"))
+        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["mdlBin"], partial(self.callProgram, "mdlBin"))
+        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["mdlinfo"], partial(self.callProgram, "mdlinfo"))
         progmenu.addSeparator()
-        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["comicscript"], partial(mainProcess.callProgram, importDict, "comicscript"))
-        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["musicEditor"], partial(mainProcess.callProgram, importDict, "musicEditor"))
-        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["fvtMaker"], partial(mainProcess.callProgram, importDict, "fvtMaker"))
+        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["comicscript"], partial(self.callProgram, "comicscript"))
+        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["musicEditor"], partial(self.callProgram, "musicEditor"))
+        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["fvtMaker"], partial(self.callProgram, "fvtMaker"))
         progmenu.addSeparator()
-        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["railEditor"], partial(mainProcess.callProgram, importDict, "railEditor"))
-        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["rsRail"], partial(mainProcess.callProgram, importDict, "rsRail"))
+        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["railEditor"], partial(self.callProgram, "railEditor"))
+        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["rsRail"], partial(self.callProgram, "rsRail"))
         progmenu.addSeparator()
-        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["smf"], partial(mainProcess.callProgram, importDict, "smf"))
+        self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["smf"], partial(self.callProgram, "smf"))
         progmenu.addSeparator()
         self.createDefaultAction(progmenu, textSetting.textList["menu"]["program"]["exit"], sys.exit)
 
         filemenu = menubar.addMenu(textSetting.textList["menu"]["file"]["name"])
-        self.createDefaultAction(filemenu, textSetting.textList["menu"]["file"]["loadFile"], mainProcess.loadFile)
+        self.createDefaultAction(filemenu, textSetting.textList["menu"]["file"]["loadFile"], self.loadFile)
 
     def createRadioAction(self, menu, text, callback):
         action = QAction(text, self)
@@ -82,6 +79,30 @@ class MainWindow(QMainWindow):
 
     def checkUpdate(self, importDict):
         QTimer.singleShot(100, partial(mainProcess.confirmUpdate, self.version, importDict))
+
+    def clearContainer(self):
+        currentWidget = self.stack.currentWidget()
+        if currentWidget:
+            self.stack.removeWidget(currentWidget)
+            currentWidget.deleteLater()
+
+    def callProgram(self, programName):
+        self.clearContainer()
+
+        self.selectedProgram = programName
+        newWidget = None
+        if self.selectedProgram == "SSUnity":
+            newWidget = ssUnityGui.SSUnityWindow()
+
+        if newWidget is None:
+            return
+        self.stack.addWidget(newWidget)
+        self.stack.setCurrentWidget(newWidget)
+
+    def loadFile(self):
+        if self.selectedProgram is None:
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E1"])
+            return
 
 
 def guiMain(importDict):
