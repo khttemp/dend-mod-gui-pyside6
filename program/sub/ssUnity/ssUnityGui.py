@@ -1,21 +1,28 @@
-from functools import partial
+import os
 
 import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 import program.sub.ssUnity.ssUnityProcess as ssUnityProcess
+
+from program.sub.ssUnity.SSDecrypt.denDecrypt import DenDecrypt
+from program.sub.ssUnity.SSDecrypt.resourcesDecrypt import ResourcesDecrypt
 
 from PySide6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QFrame, QGroupBox,
     QVBoxLayout, QHBoxLayout,
-    QRadioButton, QComboBox, QPushButton, QButtonGroup
+    QRadioButton, QComboBox, QPushButton, QButtonGroup,
+    QFileDialog, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView
 )
 from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt
+
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
 class SSUnityWindow(QWidget):
     def __init__(self):
         super().__init__()
-        ssUnityProcess.readModelInfo("model.json")
+        self.decryptFile = None
 
         font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
         font7 = QFont(textSetting.textList["font7"][0], textSetting.textList["font7"][1])
@@ -65,6 +72,8 @@ class SSUnityWindow(QWidget):
         # headerLeft - search - LineEdit
         self.searchLineEdit = QLineEdit("", font=font7)
         self.searchLineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.searchLineEdit.setReadOnly(True)
+        self.searchLineEdit.textChanged.connect(self.tableFilterFunc)
         headerSearchLayout.addWidget(self.searchLineEdit, 9)
 
         # headerRight
@@ -79,21 +88,23 @@ class SSUnityWindow(QWidget):
         headerRightLayout.addLayout(headerRadioLayout)
         # headerRight - radioLayout - combo
         self.monoCombo = QComboBox(font=font2)
+        self.monoCombo.setEnabled(False)
+        self.monoCombo.currentIndexChanged.connect(self.changeResourceMono)
         headerRadioLayout.addWidget(self.monoCombo, 1)
         headerRadioLayout.addSpacing(50)
         # headerRight - radioLayout - radio1
-        self.denRadioButton = QRadioButton(textSetting.textList["ssUnity"]["editDenFile"])
-        self.denRadioButton.toggled.connect(partial(self.radioButtonTrigger, "den"))
-        headerRadioLayout.addWidget(self.denRadioButton, 1)
+        denRadioButton = QRadioButton(textSetting.textList["ssUnity"]["editDenFile"])
+        denRadioButton.toggled.connect(self.radioButtonTrigger)
+        headerRadioLayout.addWidget(denRadioButton, 1)
         # headerRight - radioLayout - radio2
-        self.resourcesRadioButton = QRadioButton(textSetting.textList["ssUnity"]["editResourcesAssets"])
-        self.resourcesRadioButton.toggled.connect(partial(self.radioButtonTrigger, "resources"))
-        headerRadioLayout.addWidget(self.resourcesRadioButton, 1)
+        resourcesRadioButton = QRadioButton(textSetting.textList["ssUnity"]["editResourcesAssets"])
+        resourcesRadioButton.toggled.connect(self.radioButtonTrigger)
+        headerRadioLayout.addWidget(resourcesRadioButton, 1)
         headerRightLayout.addSpacing(10)
         # RadioGroup
-        radioGroup = QButtonGroup()
-        radioGroup.addButton(self.denRadioButton)
-        radioGroup.addButton(self.resourcesRadioButton)
+        self.radioGroup = QButtonGroup()
+        self.radioGroup.addButton(denRadioButton, 1)
+        self.radioGroup.addButton(resourcesRadioButton, 2)
 
         # headerRight - buttonLayout
         headerRightButtonLayout = QHBoxLayout()
@@ -102,21 +113,34 @@ class SSUnityWindow(QWidget):
         # headerRight - buttonLayout - button1
         self.extractButton = QPushButton(textSetting.textList["ssUnity"]["extractFileLabel"])
         self.extractButton.setFixedSize(buttonWidth, buttonHeight)
+        self.extractButton.setEnabled(False)
+        self.extractButton.clicked.connect(self.extractFunc)
         headerRightButtonLayout.addWidget(self.extractButton)
         headerRightButtonLayout.addStretch(1)
         # headerRight - buttonLayout - button2
         self.loadAndSaveButton = QPushButton(textSetting.textList["ssUnity"]["saveFileLabel"])
         self.loadAndSaveButton.setFixedSize(buttonWidth, buttonHeight)
+        self.loadAndSaveButton.setEnabled(False)
+        self.loadAndSaveButton.clicked.connect(self.loadAndSaveFunc)
         headerRightButtonLayout.addWidget(self.loadAndSaveButton)
         headerRightButtonLayout.addStretch(1)
         # headerRight - buttonLayout - button3
         self.assertsSaveButton = QPushButton(textSetting.textList["ssUnity"]["saveResourcesAssets"])
         self.assertsSaveButton.setFixedSize(buttonWidth, buttonHeight)
+        self.assertsSaveButton.setEnabled(False)
         headerRightButtonLayout.addWidget(self.assertsSaveButton, 1)
 
         # content
-        self.contentFrame = QGroupBox(textSetting.textList["ssUnity"]["scriptLabel"])
-        mainLayout.addWidget(self.contentFrame, 11)
+        contentFrame = QGroupBox(textSetting.textList["ssUnity"]["scriptLabel"])
+        mainLayout.addWidget(contentFrame, 11)
+        contentLayout = QVBoxLayout()
+        contentFrame.setLayout(contentLayout)
+        self.contentTable = QTableWidget()
+        self.contentTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.contentTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.contentTable.setCornerButtonEnabled(False)
+        self.contentTable.itemSelectionChanged.connect(self.onSelectionChanged)
+        contentLayout.addWidget(self.contentTable)
 
         # hide setting
         monoComboSize = self.monoCombo.sizePolicy()
@@ -127,15 +151,227 @@ class SSUnityWindow(QWidget):
         self.assertsSaveButton.setSizePolicy(assertsSaveButtonSize)
 
         # radioButton default setting
-        self.denRadioButton.setChecked(True)
+        denRadioButton.setChecked(True)
 
-    def radioButtonTrigger(self, buttonName, isChecked):
+        self.readModelInfoFile()
+
+    def readModelInfoFile(self):
+        self.railModelInfo, self.ambModelInfo = ssUnityProcess.readModelInfo("model.json")
+
+    def radioButtonTrigger(self, isChecked):
         if not isChecked:
             return
 
-        if buttonName == "den":
-            self.monoCombo.hide()
+        self.fileNameLabel.setText("")
+        self.searchLineEdit.setText("")
+        self.searchLineEdit.setReadOnly(True)
+        self.monoCombo.clear()
+        self.monoCombo.setEnabled(False)
+        self.clearTable()
+
+        selectedRadioId = self.radioGroup.checkedId()
+        if selectedRadioId == 1:
+            self.extractButton.setText(textSetting.textList["ssUnity"]["extractFile"])
+            self.extractButton.clicked.disconnect()
+            self.extractButton.clicked.connect(self.extractFunc)
+
+            self.loadAndSaveButton.setText(textSetting.textList["ssUnity"]["saveFile"])
+            self.loadAndSaveButton.clicked.disconnect()
+            self.loadAndSaveButton.clicked.connect(self.loadAndSaveFunc)
+
             self.assertsSaveButton.hide()
-        elif buttonName == "resources":
-            self.monoCombo.show()
+
+            self.monoCombo.hide()
+        elif selectedRadioId == 2:
+            self.extractButton.setText(textSetting.textList["ssUnity"]["extractCsv"])
+            self.extractButton.clicked.disconnect()
+            self.extractButton.clicked.connect(self.csvExtractFunc)
+
+            self.loadAndSaveButton.setText(textSetting.textList["ssUnity"]["saveCsv"])
+            self.loadAndSaveButton.clicked.disconnect()
+            self.loadAndSaveButton.clicked.connect(self.csvLoadAndSaveFunc)
+
             self.assertsSaveButton.show()
+
+            self.monoCombo.show()
+
+    def clearTable(self):
+        self.contentTable.clearSelection()
+        self.contentTable.clear()
+        self.contentTable.setRowCount(0)
+        self.contentTable.setColumnCount(0)
+
+    def createDenTable(self):
+        headerLabelList = [
+            textSetting.textList["ssUnity"]["headerName"],
+            textSetting.textList["ssUnity"]["headerKind"],
+            textSetting.textList["ssUnity"]["headerSize"]
+        ]
+        self.contentTable.setColumnCount(len(headerLabelList))
+        self.contentTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.contentTable.setHorizontalHeaderLabels(headerLabelList)
+        for dataList in self.decryptFile.allList:
+            rowCount = self.contentTable.rowCount()
+            self.contentTable.insertRow(rowCount)
+            for colIdx in range(3):
+                item = QTableWidgetItem(str(dataList[colIdx]))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.contentTable.setItem(rowCount, colIdx, item)
+
+    def createMonoTable(self, index):
+        if index == 0:
+            headerLabelList = [
+                textSetting.textList["ssUnity"]["headerName"],
+                textSetting.textList["ssUnity"]["headerKind"],
+                textSetting.textList["ssUnity"]["headerSize"]
+            ]
+            self.contentTable.setColumnCount(len(headerLabelList))
+            self.contentTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+            self.contentTable.setHorizontalHeaderLabels(headerLabelList)
+
+            for trainName in self.decryptFile.trainNameList:
+                rowCount = self.contentTable.rowCount()
+                self.contentTable.insertRow(rowCount)
+                trainData = self.decryptFile.trainOrgInfoList[trainName]
+                dataList = [
+                    trainName,
+                    trainData["data"]["className"],
+                    trainData["data"]["size"]
+                ]
+                for colIdx in range(3):
+                    item = QTableWidgetItem(str(dataList[colIdx]))
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    self.contentTable.setItem(rowCount, colIdx, item)
+        elif index == 1:
+            headerLabelList = [
+                textSetting.textList["ssUnity"]["headerPathId"],
+                textSetting.textList["ssUnity"]["headerName"],
+                textSetting.textList["ssUnity"]["headerName"],
+                textSetting.textList["ssUnity"]["headerKind"],
+                textSetting.textList["ssUnity"]["headerSize"]
+            ]
+            self.contentTable.setColumnCount(len(headerLabelList))
+            self.contentTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+            self.contentTable.setHorizontalHeaderLabels(headerLabelList)
+
+            for trainModelName in self.decryptFile.trainModelNameList:
+                changeMeshTexInfoList = self.decryptFile.changeMeshTexList[trainModelName]
+                for changeMeshTexInfo in changeMeshTexInfoList:
+                    rowCount = self.contentTable.rowCount()
+                    self.contentTable.insertRow(rowCount)
+
+                    meshTexInfo = changeMeshTexInfo["data"]["meshData"]
+                    gameObjectName = changeMeshTexInfo["data"]["monoData"].m_GameObject.read().name
+                    meshName = meshTexInfo[3]
+                    dataList = [
+                        changeMeshTexInfo["num"],
+                        trainModelName,
+                        "{0}({1})".format(gameObjectName, meshName),
+                        changeMeshTexInfo["data"]["className"],
+                        changeMeshTexInfo["data"]["size"]
+                    ]
+                    for colIdx in range(5):
+                        item = QTableWidgetItem(str(dataList[colIdx]))
+                        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                        self.contentTable.setItem(rowCount, colIdx, item)
+
+
+    def onSelectionChanged(self):
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            self.selectLineLabel.setText("")
+            self.extractButton.setEnabled(False)
+            self.loadAndSaveButton.setEnabled(False)
+            self.assertsSaveButton.setEnabled(False)
+            return
+
+        row = selectedItems[0].row()
+        self.selectLineLabel.setText(str(row + 1))
+        self.extractButton.setEnabled(True)
+        self.loadAndSaveButton.setEnabled(True)
+        self.assertsSaveButton.setEnabled(True)
+
+    def changeResourceMono(self, index):
+        self.searchLineEdit.setText("")
+        self.clearTable()
+        self.createMonoTable(index)
+
+    def tableFilterFunc(self):
+        for row in range(self.contentTable.rowCount()):
+            self.contentTable.setRowHidden(row, False)
+        filterText = self.searchLineEdit.text().lower()
+        if not filterText:
+            return
+
+        self.contentTable.clearSelection()
+        for row in range(self.contentTable.rowCount()):
+            item = self.contentTable.item(row, 0)
+            if not item:
+                continue
+            name = item.text().lower()
+            if filterText not in name:
+                selectedRadioId = self.radioGroup.checkedId()
+                if selectedRadioId == 2 and self.monoCombo.currentIndex() == 1:
+                    item2 = self.contentTable.item(row, 2)
+                    if item2 and filterText in item2.text().lower():
+                        continue
+                self.contentTable.setRowHidden(row, True)
+
+    def openFile(self):
+        selectedRadioId = self.radioGroup.checkedId()
+        if selectedRadioId not in [1, 2]:
+            return
+
+        if selectedRadioId == 1:
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "",
+                "",
+                "DEND_SS (*.den)"
+            )
+            if not file_path:
+                return
+            del self.decryptFile
+            self.decryptFile = DenDecrypt(file_path)
+        else:
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "",
+                "",
+                "resources.assets (resources.assets)"
+            )
+            if not file_path:
+                return
+            del self.decryptFile
+            self.decryptFile = ResourcesDecrypt(file_path)
+
+        if not self.decryptFile.open():
+            self.decryptFile.printError()
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+            return
+        filename = os.path.basename(file_path)
+        self.fileNameLabel.setText(filename)
+        self.searchLineEdit.setReadOnly(False)
+
+        if selectedRadioId == 1:
+            self.clearTable()
+            self.createDenTable()
+        else:
+            self.monoCombo.clear()
+            self.monoCombo.setEnabled(True)
+            self.monoCombo.addItems(self.decryptFile.keyNameList)
+
+    def extractFunc(self):
+        pass
+
+    def loadAndSaveFunc(self):
+        pass
+
+    def csvExtractFunc(self):
+        pass
+
+    def csvLoadAndSaveFunc(self):
+        pass
+
+    def assetsSaveFunc(self):
+        pass

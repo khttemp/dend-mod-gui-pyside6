@@ -10,7 +10,6 @@ import program.sub.textSetting as textSetting
 import program.sub.errorLogClass as errorLogClass
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
-selectedProgram = None
 errObj = errorLogClass.ErrorLogObj()
 mb = customMessageBoxWidget.CustomMessageBox()
 

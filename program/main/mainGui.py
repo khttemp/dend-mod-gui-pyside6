@@ -8,7 +8,7 @@ import program.sub.textSetting as textSetting
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 import program.sub.ssUnity.ssUnityGui as ssUnityGui
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget
+from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QFileDialog
 from PySide6.QtGui import QAction, QActionGroup
 from PySide6.QtCore import QTimer
 
@@ -22,7 +22,7 @@ class MainWindow(QMainWindow):
         self.selectedProgram = None
         self.version = mainProcess.getUpdateVer(importDict)
         self.checkConfig(importDict)
-        self.drawMenu(importDict)
+        self.drawMenu()
 
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
@@ -34,7 +34,7 @@ class MainWindow(QMainWindow):
         if not os.path.exists(configPath):
             mainProcess.writeDefaultConfig(importDict)
 
-    def drawMenu(self, importDict):
+    def drawMenu(self):
         self.setWindowTitle(textSetting.textList["app"]["title"].format(self.version))
         self.resize(1024, 768)
 
@@ -103,6 +103,10 @@ class MainWindow(QMainWindow):
         if self.selectedProgram is None:
             mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E1"])
             return
+
+        if self.selectedProgram == "SSUnity":
+            widget = self.stack.currentWidget()
+            widget.openFile()
 
 
 def guiMain(importDict):

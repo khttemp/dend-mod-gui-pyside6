@@ -22,3 +22,5 @@ def readModelInfo(jsonName):
     ambModelInfo = []
     for model in modelDict["ambModelInfo"]:
         ambModelInfo.append(model.lower())
+
+    return (railModelInfo, ambModelInfo)
