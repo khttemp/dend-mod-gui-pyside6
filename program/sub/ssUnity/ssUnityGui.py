@@ -275,7 +275,6 @@ class SSUnityWindow(QWidget):
                         item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                         self.contentTable.setItem(rowCount, colIdx, item)
 
-
     def onSelectionChanged(self):
         selectedItems = self.contentTable.selectedItems()
         if not selectedItems:
