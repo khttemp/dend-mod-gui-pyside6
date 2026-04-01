@@ -1,6 +1,8 @@
 import os
+import traceback
 
 import program.sub.textSetting as textSetting
+import program.sub.errorLogClass as errorLogClass
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 import program.sub.ssUnity.ssUnityProcess as ssUnityProcess
 
@@ -16,12 +18,14 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt
 
+errObj = errorLogClass.ErrorLogObj()
 mb = customMessageBoxWidget.CustomMessageBox()
 
 
 class SSUnityWindow(QWidget):
-    def __init__(self):
+    def __init__(self, importDict):
         super().__init__()
+        self.importDict = importDict
         self.decryptFile = None
 
         font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
@@ -152,11 +156,6 @@ class SSUnityWindow(QWidget):
 
         # radioButton default setting
         denRadioButton.setChecked(True)
-
-        self.readModelInfoFile()
-
-    def readModelInfoFile(self):
-        self.railModelInfo, self.ambModelInfo = ssUnityProcess.readModelInfo("model.json")
 
     def radioButtonTrigger(self, isChecked):
         if not isChecked:
@@ -349,6 +348,7 @@ class SSUnityWindow(QWidget):
             mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
             return
         filename = os.path.basename(file_path)
+        self.lastDir = os.path.dirname(file_path)
         self.fileNameLabel.setText(filename)
         self.searchLineEdit.setReadOnly(False)
 
@@ -360,11 +360,133 @@ class SSUnityWindow(QWidget):
             self.monoCombo.setEnabled(True)
             self.monoCombo.addItems(self.decryptFile.keyNameList)
 
+    def reloadFile(self):
+        if not self.decryptFile.filePath:
+            return
+
+        try:
+            if not self.decryptFile.open():
+                self.decryptFile.printError()
+                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
+                return
+
+            self.searchLineEdit.setText("")
+            selectedRadioId = self.radioGroup.checkedId()
+            if selectedRadioId == 1:
+                self.clearTable()
+                self.createDenTable()
+            else:
+                self.monoCombo.clear()
+                self.monoCombo.setEnabled(True)
+                self.monoCombo.addItems(self.decryptFile.keyNameList)
+        except Exception:
+            errObj.write(traceback.format_exc())
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+
     def extractFunc(self):
-        pass
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
+
+        row = selectedItems[0].row()
+        dataName = self.decryptFile.allList[row][0]
+        excelFlag = False
+        if dataName == "stagedata":
+            excelFlag = True
+
+        fileType = self.contentTable.item(row, 1).text()
+        if fileType == "TextAsset":
+            ext = "*.txt"
+        elif fileType == "TextAsset(bytes)":
+            ext = "*.png"
+        elif fileType == "AudioClip":
+            ext = "*.wav"
+
+        fileTypes = "{0} ({1})".format(textSetting.textList["ssUnity"]["loadSaveFileLabel"], ext)
+        if excelFlag:
+            fileTypes = "{0} (*.xlsx);;{1}".format(textSetting.textList["ssUnity"]["loadSaveFileExcelLabel"], fileTypes)
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "",
+            os.path.join(self.lastDir, dataName),
+            fileTypes
+        )
+        if file_path:
+            try:
+                data = self.decryptFile.allList[row][-1]
+                if excelFlag and os.path.splitext(file_path)[1].lower() == ".xlsx":
+                    configPath = self.importDict["configPath"]
+                    result, message = ssUnityProcess.extractDenFileByExcel(file_path, data, configPath)
+                    if not result:
+                        mb.showerror(title=textSetting.textList["error"], message=message)
+                        return
+                    mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I113"])
+                    if message:
+                        mb.showwarning(title=textSetting.textList["error"], message=message)
+                else:
+                    if not ssUnityProcess.extractDenFile(file_path, fileType, data):
+                        mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                        return
+                    mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I110"])
+            except Exception:
+                errObj.write(traceback.format_exc())
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E89"])
 
     def loadAndSaveFunc(self):
-        pass
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
+
+        row = selectedItems[0].row()
+        dataName = self.decryptFile.allList[row][0]
+        excelFlag = False
+        if dataName == "stagedata":
+            excelFlag = True
+
+        fileType = self.contentTable.item(row, 1).text()
+        if fileType == "TextAsset":
+            ext = "*.txt"
+        elif fileType == "TextAsset(bytes)":
+            ext = "*.png"
+        elif fileType == "AudioClip":
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E90"])
+            return
+
+        fileTypes = "{0} ({1})".format(textSetting.textList["ssUnity"]["loadSaveFileLabel"], ext)
+        if excelFlag:
+            fileTypes = "{0} (*.xlsx);;{1}".format(textSetting.textList["ssUnity"]["loadSaveFileExcelLabel"], fileTypes)
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "",
+            os.path.join(self.lastDir, dataName),
+            fileTypes
+        )
+        if file_path:
+            try:
+                data = self.decryptFile.allList[row][-1]
+                if os.path.splitext(file_path)[1].lower() != ".xlsx":
+                    ssUnityProcess.saveDenFile(file_path, data, self.decryptFile)
+                else:
+                    configPath = self.importDict["configPath"]
+                    result, obj = ssUnityProcess.loadExcelData(file_path, data, configPath)
+                    if not result:
+                        mb.showerror(title=textSetting.textList["error"], message=obj["message"])
+                        return
+                    if obj["message"]:
+                        result = mb.askyesnoWarning(title=textSetting.textList["confirm"], message=obj["message"])
+                        if result == mb.NO:
+                            return
+                    result = mb.askyesnoWarning(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I50"])
+                    if result == mb.NO:
+                        return
+                    ssUnityProcess.saveDenFileByExcel(data, self.decryptFile, obj["data"])
+                mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I51"])
+                self.reloadFile()
+            except Exception:
+                errObj.write(traceback.format_exc())
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"]) 
 
     def csvExtractFunc(self):
         pass

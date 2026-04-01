@@ -11,7 +11,7 @@ importDict = {
 }
 
 if platform.system() == "Windows":
-    importDict["configPath"] = os.path.join(os.getenv("APPDATA"), "dend-mod-gui-pyqt", "config.ini")
+    importDict["configPath"] = os.path.join(os.getenv("APPDATA"), "dend-mod-gui-pyside6", "config.ini")
 
 if __name__ == "__main__":
     mainGui.guiMain(importDict)

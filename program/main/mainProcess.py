@@ -19,9 +19,9 @@ def resource_path(localDir, relative_path):
     return os.path.join(bundle_dir, relative_path)
 
 
-def getUpdateVer(importDict):
+def getUpdateVer(rootPath):
     try:
-        path = resource_path(importDict["rootPath"], "ver.txt")
+        path = resource_path(rootPath, "ver.txt")
         f = open(path, "r", encoding="utf-8")
         line = f.read()
         f.close()
@@ -33,9 +33,7 @@ def getUpdateVer(importDict):
     return version
 
 
-def writeDefaultConfig(importDict):
-    configPath = importDict["configPath"]
-
+def writeDefaultConfig(configPath):
     try:
         config_ini_folder = os.path.dirname(configPath)
         if not os.path.exists(config_ini_folder):
@@ -73,9 +71,7 @@ def writeDefaultConfig(importDict):
         errObj.write(traceback.format_exc())
 
 
-def configCheckOption(importDict, section, options, defaultValue="0"):
-    configPath = importDict["configPath"]
-
+def configCheckOption(configPath, section, options, defaultValue="0"):
     configRead = configparser.ConfigParser()
     configRead.read(configPath, encoding="utf-8")
 
@@ -95,11 +91,9 @@ def configCheckOption(importDict, section, options, defaultValue="0"):
     return False
 
 
-def confirmUpdate(version, importDict):
-    configPath = importDict["configPath"]
-
+def confirmUpdate(version, configPath):
     try:
-        url = "https://raw.githubusercontent.com/khttemp/dend-mod-gui-pyqt/main/ver.txt"
+        url = "https://raw.githubusercontent.com/khttemp/dend-mod-gui-pyside6/main/ver.txt"
         response = requests.get(url)
         if response.status_code == requests.codes.ok:
             onlineUpdateVer = response.text
@@ -109,7 +103,7 @@ def confirmUpdate(version, importDict):
         if version == onlineUpdateVer:
             return
         
-        configCheckOption(importDict, "UPDATE", "time", "2000/01/01")
+        configCheckOption(configPath, "UPDATE", "time", "2000/01/01")
 
         configRead = configparser.ConfigParser()
         configRead.read(configPath, encoding="utf-8")
@@ -123,7 +117,7 @@ def confirmUpdate(version, importDict):
         msg = textSetting.textList["update"]["message"].format(onlineUpdateVer)
         result = mb.askyesno(title=textSetting.textList["update"]["title"], message=msg)
         if result == mb.YES:
-            webbrowser.open_new("https://github.com/khttemp/dend-mod-gui-pyqt/releases")
+            webbrowser.open_new("https://github.com/khttemp/dend-mod-gui-pyside6/releases")
 
         try:
             configRead = configparser.ConfigParser()

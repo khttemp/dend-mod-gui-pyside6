@@ -8,7 +8,7 @@ import program.sub.textSetting as textSetting
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 import program.sub.ssUnity.ssUnityGui as ssUnityGui
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 from PySide6.QtGui import QAction, QActionGroup
 from PySide6.QtCore import QTimer
 
@@ -18,21 +18,22 @@ mb = customMessageBoxWidget.CustomMessageBox()
 class MainWindow(QMainWindow):
     def __init__(self, importDict):
         super().__init__()
+        self.importDict = importDict
 
         self.selectedProgram = None
-        self.version = mainProcess.getUpdateVer(importDict)
-        self.checkConfig(importDict)
+        self.version = mainProcess.getUpdateVer(self.importDict["rootPath"])
+        self.checkConfig()
         self.drawMenu()
 
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
 
-        self.checkUpdate(importDict)
+        self.checkUpdate()
 
-    def checkConfig(self, importDict):
-        configPath = importDict["configPath"]
+    def checkConfig(self):
+        configPath = self.importDict["configPath"]
         if not os.path.exists(configPath):
-            mainProcess.writeDefaultConfig(importDict)
+            mainProcess.writeDefaultConfig(configPath)
 
     def drawMenu(self):
         self.setWindowTitle(textSetting.textList["app"]["title"].format(self.version))
@@ -42,7 +43,7 @@ class MainWindow(QMainWindow):
         self.radio_group.setExclusive(True)
 
         menubar = self.menuBar()
-        progmenu = menubar.addMenu(textSetting.textList["menu"]["program"]["name"])        
+        progmenu = menubar.addMenu(textSetting.textList["menu"]["program"]["name"])
 
         self.createRadioAction(progmenu, textSetting.textList["menu"]["program"]["SSUnity"], partial(self.callProgram, "SSUnity"))
         progmenu.addSeparator()
@@ -77,8 +78,9 @@ class MainWindow(QMainWindow):
         action.triggered.connect(callback)
         menu.addAction(action)
 
-    def checkUpdate(self, importDict):
-        QTimer.singleShot(100, partial(mainProcess.confirmUpdate, self.version, importDict))
+    def checkUpdate(self):
+        configPath = self.importDict["configPath"]
+        QTimer.singleShot(100, partial(mainProcess.confirmUpdate, self.version, configPath))
 
     def clearContainer(self):
         currentWidget = self.stack.currentWidget()
@@ -92,7 +94,7 @@ class MainWindow(QMainWindow):
         self.selectedProgram = programName
         newWidget = None
         if self.selectedProgram == "SSUnity":
-            newWidget = ssUnityGui.SSUnityWindow()
+            newWidget = ssUnityGui.SSUnityWindow(self.importDict)
 
         if newWidget is None:
             return

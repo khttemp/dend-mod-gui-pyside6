@@ -2,6 +2,8 @@ import os
 import sys
 import json
 
+from program.sub.ssUnity.importPy.excelWidget import ExcelWidget
+
 
 def resource_path(localDir, relative_path):
     bundle_dir = getattr(sys, "_MEIPASS", localDir)
@@ -24,3 +26,50 @@ def readModelInfo(jsonName):
         ambModelInfo.append(model.lower())
 
     return (railModelInfo, ambModelInfo)
+
+
+def extractDenFile(filePath, fileType, data):
+    if fileType == "AudioClip":
+        for _, d in data.samples.items():
+            w = open(filePath, "wb")
+            w.write(d)
+            w.close()
+        return True
+
+    if os.path.splitext(filePath)[1].lower() != ".xlsx":
+        w = open(filePath, "wb")
+        w.write(data.script)
+        w.close()
+        return True
+    return False
+
+
+def extractDenFileByExcel(filePath, data, configPath):
+    railModelInfo, ambModelInfo = readModelInfo("model.json")
+    excelWidget = ExcelWidget(data.script.tobytes().decode(), filePath, configPath, railModelInfo, ambModelInfo)
+    if not excelWidget.extractExcel():
+        return (False, excelWidget.errorMessage)
+    return (True, excelWidget.warningMessage)
+
+
+def saveDenFile(filePath, data, decryptFile):
+    with open(filePath, "rb") as f:
+        data.script = f.read()
+    data.save()
+    with open(decryptFile.filePath, "wb") as w:
+        w.write(decryptFile.env.file.save())
+
+
+def loadExcelData(filePath, data, configPath):
+    railModelInfo, ambModelInfo = readModelInfo("model.json")
+    excelWidget = ExcelWidget(data.script.tobytes().decode(), filePath, configPath, railModelInfo, ambModelInfo)
+    if not excelWidget.loadExcelAndMerge():
+        return (False, {"message":excelWidget.errorMessage})
+    return (True, {"message":excelWidget.warningMessage, "data":excelWidget.newLinesObj})
+
+
+def saveDenFileByExcel(data, decryptFile, newLines):
+    data.script = bytearray("\n".join(newLines).encode("utf-8"))
+    data.save()
+    with open(decryptFile.filePath, "wb") as w:
+        w.write(decryptFile.env.file.save())

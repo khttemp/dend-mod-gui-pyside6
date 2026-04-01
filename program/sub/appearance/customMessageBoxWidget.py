@@ -43,3 +43,9 @@ class CustomMessageBox():
         self.msg.setIcon(QMessageBox.Icon.Question)
         self.msg.setStandardButtons(self.YES | self.NO)
         return self.msg.exec()
+
+    def askyesnoWarning(self, title, message):
+        self.makeMessageBox(title, message)
+        self.msg.setIcon(QMessageBox.Icon.Warning)
+        self.msg.setStandardButtons(self.YES | self.NO)
+        return self.msg.exec()
