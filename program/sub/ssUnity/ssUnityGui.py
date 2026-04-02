@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QRadioButton, QComboBox, QPushButton, QButtonGroup,
     QFileDialog, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView
 )
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QColor
 from PySide6.QtCore import Qt
 
 errObj = errorLogClass.ErrorLogObj()
@@ -129,10 +129,11 @@ class SSUnityWindow(QWidget):
         headerRightButtonLayout.addWidget(self.loadAndSaveButton)
         headerRightButtonLayout.addStretch(1)
         # headerRight - buttonLayout - button3
-        self.assertsSaveButton = QPushButton(textSetting.textList["ssUnity"]["saveResourcesAssets"])
-        self.assertsSaveButton.setFixedSize(buttonWidth, buttonHeight)
-        self.assertsSaveButton.setEnabled(False)
-        headerRightButtonLayout.addWidget(self.assertsSaveButton, 1)
+        self.assetsSaveButton = QPushButton(textSetting.textList["ssUnity"]["saveResourcesAssets"])
+        self.assetsSaveButton.setFixedSize(buttonWidth, buttonHeight)
+        self.assetsSaveButton.setEnabled(False)
+        self.assetsSaveButton.clicked.connect(self.assetsSaveFunc)
+        headerRightButtonLayout.addWidget(self.assetsSaveButton, 1)
 
         # content
         contentFrame = QGroupBox(textSetting.textList["ssUnity"]["scriptLabel"])
@@ -150,9 +151,9 @@ class SSUnityWindow(QWidget):
         monoComboSize = self.monoCombo.sizePolicy()
         monoComboSize.setRetainSizeWhenHidden(True)
         self.monoCombo.setSizePolicy(monoComboSize)
-        assertsSaveButtonSize = self.assertsSaveButton.sizePolicy()
-        assertsSaveButtonSize.setRetainSizeWhenHidden(True)
-        self.assertsSaveButton.setSizePolicy(assertsSaveButtonSize)
+        assetsSaveButtonSize = self.assetsSaveButton.sizePolicy()
+        assetsSaveButtonSize.setRetainSizeWhenHidden(True)
+        self.assetsSaveButton.setSizePolicy(assetsSaveButtonSize)
 
         # radioButton default setting
         denRadioButton.setChecked(True)
@@ -178,7 +179,7 @@ class SSUnityWindow(QWidget):
             self.loadAndSaveButton.clicked.disconnect()
             self.loadAndSaveButton.clicked.connect(self.loadAndSaveFunc)
 
-            self.assertsSaveButton.hide()
+            self.assetsSaveButton.hide()
 
             self.monoCombo.hide()
         elif selectedRadioId == 2:
@@ -190,7 +191,7 @@ class SSUnityWindow(QWidget):
             self.loadAndSaveButton.clicked.disconnect()
             self.loadAndSaveButton.clicked.connect(self.csvLoadAndSaveFunc)
 
-            self.assertsSaveButton.show()
+            self.assetsSaveButton.show()
 
             self.monoCombo.show()
 
@@ -280,14 +281,14 @@ class SSUnityWindow(QWidget):
             self.selectLineLabel.setText("")
             self.extractButton.setEnabled(False)
             self.loadAndSaveButton.setEnabled(False)
-            self.assertsSaveButton.setEnabled(False)
+            self.assetsSaveButton.setEnabled(False)
             return
 
         row = selectedItems[0].row()
         self.selectLineLabel.setText(str(row + 1))
         self.extractButton.setEnabled(True)
         self.loadAndSaveButton.setEnabled(True)
-        self.assertsSaveButton.setEnabled(True)
+        self.assetsSaveButton.setEnabled(True)
 
     def changeResourceMono(self, index):
         self.searchLineEdit.setText("")
@@ -376,9 +377,9 @@ class SSUnityWindow(QWidget):
                 self.clearTable()
                 self.createDenTable()
             else:
-                self.monoCombo.clear()
-                self.monoCombo.setEnabled(True)
-                self.monoCombo.addItems(self.decryptFile.keyNameList)
+                monoComboId = self.monoCombo.currentIndex()
+                self.clearTable()
+                self.createMonoTable(monoComboId)
         except Exception:
             errObj.write(traceback.format_exc())
             mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
@@ -460,7 +461,7 @@ class SSUnityWindow(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "",
-            os.path.join(self.lastDir, dataName),
+            "",
             fileTypes
         )
         if file_path:
@@ -490,10 +491,138 @@ class SSUnityWindow(QWidget):
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"]) 
 
     def csvExtractFunc(self):
-        pass
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
+
+        row = selectedItems[0].row()
+        monoComboId = self.monoCombo.currentIndex()
+        if monoComboId == 0:
+            trainName = self.contentTable.item(row, 0).text()
+            data = self.decryptFile.trainOrgInfoList[trainName]["data"]["monoData"]
+            fileTypes = "{0} ({1})".format("trainOrgInfo", "*.csv")
+
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "",
+                os.path.join(self.lastDir, trainName),
+                fileTypes
+            )
+            if file_path:
+                try:
+                    trainOrgInfo = self.decryptFile.getTrainOrgInfo(data.raw_data)
+                    if trainOrgInfo is None:
+                        self.decryptFile.printError()
+                        mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                        return
+                    ssUnityProcess.writeCsv(file_path, trainOrgInfo)
+                    mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
+                except Exception:
+                    errObj.write(traceback.format_exc())
+                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E7"])
+        elif monoComboId == 1:
+            pathId = int(self.contentTable.item(row, 0).text())
+            trainModelName = self.contentTable.item(row, 1).text()
+
+            filename = "{0}_{1}".format(trainModelName, pathId)
+            fileTypes = "{0} ({1})".format("changeMeshTex", "*.csv")
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "",
+                os.path.join(self.lastDir, filename),
+                fileTypes
+            )
+            if file_path:
+                try:
+                    meshTexInfoList = self.decryptFile.changeMeshTexList[trainModelName]
+                    meshTexInfo = [item for item in meshTexInfoList if item["num"] == pathId][0]
+                    ssUnityProcess.writeMeshCsv(file_path, meshTexInfo)
+                    mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
+                except Exception:
+                    errObj.write(traceback.format_exc())
+                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E7"])
 
     def csvLoadAndSaveFunc(self):
-        pass
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
+
+        row = selectedItems[0].row()
+        monoComboId = self.monoCombo.currentIndex()
+        if monoComboId == 0:
+            trainName = self.contentTable.item(row, 0).text()
+
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "",
+                "",
+                "trainOrgInfo (*.csv)"
+            )
+            if not file_path:
+                return
+            csvLines = None
+            try:
+                f = open(file_path, "r", encoding="utf-8-sig")
+                csvLines = f.readlines()
+                f.close()
+
+                if not self.decryptFile.checkCsv(csvLines):
+                    self.decryptFile.printError()
+                    mb.showerror(title=textSetting.textList["error"], message=self.decryptFile.error)
+                    return
+                if not self.decryptFile.saveCsv(trainName):
+                    self.decryptFile.printError()
+                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                    return
+                mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I111"])
+                item = self.contentTable.item(row, 2)
+                item.setText(str(self.decryptFile.trainOrgInfoList[trainName]["data"]["size"]))
+            except Exception:
+                errObj.write(traceback.format_exc())
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+        elif monoComboId == 1:
+            pathId = int(self.contentTable.item(row, 0).text())
+            trainModelName = self.contentTable.item(row, 1).text()
+
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "",
+                "",
+                "changeMeshTex (*.csv)"
+            )
+            if not file_path:
+                return
+            try:
+                f = open(file_path, "r", encoding="utf-8-sig")
+                csvLines = f.readlines()
+                f.close()
+                if not self.decryptFile.saveChangeMeshTex(csvLines, trainModelName, pathId):
+                    self.decryptFile.printError()
+                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                    return
+                mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I111"])
+                changeMeshTexFilterInfo = [item for item in self.decryptFile.changeMeshTexList[trainModelName] if item["num"] == pathId][0]
+                item = self.contentTable.item(row, 4)
+                item.setText(str(changeMeshTexFilterInfo["data"]["size"]))
+            except Exception:
+                errObj.write(traceback.format_exc())
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+
+        for col in range(self.contentTable.columnCount()):
+            item = self.contentTable.item(row, col)
+            if item:
+                item.setForeground(QColor("red"))
 
     def assetsSaveFunc(self):
-        pass
+        self.assetsSaveButton.setEnabled(False)
+        self.assetsSaveButton.repaint()
+        try:
+            if not self.decryptFile.saveAssets():
+                self.decryptFile.printError()
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                return
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I112"])
+            self.reloadFile()
+        except Exception:
+            errObj.write(traceback.format_exc())
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
