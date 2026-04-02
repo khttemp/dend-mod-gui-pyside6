@@ -52,14 +52,6 @@ def extractDenFileByExcel(filePath, data, configPath):
     return (True, excelWidget.warningMessage)
 
 
-def saveDenFile(filePath, data, decryptFile):
-    with open(filePath, "rb") as f:
-        data.script = f.read()
-    data.save()
-    with open(decryptFile.filePath, "wb") as w:
-        w.write(decryptFile.env.file.save())
-
-
 def loadExcelData(filePath, data, configPath):
     railModelInfo, ambModelInfo = readModelInfo("model.json")
     excelWidget = ExcelWidget(data.script.tobytes().decode(), filePath, configPath, railModelInfo, ambModelInfo)
@@ -68,8 +60,17 @@ def loadExcelData(filePath, data, configPath):
     return (True, {"message":excelWidget.warningMessage, "data":excelWidget.newLinesObj})
 
 
-def saveDenFileByExcel(data, decryptFile, newLines):
-    data.script = bytearray("\n".join(newLines).encode("utf-8"))
+def getScriptData(filePath):
+    with open(filePath, "rb") as f:
+        return f.read()
+
+
+def getScriptDataByExcel(newLines):
+    return bytearray("\n".join(newLines).encode("utf-8"))
+
+
+def saveDenFile(data, decryptFile, script):
+    data.script = script
     data.save()
     with open(decryptFile.filePath, "wb") as w:
         w.write(decryptFile.env.file.save())

@@ -467,7 +467,7 @@ class SSUnityWindow(QWidget):
             try:
                 data = self.decryptFile.allList[row][-1]
                 if os.path.splitext(file_path)[1].lower() != ".xlsx":
-                    ssUnityProcess.saveDenFile(file_path, data, self.decryptFile)
+                    script = ssUnityProcess.getScriptData(file_path)
                 else:
                     configPath = self.importDict["configPath"]
                     result, obj = ssUnityProcess.loadExcelData(file_path, data, configPath)
@@ -478,10 +478,11 @@ class SSUnityWindow(QWidget):
                         result = mb.askyesnoWarning(title=textSetting.textList["confirm"], message=obj["message"])
                         if result == mb.NO:
                             return
-                    result = mb.askyesnoWarning(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I50"])
-                    if result == mb.NO:
-                        return
-                    ssUnityProcess.saveDenFileByExcel(data, self.decryptFile, obj["data"])
+                    script = ssUnityProcess.getScriptDataByExcel(obj["data"])
+                result = mb.askyesnoWarning(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I50"])
+                if result == mb.NO:
+                    return
+                ssUnityProcess.saveDenFile(data, self.decryptFile, script)
                 mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I51"])
                 self.reloadFile()
             except Exception:
