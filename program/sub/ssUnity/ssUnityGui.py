@@ -302,14 +302,17 @@ class SSUnityWindow(QWidget):
         if not filterText:
             return
 
+        selectedRadioId = self.radioGroup.checkedId()
         self.contentTable.clearSelection()
         for row in range(self.contentTable.rowCount()):
-            item = self.contentTable.item(row, 0)
+            if selectedRadioId == 1:
+                item = self.contentTable.item(row, 0)
+            else:
+                item = self.contentTable.item(row, 1)
             if not item:
                 continue
             name = item.text().lower()
             if filterText not in name:
-                selectedRadioId = self.radioGroup.checkedId()
                 if selectedRadioId == 2 and self.monoCombo.currentIndex() == 1:
                     item2 = self.contentTable.item(row, 2)
                     if item2 and filterText in item2.text().lower():
