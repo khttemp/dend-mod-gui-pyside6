@@ -374,15 +374,16 @@ class SSUnityWindow(QWidget):
                 mb.showerror(title=textSetting.textList["error"], message=errorMsg)
                 return
 
-            self.searchLineEdit.setText("")
+            self.clearTable()
             selectedRadioId = self.radioGroup.checkedId()
             if selectedRadioId == 1:
-                self.clearTable()
                 self.createDenTable()
             else:
                 monoComboId = self.monoCombo.currentIndex()
-                self.clearTable()
                 self.createMonoTable(monoComboId)
+
+            if self.searchLineEdit.text() != "":
+                self.tableFilterFunc()
         except Exception:
             errObj.write(traceback.format_exc())
             mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
