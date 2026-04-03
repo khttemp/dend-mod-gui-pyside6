@@ -59,7 +59,7 @@ def writeDefaultConfig(configPath):
         config.add_section("FLAG_MODE")
         config.set("FLAG_MODE", "mode", 0)
         config.add_section("AMB_READ_MODE")
-        config.set("AMB_READ_MODE", "mode", 0)
+        config.set("AMB_READ_MODE", "mode", 1)
 
         config.add_section("UPDATE")
         config.set("UPDATE", "time", "2000/01/01")
@@ -133,4 +133,47 @@ def confirmUpdate(version, configPath):
         except PermissionError:
             errObj.write(traceback.format_exc())
     except Exception:
+        errObj.write(traceback.format_exc())
+
+
+def readXlsxWriteConfig(configPath):
+    if not os.path.exists(configPath):
+        writeDefaultConfig(configPath)
+
+    configRead = configparser.ConfigParser()
+    configRead.read(configPath, encoding="utf-8")
+
+    reReadFlag = False
+    if configCheckOption(configPath, "MODEL_NAME_MODE", "mode"):
+        reReadFlag = True
+    if configCheckOption(configPath, "FLAG_MODE", "mode"):
+        reReadFlag = True
+    if configCheckOption(configPath, "AMB_READ_MODE", "mode", "1"):
+        reReadFlag = True
+
+    if reReadFlag:
+        configRead.read(configPath, encoding="utf-8")
+
+    model = int(configRead.get("MODEL_NAME_MODE", "mode"))
+    flag = int(configRead.get("FLAG_MODE", "mode"))
+    amb = int(configRead.get("AMB_READ_MODE", "mode"))
+    return (model, flag, amb)
+
+
+def writeXlsxConfig(configPath, section, value):
+    configRead = configparser.ConfigParser()
+    configRead.read(configPath, encoding="utf-8")
+
+    if section == "model":
+        configRead.set("MODEL_NAME_MODE", "mode", str(value))
+    if section == "flag":
+        configRead.set("FLAG_MODE", "mode", str(value))
+    if section == "amb":
+        configRead.set("AMB_READ_MODE", "mode", str(value))
+
+    try:
+        f = open(configPath, "w", encoding="utf-8")
+        configRead.write(f)
+        f.close()
+    except PermissionError:
         errObj.write(traceback.format_exc())
