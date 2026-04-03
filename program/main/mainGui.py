@@ -108,13 +108,13 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentWidget(newWidget)
 
     def setConfigMenu(self, selectedProgram):
+        if self.configMenu:
+            self.menuBar().removeAction(self.configMenu.menuAction())
+            self.configMenu = None
+
         if selectedProgram == "SSUnity":
             self.configMenu = self.addXlsxWriteOptionMenu()
             self.menuBar().addMenu(self.configMenu)
-        else:
-            if self.configMenu:
-                self.menuBar().removeAction(self.configMenu.menuAction())
-                self.configMenu = None
 
     def addXlsxWriteOptionMenu(self):
         configPath = self.importDict["configPath"]
