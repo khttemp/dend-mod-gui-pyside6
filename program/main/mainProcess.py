@@ -8,10 +8,8 @@ import requests
 
 import program.sub.textSetting as textSetting
 import program.sub.errorLogClass as errorLogClass
-import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 errObj = errorLogClass.ErrorLogObj()
-mb = customMessageBoxWidget.CustomMessageBox()
 
 
 def resource_path(localDir, relative_path):
@@ -91,7 +89,7 @@ def configCheckOption(configPath, section, options, defaultValue="0"):
     return False
 
 
-def confirmUpdate(version, configPath):
+def confirmUpdate(mb, version, configPath):
     try:
         url = "https://raw.githubusercontent.com/khttemp/dend-mod-gui-pyside6/main/ver.txt"
         response = requests.get(url)

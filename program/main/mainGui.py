@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
 
     def checkUpdate(self):
         configPath = self.importDict["configPath"]
-        QTimer.singleShot(100, partial(mainProcess.confirmUpdate, self.version, configPath))
+        QTimer.singleShot(100, partial(mainProcess.confirmUpdate, mb, self.version, configPath))
 
     def clearContainer(self):
         currentWidget = self.stack.currentWidget()
