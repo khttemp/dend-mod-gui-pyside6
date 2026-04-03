@@ -91,6 +91,7 @@ class RailEditorWindow(QWidget):
         gameListLayout.addSpacing(30)
         # headerRight - gameListLayout - rsRaioLayout - rsRadio
         rsRadioButton = QRadioButton("Rising Stage")
+        rsRadioButton.setChecked(True)
         rsRadioLayout.addWidget(rsRadioButton, 1)
 
         # headerRight - buttonLayout
