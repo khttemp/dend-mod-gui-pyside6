@@ -371,7 +371,7 @@ class SSUnityWindow(QWidget):
         try:
             if not self.decryptFile.open():
                 self.decryptFile.printError()
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
 
             self.clearTable()
