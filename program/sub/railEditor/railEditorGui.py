@@ -167,6 +167,9 @@ class RailEditorWindow(QWidget):
         widget.deleteLater()
         self.contentScrollArea.setWidget(None)
 
+    def selectInfo(self, selectId=None):
+        pass
+
     def openFile(self):
         fileType = "{0} ({1})".format(textSetting.textList["railEditor"]["fileType"], "*.BIN")
         file_path, _ = QFileDialog.getOpenFileName(
@@ -213,6 +216,3 @@ class RailEditorWindow(QWidget):
             self.excelExtractButton.setEnabled(True)
             self.excelSaveButton.setEnabled(True)
             self.selectInfo(self.tabCombo.currentIndex())
-
-    def selectInfo(self, selectId=None):
-        pass
