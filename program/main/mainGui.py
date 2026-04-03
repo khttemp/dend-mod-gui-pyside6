@@ -7,6 +7,7 @@ import program.sub.textSetting as textSetting
 
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 import program.sub.ssUnity.ssUnityGui as ssUnityGui
+import program.sub.railEditor.railEditorGui as railEditorGui
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMenu
 from PySide6.QtGui import QAction, QActionGroup
@@ -99,6 +100,8 @@ class MainWindow(QMainWindow):
         newWidget = None
         if self.selectedProgram == "SSUnity":
             newWidget = ssUnityGui.SSUnityWindow(self.importDict)
+        elif self.selectedProgram == "railEditor":
+            newWidget = railEditorGui.RailEditorWindow(self.importDict)
 
         self.setConfigMenu(self.selectedProgram)
 
@@ -112,7 +115,7 @@ class MainWindow(QMainWindow):
             self.menuBar().removeAction(self.configMenu.menuAction())
             self.configMenu = None
 
-        if selectedProgram == "SSUnity":
+        if selectedProgram in ["SSUnity", "railEditor"]:
             self.configMenu = self.addXlsxWriteOptionMenu()
             self.menuBar().addMenu(self.configMenu)
 
