@@ -161,9 +161,9 @@ class MainWindow(QMainWindow):
             mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E1"])
             return
 
-        if self.selectedProgram == "SSUnity":
-            widget = self.stack.currentWidget()
-            widget.openFile()
+        currentWidget = self.stack.currentWidget()
+        if currentWidget:
+            currentWidget.openFile()
 
 
 def guiMain(importDict):
