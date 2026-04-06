@@ -1,96 +1,104 @@
-import tkinter
-from tkinter import messagebox as mb
-import program.textSetting as textSetting
-import program.appearance.ttkCustomWidget as ttkCustomWidget
-from program.appearance.customSimpleDialog import CustomSimpleDialog
+import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
+
+from PySide6.QtWidgets import (
+    QWidget, QFrame, QVBoxLayout, QHBoxLayout,
+    QLabel, QLineEdit, QPushButton,
+    QDialog, QDialogButtonBox
+)
+from PySide6.QtGui import QFont, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QRegularExpression
+
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
-class TrainCountWidget:
-    def __init__(self, root, frame, decryptFile, rootFrameAppearance, reloadFunc):
-        self.root = root
-        self.frame = frame
+class TrainCountWidget(QWidget):
+    def __init__(self, decryptFile, reloadFunc):
+        super().__init__()
         self.decryptFile = decryptFile
-        self.rootFrameAppearance = rootFrameAppearance
         self.reloadFunc = reloadFunc
+        font6 = QFont(textSetting.textList["font6"][0], textSetting.textList["font6"][1])
+        fixedWidth = 86
+        fixedHeight = 40
 
-        txtFrame = ttkCustomWidget.CustomTtkFrame(self.frame)
-        txtFrame.pack(anchor=tkinter.NW, padx=10, pady=5)
+        # mainLayout
+        mainLayout = QVBoxLayout(self)
+        # mainLayout - trainCountLayout
+        trainCountLayout = QHBoxLayout()
+        trainCountLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        mainLayout.addLayout(trainCountLayout)
+        # mainLayout - trainCountLayout - trainCountNameLabel
+        trainCountNameLabel = QLabel(textSetting.textList["railEditor"]["trainCount"], font=font6)
+        trainCountNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        trainCountNameLabel.setFixedSize(fixedWidth, fixedHeight)
+        trainCountNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        trainCountLayout.addWidget(trainCountNameLabel)
+        # mainLayout - trainCountLayout - trainCountLabel
+        trainCountLabel = QLabel("{0}".format(self.decryptFile.trainCnt), font=font6)
+        trainCountLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        trainCountLabel.setFixedSize(fixedWidth, fixedHeight)
+        trainCountLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        trainCountLayout.addWidget(trainCountLabel)
 
-        trainCntLb = ttkCustomWidget.CustomTtkLabel(txtFrame, text=textSetting.textList["railEditor"]["trainCount"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-        trainCntLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
-
-        self.varTrainCnt = tkinter.IntVar()
-        self.varTrainCnt.set(self.decryptFile.trainCnt)
         if not (self.decryptFile.game == "LSTrial" and self.decryptFile.oldFlag):
-            trainCntTextLb = ttkCustomWidget.CustomTtkLabel(txtFrame, textvariable=self.varTrainCnt, font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-            trainCntTextLb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E)
-            trainCntBtn = ttkCustomWidget.CustomTtkButton(txtFrame, text=textSetting.textList["railEditor"]["modifyBtnLabel"], style="custom.update.TButton", command=lambda: self.editVar(self.varTrainCnt.get()))
-            trainCntBtn.grid(row=0, column=2, sticky=tkinter.W + tkinter.E)
-        else:
-            trainCntTextLb = ttkCustomWidget.CustomTtkLabel(txtFrame, text=self.varTrainCnt.get(), font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-            trainCntTextLb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E)
+            # mainLayout - trainCountLayout - trainCountButton
+            trainCountButton = QPushButton(textSetting.textList["railEditor"]["modifyBtnLabel"], font=font6)
+            trainCountButton.setFixedSize(fixedWidth, fixedHeight)
+            trainCountLayout.addWidget(trainCountButton)
+            trainCountButton.clicked.connect(self.editVar)
 
-    def editVar(self, value):
-        result = EditTrainCountWidget(self.root, textSetting.textList["railEditor"]["editTrainCountLabel"], self.decryptFile, value, self.rootFrameAppearance)
-
-        if result.reloadFlag:
-            if not self.decryptFile.saveTrainCnt(result.resultValue):
+    def editVar(self):
+        editTrainCountWidget = EditTrainCountWidget(self, textSetting.textList["railEditor"]["editTrainCountLabel"], self.decryptFile)
+        if editTrainCountWidget.exec() == QDialog.Accepted:
+            resultValue = int(editTrainCountWidget.lineEdit.text())
+            if not self.decryptFile.saveTrainCnt(resultValue):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I72"])
-
             self.reloadFunc()
 
 
-class EditTrainCountWidget(CustomSimpleDialog):
-    def __init__(self, master, title, decryptFile, val, rootFrameAppearance):
+class EditTrainCountWidget(QDialog):
+    def __init__(self, parent, title, decryptFile):
+        super().__init__(parent)
+        self.setWindowTitle(title)
         self.decryptFile = decryptFile
-        self.val = val
-        self.reloadFlag = False
-        self.resultValue = 0
-        super().__init__(master, title, rootFrameAppearance.bgColor)
-
-    def body(self, master):
-        self.resizable(False, False)
-
-        valLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["infoList"]["I44"], font=textSetting.textList["font2"])
-        valLb.pack()
-
-        self.varTrainCnt = tkinter.IntVar()
-        self.varTrainCnt.set(self.val)
-        valEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varTrainCnt, font=textSetting.textList["font2"], width=16)
-        valEt.pack()
-        super().body(master)
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
+        # layout - LineEdit
+        self.lineEdit = QLineEdit(font=font2)
+        rx = QRegularExpression(r"^\d+$")
+        validator = QRegularExpressionValidator(rx, self)
+        self.lineEdit.setValidator(validator)
+        self.lineEdit.setText("{0}".format(self.decryptFile.trainCnt))
+        layout.addWidget(self.lineEdit)
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
     def validate(self):
-        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"], parent=self)
+        return self.lineEdit.hasAcceptableInput()
 
-        if result:
-            try:
-                try:
-                    res = int(self.varTrainCnt.get())
-                    if res <= 0:
-                        errorMsg = textSetting.textList["errorList"]["E61"].format(1)
-                        mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                        return False
-                    self.resultValue = res
-                except Exception:
-                    errorMsg = textSetting.textList["errorList"]["E60"]
-                    mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                    return False
-            except Exception:
-                errorMsg = textSetting.textList["errorList"]["E14"]
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return False
+    def accept(self):
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
 
-            if self.resultValue < self.val:
-                msg = textSetting.textList["infoList"]["I20"] + textSetting.textList["infoList"]["I21"]
-                result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning", parent=self)
-                if result:
-                    return True
-            else:
-                return True
+        if not self.validate():
+            mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E60"])
+            return
 
-    def apply(self):
-        self.reloadFlag = True
+        resultValue = int(self.lineEdit.text())
+        if resultValue < self.decryptFile.trainCnt:
+            msg = textSetting.textList["infoList"]["I20"] + textSetting.textList["infoList"]["I21"]
+            result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
+            if result != mb.OK:
+                return
+        super().accept()
