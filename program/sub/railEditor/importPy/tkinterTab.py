@@ -1,57 +1,62 @@
-import tkinter
-import program.textSetting as textSetting
-import program.appearance.ttkCustomWidget as ttkCustomWidget
 
-from program.tkinterScrollbarFrameClass import ScrollbarFrame
+import program.sub.textSetting as textSetting
 
-from program.railEditor.importPy.tab1.musicWidget import MusicWidget
-from program.railEditor.importPy.tab1.trainCountWidget import TrainCountWidget
-from program.railEditor.importPy.tab1.railPosWidget import RailPosWidget
-from program.railEditor.importPy.tab1.stationNoWidget import StationNoWidget
+from program.sub.railEditor.importPy.tab1.musicWidget import MusicWidget
+# from program.railEditor.importPy.tab1.trainCountWidget import TrainCountWidget
+# from program.railEditor.importPy.tab1.railPosWidget import RailPosWidget
+# from program.railEditor.importPy.tab1.stationNoWidget import StationNoWidget
 
-from program.railEditor.importPy.tab2.else1ListWidget import Else1ListWidget
-from program.railEditor.importPy.tab2.simpleListWidget import SimpleListWidget
-from program.railEditor.importPy.tab2.stationWidget import StationWidget
-from program.railEditor.importPy.tab2.binAnimeListWidget import BinAnimeListWidget
+# from program.railEditor.importPy.tab2.else1ListWidget import Else1ListWidget
+# from program.railEditor.importPy.tab2.simpleListWidget import SimpleListWidget
+# from program.railEditor.importPy.tab2.stationWidget import StationWidget
+# from program.railEditor.importPy.tab2.binAnimeListWidget import BinAnimeListWidget
 
-from program.railEditor.importPy.tab3.smfListWidget import SmfListWidget
+# from program.railEditor.importPy.tab3.smfListWidget import SmfListWidget
 
-from program.railEditor.importPy.tab4.stationNameWidget import StationNameWidget
+# from program.railEditor.importPy.tab4.stationNameWidget import StationNameWidget
 
-from program.railEditor.importPy.tab5.else2ListWidget import Else2ListWidget
+# from program.railEditor.importPy.tab5.else2ListWidget import Else2ListWidget
 
-from program.railEditor.importPy.tab6.cpuWidget import CpuWidget
+# from program.railEditor.importPy.tab6.cpuWidget import CpuWidget
 
-from program.railEditor.importPy.tab7.comicScriptWidget import ComicScriptWidget
-from program.railEditor.importPy.tab7.dosansenListWidget import DosansenListWidget
+# from program.railEditor.importPy.tab7.comicScriptWidget import ComicScriptWidget
+# from program.railEditor.importPy.tab7.dosansenListWidget import DosansenListWidget
 
-from program.railEditor.importPy.tab8.railListWidget import RailListWidget
+# from program.railEditor.importPy.tab8.railListWidget import RailListWidget
 
-from program.railEditor.importPy.tab9.else3ListWidget import Else3ListWidget
+# from program.railEditor.importPy.tab9.else3ListWidget import Else3ListWidget
 
-from program.railEditor.importPy.tab10.else4ListWidget import Else4ListWidget
+# from program.railEditor.importPy.tab10.else4ListWidget import Else4ListWidget
 
-from program.railEditor.importPy.tab11.ambListWidget import AmbListWidget
+# from program.railEditor.importPy.tab11.ambListWidget import AmbListWidget
+
+from PySide6.QtWidgets import (
+    QVBoxLayout
+)
+from PySide6.QtCore import Qt
 
 
-def tab1AllWidget(root, tabFrame, decryptFile, rootFrameAppearance, reloadFunc):
-    frame = ScrollbarFrame(tabFrame, bgColor=rootFrameAppearance.bgColor)
-    frame.pack(expand=True, fill=tkinter.BOTH)
+def tab1AllWidget(contentFrame, decryptFile, reloadFunc):
+    tab1Layout = QVBoxLayout()
+    tab1Layout.setContentsMargins(0, 0, 0, 0)
+    tab1Layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+    contentFrame.setLayout(tab1Layout)
 
-    MusicWidget(root, frame.interior, decryptFile, rootFrameAppearance, reloadFunc)
-    TrainCountWidget(root, frame.interior, decryptFile, rootFrameAppearance, reloadFunc)
-    RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["initPos"], 0, decryptFile, decryptFile.trainList, rootFrameAppearance, reloadFunc)
+    musicWidget = MusicWidget(decryptFile, reloadFunc)
+    tab1Layout.addWidget(musicWidget)
+    # TrainCountWidget(root, frame.interior, decryptFile, rootFrameAppearance, reloadFunc)
+    # RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["initPos"], 0, decryptFile, decryptFile.trainList, rootFrameAppearance, reloadFunc)
 
-    if decryptFile.game in ["BS", "CS", "RS"]:
-        RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["dummyPos"], 1, decryptFile, decryptFile.trainList2, rootFrameAppearance, reloadFunc)
-        RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["pracOrVsPos"], 2, decryptFile, decryptFile.trainList3, rootFrameAppearance, reloadFunc)
-        StationNoWidget(root, frame.interior, decryptFile, decryptFile.stationNo, 0, rootFrameAppearance, reloadFunc)
+    # if decryptFile.game in ["BS", "CS", "RS"]:
+    #     RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["dummyPos"], 1, decryptFile, decryptFile.trainList2, rootFrameAppearance, reloadFunc)
+    #     RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["pracOrVsPos"], 2, decryptFile, decryptFile.trainList3, rootFrameAppearance, reloadFunc)
+    #     StationNoWidget(root, frame.interior, decryptFile, decryptFile.stationNo, 0, rootFrameAppearance, reloadFunc)
 
-        if decryptFile.game == "BS":
-            separator = ttkCustomWidget.CustomTtkSeparator(frame.interior, orient="horizontal")
-            separator.pack(fill=tkinter.X)
-            RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["dummyPos"], 3, decryptFile, decryptFile.trainList4, rootFrameAppearance, reloadFunc)
-            StationNoWidget(root, frame.interior, decryptFile, decryptFile.stationNo2, 1, rootFrameAppearance, reloadFunc)
+    #     if decryptFile.game == "BS":
+    #         separator = ttkCustomWidget.CustomTtkSeparator(frame.interior, orient="horizontal")
+    #         separator.pack(fill=tkinter.X)
+    #         RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["dummyPos"], 3, decryptFile, decryptFile.trainList4, rootFrameAppearance, reloadFunc)
+    #         StationNoWidget(root, frame.interior, decryptFile, decryptFile.stationNo2, 1, rootFrameAppearance, reloadFunc)
 
 
 def tab2AllWidget(root, tabFrame, decryptFile, rootFrameAppearance, reloadFunc):

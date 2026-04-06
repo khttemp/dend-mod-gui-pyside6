@@ -1,284 +1,339 @@
 import copy
-import tkinter
-from tkinter import messagebox as mb
-import program.textSetting as textSetting
-import program.appearance.ttkCustomWidget as ttkCustomWidget
-from program.appearance.customSimpleDialog import CustomSimpleDialog
+
+import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
+
+from PySide6.QtWidgets import (
+    QWidget, QFrame, QVBoxLayout, QHBoxLayout,
+    QLabel, QLineEdit, QPushButton, QListWidget, QComboBox,
+    QDialog, QDialogButtonBox, QSizePolicy
+)
+from PySide6.QtGui import QFont, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QRegularExpression
+
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
-class MusicWidget:
-    def __init__(self, root, frame, decryptFile, rootFrameAppearance, reloadFunc):
-        self.root = root
-        self.frame = frame
+class MusicWidget(QWidget):
+    def __init__(self, decryptFile, reloadFunc):
+        super().__init__()
         self.decryptFile = decryptFile
-        self.rootFrameAppearance = rootFrameAppearance
         self.reloadFunc = reloadFunc
+        font6 = QFont(textSetting.textList["font6"][0], textSetting.textList["font6"][1])
+        fixedWidth = 86
+        fixedHeight = 40
 
-        txtFrame = ttkCustomWidget.CustomTtkFrame(self.frame)
-        txtFrame.pack(anchor=tkinter.NW, padx=10, pady=5)
-
-        musicLb = ttkCustomWidget.CustomTtkLabel(txtFrame, text=textSetting.textList["railEditor"]["bgmNum"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-        musicLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
-
-        self.varMusic = tkinter.IntVar()
-        self.varMusic.set(self.decryptFile.musicCnt)
-        musicTextLb = ttkCustomWidget.CustomTtkLabel(txtFrame, textvariable=self.varMusic, font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-        musicTextLb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E)
+        # mainLayout
+        mainLayout = QVBoxLayout(self)
+        # mainLayout - musicLayout
+        musicLayout = QHBoxLayout()
+        musicLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        mainLayout.addLayout(musicLayout)
+        # mainLayout - musicLayout - musicNameLabel
+        musicNameLabel = QLabel(textSetting.textList["railEditor"]["bgmNum"], font=font6)
+        musicNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        musicNameLabel.setFixedSize(fixedWidth, fixedHeight)
+        musicNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        musicLayout.addWidget(musicNameLabel)
+        # mainLayout - musicLayout - musicCountLabel
+        musicCountLabel = QLabel("{0}".format(self.decryptFile.musicCnt), font=font6)
+        musicCountLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        musicCountLabel.setFixedSize(fixedWidth, fixedHeight)
+        musicCountLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        musicLayout.addWidget(musicCountLabel)
+        # mainLayout - musicLayout - musicButton
+        musicButton = QPushButton(textSetting.textList["railEditor"]["modifyBtnLabel"], font=font6)
+        musicButton.setFixedSize(fixedWidth, fixedHeight)
+        musicLayout.addWidget(musicButton)
         if self.decryptFile.game in ["CS", "RS"]:
-            musicBtn = ttkCustomWidget.CustomTtkButton(txtFrame, text=textSetting.textList["railEditor"]["modifyBtnLabel"], style="custom.update.TButton", command=lambda: self.editVar(self.varMusic.get()))
-            musicBtn.grid(row=0, column=2, sticky=tkinter.W + tkinter.E)
+            musicButton.clicked.connect(self.editVar)
         else:
-            musicBtn = ttkCustomWidget.CustomTtkButton(txtFrame, text=textSetting.textList["railEditor"]["modifyBtnLabel"], style="custom.update.TButton", command=lambda: self.editMusicList())
-            musicBtn.grid(row=0, column=2, sticky=tkinter.W + tkinter.E)
+            musicButton.clicked.connect(self.editMusicList)
 
-    def editVar(self, value):
-        result = EditMusicCnt(self.root, textSetting.textList["railEditor"]["editBgmNumLabel"], self.decryptFile, value, self.rootFrameAppearance)
-
-        if result.reloadFlag:
-            if not self.decryptFile.saveMusic(result.resultValue):
+    def editVar(self):
+        editMusicCountDialog = EditMusicCountDialog(self, textSetting.textList["railEditor"]["editBgmNumLabel"], self.decryptFile)
+        if editMusicCountDialog.exec() == QDialog.Accepted:
+            resultValue = int(editMusicCountDialog.lineEdit.text())
+            if not self.decryptFile.saveMusic(resultValue):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I69"])
-
             self.reloadFunc()
 
     def editMusicList(self):
-        result = EditMusicList(self.root, textSetting.textList["railEditor"]["editBgmListLabel"], self.decryptFile, self.rootFrameAppearance)
-        if result.reloadFlag:
-            if not self.decryptFile.saveMusicList(result.musicList):
-                self.decryptFile.printError()
-                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-                return False
-            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I69"])
-            self.reloadFunc()
+        editMusicListDialog = EditMusicListDialog(self, textSetting.textList["railEditor"]["editBgmListLabel"], self.decryptFile)
+        if editMusicListDialog.exec() == QDialog.Accepted:
+            if editMusicListDialog.reloadFlag:
+                if not self.decryptFile.saveMusicList(editMusicListDialog.musicList):
+                    self.decryptFile.printError()
+                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                    return False
+                mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I69"])
+                self.reloadFunc()
 
 
-class EditMusicCnt(CustomSimpleDialog):
-    def __init__(self, master, title, decryptFile, val, rootFrameAppearance):
+class EditMusicCountDialog(QDialog):
+    def __init__(self, parent, title, decryptFile):
+        super().__init__(parent)
+        self.setWindowTitle(title)
         self.decryptFile = decryptFile
-        self.val = val
-        self.reloadFlag = False
-        self.resultValue = 0
-        super().__init__(master, title, rootFrameAppearance.bgColor)
-
-    def body(self, master):
-        self.resizable(False, False)
-
-        valLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["infoList"]["I44"], font=textSetting.textList["font2"])
-        valLb.pack()
-
-        self.varMusicCnt = tkinter.IntVar()
-        self.varMusicCnt.set(self.val)
-        valEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varMusicCnt, font=textSetting.textList["font2"], width=16)
-        valEt.pack()
-        super().body(master)
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
+        # layout - LineEdit
+        self.lineEdit = QLineEdit(font=font2)
+        rx = QRegularExpression(r"^\d+$")
+        validator = QRegularExpressionValidator(rx, self)
+        self.lineEdit.setValidator(validator)
+        self.lineEdit.setText("{0}".format(self.decryptFile.musicCnt))
+        layout.addWidget(self.lineEdit)
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
     def validate(self):
-        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"], parent=self)
+        return self.lineEdit.hasAcceptableInput()
 
-        if result:
-            try:
-                try:
-                    res = int(self.varMusicCnt.get())
-                    if res <= 0:
-                        errorMsg = textSetting.textList["errorList"]["E61"].format(1)
-                        mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                        return False
-                    self.resultValue = res
-                    return True
-                except Exception:
-                    errorMsg = textSetting.textList["errorList"]["E60"]
-                    mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                    return False
-            except Exception:
-                errorMsg = textSetting.textList["errorList"]["E14"]
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return False
+    def accept(self):
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
 
-    def apply(self):
-        self.reloadFlag = True
+        if not self.validate():
+            mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E60"])
+            return
+        super().accept()
 
 
-class EditMusicList(CustomSimpleDialog):
-    def __init__(self, master, title, decryptFile, rootFrameAppearance):
+class EditMusicListDialog(QDialog):
+    def __init__(self, parent, title, decryptFile):
+        super().__init__(parent)
+        self.setWindowTitle(title)
         self.decryptFile = decryptFile
-        self.musicList = copy.deepcopy(decryptFile.musicList)
+        self.musicList = copy.deepcopy(self.decryptFile.musicList)
         self.dirtyFlag = False
         self.reloadFlag = False
-        self.resultList = []
-        self.rootFrameAppearance = rootFrameAppearance
-        super().__init__(master, title, rootFrameAppearance.bgColor)
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        font6 = QFont(textSetting.textList["font6"][0], textSetting.textList["font6"][1])
 
-    def body(self, master):
-        self.frame = master
-        self.resizable(False, False)
-
-        btnFrame = ttkCustomWidget.CustomTtkFrame(self.frame)
-        btnFrame.pack()
-
-        self.modifyBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["modify"], style="custom.listbox.TButton", state="disabled", command=self.modify)
-        self.modifyBtn.grid(padx=10, row=0, column=0, sticky=tkinter.W + tkinter.E)
-
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - buttonLayout
+        buttonLayout = QHBoxLayout()
+        layout.addLayout(buttonLayout)
+        # layout - buttonLayout - modifyButton
+        self.modifyButton = QPushButton(textSetting.textList["modify"], font=font6)
+        self.modifyButton.setEnabled(False)
+        self.modifyButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.modifyButton.clicked.connect(self.modifyFunc)
+        buttonLayout.addWidget(self.modifyButton)
         if self.decryptFile.game != "LS":
-            self.insertBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["insert"], style="custom.listbox.TButton", state="disabled", command=self.insert)
-            self.insertBtn.grid(padx=10, row=0, column=1, sticky=tkinter.W + tkinter.E)
-            self.deleteBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["delete"], style="custom.listbox.TButton", state="disabled", command=self.delete)
-            self.deleteBtn.grid(padx=10, row=0, column=2, sticky=tkinter.W + tkinter.E)
+            # layout - buttonLayout - insertButton
+            self.insertButton = QPushButton(textSetting.textList["insert"], font=font6)
+            self.insertButton.setEnabled(False)
+            self.insertButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            self.insertButton.clicked.connect(self.insertFunc)
+            buttonLayout.addWidget(self.insertButton)
+            # layout - buttonLayout - deleteButton
+            self.deleteButton = QPushButton(textSetting.textList["delete"], font=font6)
+            self.deleteButton.setEnabled(False)
+            self.deleteButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            self.deleteButton.clicked.connect(self.deleteFunc)
+            buttonLayout.addWidget(self.deleteButton)
 
-        listFrame = ttkCustomWidget.CustomTtkFrame(self.frame)
-        listFrame.pack()
+        # layout - QListWidget
+        self.musicListListWidget = QListWidget(font=font2)
+        displayMusicList = self.setListboxInfo(self.musicList)
+        self.musicListListWidget.addItems(displayMusicList)
+        self.musicListListWidget.setFixedWidth(self.getMaxWidth() + 20)
+        self.musicListListWidget.itemClicked.connect(self.onItemClicked)
+        self.selectIndex = -1
+        layout.addWidget(self.musicListListWidget)
 
-        copyMusicList = self.setListboxInfo(self.musicList)
-        self.v_musicList = tkinter.StringVar(value=copyMusicList)
-        musicListListbox = tkinter.Listbox(listFrame, selectmode="single", font=textSetting.textList["font2"], width=55, height=6, listvariable=self.v_musicList, bg=self.rootFrameAppearance.bgColor, fg=self.rootFrameAppearance.fgColor)
-        musicListListbox.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
-        musicListListbox.bind("<<ListboxSelect>>", lambda e: self.buttonActive(musicListListbox, musicListListbox.curselection()))
-        super().body(master)
-
-    def buttonActive(self, listbox, value):
-        if len(value) == 0:
-            self.modifyBtn["state"] = "disabled"
-            self.insertBtn["state"] = "disabled"
-            self.deleteBtn["state"] = "disabled"
-            return
-        self.selectIndexNum = value[0]
-
-        if self.decryptFile.game in ["BS", "CS", "RS"]:
-            if listbox.get(value[0]) == textSetting.textList["railEditor"]["noList"]:
-                self.modifyBtn["state"] = "disabled"
-                self.deleteBtn["state"] = "disabled"
-            else:
-                self.modifyBtn["state"] = "normal"
-                self.deleteBtn["state"] = "normal"
-            self.insertBtn["state"] = "normal"
-        else:
-            self.modifyBtn["state"] = "normal"
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
     def setListboxInfo(self, musicList):
-        copyMusicList = copy.deepcopy(musicList)
-        if len(copyMusicList) > 0:
-            for i in range(len(copyMusicList)):
-                musicInfo = copyMusicList[i]
-                copyMusicList[i] = "{0:02d}→{1}".format(i, musicInfo)
+        displayMusicList = []
+        if len(musicList) > 0:
+            for i in range(len(musicList)):
+                musicInfo = musicList[i]
+                displayMusicList.append("{0:02d}→{1}".format(i, musicInfo))
         else:
-            copyMusicList = [textSetting.textList["railEditor"]["noList"]]
+            displayMusicList = [textSetting.textList["railEditor"]["noList"]]
+        return displayMusicList
 
-        return copyMusicList
+    def getMaxWidth(self):
+        maxWidth = 0
+        for i in range(self.musicListListWidget.count()):
+            size = self.musicListListWidget.sizeHintForIndex(self.musicListListWidget.model().index(i, 0))
+            if size.width() > maxWidth:
+                maxWidth = size.width()
+        return maxWidth
 
-    def modify(self):
-        result = EditMusicListWidget(self.frame, textSetting.textList["railEditor"]["modifyBgmLabel"], self.decryptFile, "modify", self.selectIndexNum, self.musicList, self.rootFrameAppearance)
-        if result.dirtyFlag:
+    def onItemClicked(self, item):
+        self.selectIndex = self.musicListListWidget.row(item)
+        if self.decryptFile.game in ["BS", "CS", "RS"]:
+            self.insertButton.setEnabled(True)
+            if item.text() == textSetting.textList["railEditor"]["noList"]:
+                self.modifyButton.setEnabled(False)
+                self.deleteButton.setEnabled(False)
+            else:
+                self.modifyButton.setEnabled(True)
+                self.deleteButton.setEnabled(True)
+        else:
+            self.modifyButton.setEnabled(True)
+
+    def modifyFunc(self):
+        item = self.musicList[self.selectIndex]
+        editMusicElementWidget = EditMusicElementWidget(self, textSetting.textList["railEditor"]["modifyBgmLabel"], self.decryptFile, "modify", item)
+        if editMusicElementWidget.exec() == QDialog.Accepted:
             self.dirtyFlag = True
-            self.musicList[self.selectIndexNum] = result.resultValueList
-            copyMusicList = self.setListboxInfo(self.musicList)
-            self.v_musicList.set(copyMusicList)
+            self.musicList[self.selectIndex] = editMusicElementWidget.resultValueList
+            self.musicListListWidget.clear()
+            displayMusicList = self.setListboxInfo(self.musicList)
+            self.musicListListWidget.addItems(displayMusicList)
+            self.musicListListWidget.setCurrentRow(self.selectIndex)
 
-    def insert(self):
-        result = EditMusicListWidget(self.frame, textSetting.textList["railEditor"]["insertBgmLabel"], self.decryptFile, "insert", self.selectIndexNum, self.musicList, self.rootFrameAppearance)
-        if result.dirtyFlag:
+    def insertFunc(self):
+        editMusicElementWidget = EditMusicElementWidget(self, textSetting.textList["railEditor"]["insertBgmLabel"], self.decryptFile, "insert")
+        if editMusicElementWidget.exec() == QDialog.Accepted:
             self.dirtyFlag = True
-            self.musicList.insert(self.selectIndexNum + result.insertPos, result.resultValueList)
-            copyMusicList = self.setListboxInfo(self.musicList)
-            self.v_musicList.set(copyMusicList)
+            self.musicList.insert(self.selectIndex + editMusicElementWidget.insertPos, editMusicElementWidget.resultValueList)
+            self.musicListListWidget.clear()
+            displayMusicList = self.setListboxInfo(self.musicList)
+            self.musicListListWidget.addItems(displayMusicList)
+            self.musicListListWidget.setCurrentRow(self.selectIndex + editMusicElementWidget.insertPos)
+            self.selectIndex = self.selectIndex + editMusicElementWidget.insertPos
 
-    def delete(self):
-        msg = textSetting.textList["infoList"]["I25"].format(self.selectIndexNum + 1)
-        result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning", parent=self)
-        if result:
+    def deleteFunc(self):
+        msg = textSetting.textList["infoList"]["I25"].format(self.selectIndex + 1)
+        result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
+        if result == mb.OK:
             self.dirtyFlag = True
-            self.musicList.pop(self.selectIndexNum)
-            copyMusicList = self.setListboxInfo(self.musicList)
-            self.v_musicList.set(copyMusicList)
-            self.modifyBtn["state"] = "disabled"
-            self.insertBtn["state"] = "disabled"
-            self.deleteBtn["state"] = "disabled"
+            self.musicList.pop(self.selectIndex)
+            self.musicListListWidget.clear()
+            displayMusicList = self.setListboxInfo(self.musicList)
+            self.musicListListWidget.addItems(displayMusicList)
+            self.modifyButton.setEnabled(False)
+            self.insertButton.setEnabled(False)
+            self.deleteButton.setEnabled(False)
 
     def validate(self):
         if self.dirtyFlag:
-            result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I70"], parent=self)
-            if result:
+            result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I70"])
+            if result == mb.OK:
                 self.reloadFlag = True
                 return True
         else:
             return True
 
+    def accept(self):
+        if not self.validate():
+            return
+        super().accept()
 
-class EditMusicListWidget(CustomSimpleDialog):
-    def __init__(self, master, title, decryptFile, mode, index, musicList, rootFrameAppearance):
+
+class EditMusicElementWidget(QDialog):
+    def __init__(self, parent, title, decryptFile, mode, item=None):
+        super().__init__(parent)
+        self.setWindowTitle(title)
         self.decryptFile = decryptFile
         self.mode = mode
-        self.index = index
-        self.musicList = musicList
-        self.varList = []
-        self.resultValueList = []
+        self.font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        numberValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+(\.\d+)?"), self)
         self.insertPos = -1
-        self.dirtyFlag = False
-        super().__init__(master, title, rootFrameAppearance.bgColor)
+        self.resultValueList = []
 
-    def body(self, master):
-        self.resizable(False, False)
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - editLayout
+        editLayout = QHBoxLayout()
+        layout.addLayout(editLayout)
+        # layout - editLayout - labelLayout
+        self.labelLayout = QVBoxLayout()
+        editLayout.addLayout(self.labelLayout)
+        # layout - editLayout - lineEditLayout
+        self.lineEditLayout = QVBoxLayout()
+        editLayout.addLayout(self.lineEditLayout)
 
-        musicInfoLb = textSetting.textList["railEditor"]["editBgmInfoLabelList"]
-        for i in range(len(musicInfoLb)):
-            musicLb = ttkCustomWidget.CustomTtkLabel(master, text=musicInfoLb[i], font=textSetting.textList["font2"])
-            musicLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-            if i == 2 or i == 3:
-                self.varMusic = tkinter.DoubleVar()
-                if self.mode == "modify":
-                    musicInfo = self.musicList[self.index]
-                    self.varMusic.set(musicInfo[i])
-            else:
-                self.varMusic = tkinter.StringVar()
-                if self.mode == "modify":
-                    musicInfo = self.musicList[self.index]
-                    self.varMusic.set(musicInfo[i])
-            self.varList.append(self.varMusic)
-            musicEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varMusic, font=textSetting.textList["font2"])
-            musicEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
+        self.lineEditList = []
+        musicElementInfoLabelList = textSetting.textList["railEditor"]["editBgmInfoLabelList"]
+        for i, musicElementInfoLabel in enumerate(musicElementInfoLabelList):
+            # layout - editLayout - labelLayout - musicLabel
+            musicLabel = QLabel(musicElementInfoLabel, font=self.font2)
+            self.labelLayout.addWidget(musicLabel)
+            # layout - editLayout - lineEditLayout - musicLineEdit
+            musicLineEdit = QLineEdit(font=self.font2)
+            self.lineEditList.append(musicLineEdit)
+            self.lineEditLayout.addWidget(musicLineEdit)
+            if i in [2, 3]:
+                musicLineEdit.setValidator(numberValidator)
+
+            if self.mode == "modify":
+                musicLineEdit.setText("{0}".format(item[i]))
 
         if self.mode == "insert":
-            self.setInsertWidget(master, len(musicInfoLb))
-        super().body(master)
+            self.setInsertWidget()
 
-    def setInsertWidget(self, master, index):
-        xLine = ttkCustomWidget.CustomTtkSeparator(master, orient=tkinter.HORIZONTAL)
-        xLine.grid(row=index, column=0, columnspan=2, sticky=tkinter.W + tkinter.E, pady=10)
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
-        insertLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["railEditor"]["posLabel"], font=textSetting.textList["font2"])
-        insertLb.grid(row=index + 1, column=0, sticky=tkinter.W + tkinter.E)
-        self.v_insert = tkinter.StringVar()
-        self.insertCb = ttkCustomWidget.CustomTtkCombobox(master, state="readonly", font=textSetting.textList["font2"], textvariable=self.v_insert, values=textSetting.textList["railEditor"]["posValue"])
-        self.insertCb.grid(row=index + 1, column=1, sticky=tkinter.W + tkinter.E)
-        self.insertCb.current(0)
+    def setInsertWidget(self):
+        # layout - editLayout - labelLayout - QFrame
+        horizentalLabelLine = QFrame()
+        horizentalLabelLine.setFrameShape(QFrame.Shape.HLine)
+        horizentalLabelLine.setFrameShadow(QFrame.Shadow.Sunken)
+        self.labelLayout.addWidget(horizentalLabelLine)
+        # layout - editLayout - labelLayout - insertLabel
+        insertLabel = QLabel(textSetting.textList["railEditor"]["posLabel"], font=self.font2)
+        self.labelLayout.addWidget(insertLabel)
+        # layout - editLayout - lineEditLayout - QFrame
+        horizentalLineEditLine = QFrame()
+        horizentalLineEditLine.setFrameShape(QFrame.Shape.HLine)
+        horizentalLineEditLine.setFrameShadow(QFrame.Shadow.Sunken)
+        self.lineEditLayout.addWidget(horizentalLineEditLine)
+        # layout - editLayout - lineEditLayout - insertCombo
+        self.insertCombo = QComboBox(font=self.font2)
+        self.insertCombo.addItems(textSetting.textList["railEditor"]["posValue"])
+        self.lineEditLayout.addWidget(self.insertCombo)
 
     def validate(self):
         infoMsg = textSetting.textList["infoList"]["I21"]
         if self.mode == "insert":
             infoMsg = textSetting.textList["infoList"]["I71"]
             self.insertPos = 1
-            if self.insertCb.current() == 1:
+            if self.insertCombo.currentIndex() == 1:
                 self.insertPos = 0
         self.resultValueList = []
-        result = mb.askokcancel(title=textSetting.textList["confirm"], message=infoMsg, parent=self)
-        if result:
-            try:
-                for i in range(len(self.varList)):
-                    if i == 2 or i == 3:
-                        try:
-                            res = float(self.varList[i].get())
-                        except Exception:
-                            errorMsg = textSetting.textList["errorList"]["E3"]
-                            mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                            return False
-                    else:
-                        res = str(self.varList[i].get())
-                    self.resultValueList.append(res)
-                return True
-            except Exception:
-                errorMsg = textSetting.textList["errorList"]["E14"]
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return False
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=infoMsg)
+        if result != mb.OK:
+            return
 
-    def apply(self):
-        self.dirtyFlag = True
+        for i, lineEdit in enumerate(self.lineEditList):
+            if i in [2, 3]:
+                if not lineEdit.hasAcceptableInput():
+                    mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+                    return
+                self.resultValueList.append(float(lineEdit.text()))
+            else:
+                self.resultValueList.append(lineEdit.text())
+
+        return True
+
+    def accept(self):
+        if not self.validate():
+            return
+        super().accept()
