@@ -2,7 +2,7 @@ import program.sub.textSetting as textSetting
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from PySide6.QtWidgets import (
-    QWidget, QFrame, QVBoxLayout, QHBoxLayout,
+    QWidget, QFrame, QVBoxLayout, QGridLayout,
     QLabel, QLineEdit, QPushButton,
     QDialog, QDialogButtonBox
 )
@@ -22,29 +22,27 @@ class TrainCountWidget(QWidget):
         fixedHeight = 40
 
         # mainLayout
-        mainLayout = QVBoxLayout(self)
-        # mainLayout - trainCountLayout
-        trainCountLayout = QHBoxLayout()
-        trainCountLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        mainLayout.addLayout(trainCountLayout)
-        # mainLayout - trainCountLayout - trainCountNameLabel
+        mainLayout = QGridLayout(self)
+        mainLayout.setSpacing(0)
+        mainLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        # mainLayout - trainCountNameLabel
         trainCountNameLabel = QLabel(textSetting.textList["railEditor"]["trainCount"], font=font6)
         trainCountNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
         trainCountNameLabel.setFixedSize(fixedWidth, fixedHeight)
         trainCountNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        trainCountLayout.addWidget(trainCountNameLabel)
-        # mainLayout - trainCountLayout - trainCountLabel
+        mainLayout.addWidget(trainCountNameLabel, 0, 0)
+        # mainLayout - trainCountLabel
         trainCountLabel = QLabel("{0}".format(self.decryptFile.trainCnt), font=font6)
         trainCountLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
         trainCountLabel.setFixedSize(fixedWidth, fixedHeight)
         trainCountLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        trainCountLayout.addWidget(trainCountLabel)
+        mainLayout.addWidget(trainCountLabel, 0, 1)
 
         if not (self.decryptFile.game == "LSTrial" and self.decryptFile.oldFlag):
-            # mainLayout - trainCountLayout - trainCountButton
+            # mainLayout - trainCountButton
             trainCountButton = QPushButton(textSetting.textList["railEditor"]["modifyBtnLabel"], font=font6)
             trainCountButton.setFixedSize(fixedWidth, fixedHeight)
-            trainCountLayout.addWidget(trainCountButton)
+            mainLayout.addWidget(trainCountButton, 0, 2)
             trainCountButton.clicked.connect(self.editVar)
 
     def editVar(self):

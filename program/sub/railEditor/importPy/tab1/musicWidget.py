@@ -4,7 +4,7 @@ import program.sub.textSetting as textSetting
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from PySide6.QtWidgets import (
-    QWidget, QFrame, QVBoxLayout, QHBoxLayout,
+    QWidget, QFrame, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QLineEdit, QPushButton, QListWidget, QComboBox,
     QDialog, QDialogButtonBox, QSizePolicy
 )
@@ -24,27 +24,25 @@ class MusicWidget(QWidget):
         fixedHeight = 40
 
         # mainLayout
-        mainLayout = QVBoxLayout(self)
-        # mainLayout - musicLayout
-        musicLayout = QHBoxLayout()
-        musicLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        mainLayout.addLayout(musicLayout)
-        # mainLayout - musicLayout - musicNameLabel
+        mainLayout = QGridLayout(self)
+        mainLayout.setSpacing(0)
+        mainLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        # mainLayout - musicNameLabel
         musicNameLabel = QLabel(textSetting.textList["railEditor"]["bgmNum"], font=font6)
         musicNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
         musicNameLabel.setFixedSize(fixedWidth, fixedHeight)
         musicNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        musicLayout.addWidget(musicNameLabel)
-        # mainLayout - musicLayout - musicCountLabel
+        mainLayout.addWidget(musicNameLabel, 0, 0)
+        # mainLayout - musicCountLabel
         musicCountLabel = QLabel("{0}".format(self.decryptFile.musicCnt), font=font6)
         musicCountLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
         musicCountLabel.setFixedSize(fixedWidth, fixedHeight)
         musicCountLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        musicLayout.addWidget(musicCountLabel)
-        # mainLayout - musicLayout - musicButton
+        mainLayout.addWidget(musicCountLabel, 0, 1)
+        # mainLayout - musicButton
         musicButton = QPushButton(textSetting.textList["railEditor"]["modifyBtnLabel"], font=font6)
         musicButton.setFixedSize(fixedWidth, fixedHeight)
-        musicLayout.addWidget(musicButton)
+        mainLayout.addWidget(musicButton, 0, 2)
         if self.decryptFile.game in ["CS", "RS"]:
             musicButton.clicked.connect(self.editVar)
         else:
@@ -256,26 +254,19 @@ class EditMusicElementWidget(QDialog):
 
         # layout
         layout = QVBoxLayout(self)
-        # layout - editLayout
-        editLayout = QHBoxLayout()
-        layout.addLayout(editLayout)
-        # layout - editLayout - labelLayout
-        self.labelLayout = QVBoxLayout()
-        editLayout.addLayout(self.labelLayout)
-        # layout - editLayout - lineEditLayout
-        self.lineEditLayout = QVBoxLayout()
-        editLayout.addLayout(self.lineEditLayout)
-
+        # layout - QGridLayout
+        self.musicGridLayout = QGridLayout()
+        layout.addLayout(self.musicGridLayout)
         self.lineEditList = []
         musicElementInfoLabelList = textSetting.textList["railEditor"]["editBgmInfoLabelList"]
         for i, musicElementInfoLabel in enumerate(musicElementInfoLabelList):
-            # layout - editLayout - labelLayout - musicLabel
+            # layout - QGridLayout - musicLabel
             musicLabel = QLabel(musicElementInfoLabel, font=self.font2)
-            self.labelLayout.addWidget(musicLabel)
-            # layout - editLayout - lineEditLayout - musicLineEdit
+            self.musicGridLayout.addWidget(musicLabel, i, 0)
+            # layout - QGridLayout - musicLineEdit
             musicLineEdit = QLineEdit(font=self.font2)
             self.lineEditList.append(musicLineEdit)
-            self.lineEditLayout.addWidget(musicLineEdit)
+            self.musicGridLayout.addWidget(musicLineEdit, i, 1)
             if i in [2, 3]:
                 musicLineEdit.setValidator(numberValidator)
 
@@ -283,7 +274,7 @@ class EditMusicElementWidget(QDialog):
                 musicLineEdit.setText("{0}".format(item[i]))
 
         if self.mode == "insert":
-            self.setInsertWidget()
+            self.setInsertWidget(len(musicElementInfoLabelList))
 
         # layout - QDialogButtonBox
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -291,24 +282,19 @@ class EditMusicElementWidget(QDialog):
         buttonBox.rejected.connect(self.reject)
         layout.addWidget(buttonBox)
 
-    def setInsertWidget(self):
-        # layout - editLayout - labelLayout - QFrame
-        horizentalLabelLine = QFrame()
-        horizentalLabelLine.setFrameShape(QFrame.Shape.HLine)
-        horizentalLabelLine.setFrameShadow(QFrame.Shadow.Sunken)
-        self.labelLayout.addWidget(horizentalLabelLine)
-        # layout - editLayout - labelLayout - insertLabel
+    def setInsertWidget(self, insertRow):
+        # layout - QGridLayout - QFrame (colspan=2)
+        horizentalLine = QFrame()
+        horizentalLine.setFrameShape(QFrame.Shape.HLine)
+        horizentalLine.setFrameShadow(QFrame.Shadow.Sunken)
+        self.musicGridLayout.addWidget(horizentalLine, insertRow, 0, 1, 2)
+        # layout - QGridLayout - insertLabel
         insertLabel = QLabel(textSetting.textList["railEditor"]["posLabel"], font=self.font2)
-        self.labelLayout.addWidget(insertLabel)
-        # layout - editLayout - lineEditLayout - QFrame
-        horizentalLineEditLine = QFrame()
-        horizentalLineEditLine.setFrameShape(QFrame.Shape.HLine)
-        horizentalLineEditLine.setFrameShadow(QFrame.Shadow.Sunken)
-        self.lineEditLayout.addWidget(horizentalLineEditLine)
-        # layout - editLayout - lineEditLayout - insertCombo
+        self.musicGridLayout.addWidget(insertLabel, insertRow + 1, 0)
+        # layout - QGridLayout - insertCombo
         self.insertCombo = QComboBox(font=self.font2)
         self.insertCombo.addItems(textSetting.textList["railEditor"]["posValue"])
-        self.lineEditLayout.addWidget(self.insertCombo)
+        self.musicGridLayout.addWidget(self.insertCombo, insertRow + 1, 1)
 
     def validate(self):
         infoMsg = textSetting.textList["infoList"]["I21"]
