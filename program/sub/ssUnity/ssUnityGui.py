@@ -480,11 +480,11 @@ class SSUnityWindow(QWidget):
                         mb.showerror(title=textSetting.textList["error"], message=obj["message"])
                         return
                     if obj["message"]:
-                        result = mb.askyesnoWarning(title=textSetting.textList["confirm"], message=obj["message"])
+                        result = mb.askyesno(title=textSetting.textList["confirm"], message=obj["message"], icon="warning")
                         if result == mb.NO:
                             return
                     script = ssUnityProcess.getScriptDataByExcel(obj["data"])
-                result = mb.askyesnoWarning(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I50"])
+                result = mb.askyesno(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I50"], icon="warning")
                 if result == mb.NO:
                     return
                 ssUnityProcess.saveDenFile(data, self.decryptFile, script)

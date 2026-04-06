@@ -32,20 +32,20 @@ class CustomMessageBox():
         self.msg.setIcon(QMessageBox.Icon.Critical)
         self.msg.exec()
 
-    def askokcancel(self, title, message):
+    def askokcancel(self, title, message, icon=""):
         self.makeMessageBox(title, message)
-        self.msg.setIcon(QMessageBox.Icon.Question)
+        if icon == "warning":
+            self.msg.setIcon(QMessageBox.Icon.Warning)
+        else:
+            self.msg.setIcon(QMessageBox.Icon.Question)
         self.msg.setStandardButtons(self.OK | self.CANCEL)
         return self.msg.exec()
 
-    def askyesno(self, title, message):
+    def askyesno(self, title, message, icon=""):
         self.makeMessageBox(title, message)
-        self.msg.setIcon(QMessageBox.Icon.Question)
-        self.msg.setStandardButtons(self.YES | self.NO)
-        return self.msg.exec()
-
-    def askyesnoWarning(self, title, message):
-        self.makeMessageBox(title, message)
-        self.msg.setIcon(QMessageBox.Icon.Warning)
+        if icon == "warning":
+            self.msg.setIcon(QMessageBox.Icon.Warning)
+        else:
+            self.msg.setIcon(QMessageBox.Icon.Question)
         self.msg.setStandardButtons(self.YES | self.NO)
         return self.msg.exec()
