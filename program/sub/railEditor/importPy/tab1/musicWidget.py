@@ -151,10 +151,10 @@ class EditMusicListDialog(QDialog):
         self.musicListListWidget = QListWidget(font=font2)
         displayMusicList = self.setListboxInfo(self.musicList)
         self.musicListListWidget.addItems(displayMusicList)
-        self.musicListListWidget.setFixedWidth(self.getMaxWidth() + 20)
+        self.musicListListWidget.setMinimumWidth(self.getMaxWidth() + 20)
         self.musicListListWidget.itemClicked.connect(self.onItemClicked)
         self.selectIndex = -1
-        layout.addWidget(self.musicListListWidget)
+        layout.addWidget(self.musicListListWidget, stretch=1)
 
         # layout - QDialogButtonBox
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
