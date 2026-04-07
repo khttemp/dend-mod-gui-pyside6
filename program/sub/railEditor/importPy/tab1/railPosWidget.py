@@ -1,122 +1,166 @@
 from functools import partial
 
-import tkinter
-from tkinter import messagebox as mb
-import program.textSetting as textSetting
-import program.appearance.ttkCustomWidget as ttkCustomWidget
-from program.appearance.customSimpleDialog import CustomSimpleDialog
+import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
+
+from PySide6.QtWidgets import (
+    QWidget, QGroupBox, QFrame, QVBoxLayout, QGridLayout,
+    QLabel, QLineEdit, QPushButton,
+    QDialog, QDialogButtonBox, QSizePolicy
+)
+from PySide6.QtGui import QFont, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QRegularExpression
+
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
-class RailPosWidget:
-    def __init__(self, root, frame, title, num, decryptFile, trainList, rootFrameAppearance, reloadFunc):
-        self.root = root
-        self.frame = frame
+class RailPosWidget(QWidget):
+    def __init__(self, title, num, decryptFile, trainList, reloadFunc):
+        super().__init__()
         self.title = title
-        self.railBtnList = []
         self.num = num
         self.decryptFile = decryptFile
         self.trainList = trainList
-        self.rootFrameAppearance = rootFrameAppearance
         self.reloadFunc = reloadFunc
+        font6 = QFont(textSetting.textList["font6"][0], textSetting.textList["font6"][1])
+        fixedWidth = 86
+        fixedHeight = 40
 
-        railPosLf = ttkCustomWidget.CustomTtkLabelFrame(self.frame, text=title)
-        railPosLf.pack(anchor=tkinter.NW, padx=10, pady=5)
+        # mainLayout
+        mainLayout = QVBoxLayout(self)
+        # mainLayout - QGroupBox
+        railPosGroupBox = QGroupBox(title)
+        railPosGroupBox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        mainLayout.addWidget(railPosGroupBox)
+        # mainLayout - QGroupBox - QGridLayout
+        railPosGridLayout = QGridLayout()
+        railPosGridLayout.setSpacing(0)
+        railPosGridLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        railPosGroupBox.setLayout(railPosGridLayout)
 
-        playHeaderLb = ttkCustomWidget.CustomTtkLabel(railPosLf, text=textSetting.textList["railEditor"]["railPosPlayerLabel"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-        playHeaderLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
+        # mainLayout - QGroupBox - QGridLayout - playerHeaderLabel
+        playerHeaderLabel = QLabel(textSetting.textList["railEditor"]["railPosPlayerLabel"], font=font6)
+        playerHeaderLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        playerHeaderLabel.setFixedSize(fixedWidth, fixedHeight)
+        playerHeaderLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        railPosGridLayout.addWidget(playerHeaderLabel, 0, 0)
+        # mainLayout - QGroupBox - QGridLayout - railNoHeaderLabel
+        railNoHeaderLabel = QLabel(textSetting.textList["railEditor"]["railPosRailNoLabel"], font=font6)
+        railNoHeaderLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        railNoHeaderLabel.setFixedSize(fixedWidth, fixedHeight)
+        railNoHeaderLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        railPosGridLayout.addWidget(railNoHeaderLabel, 0, 1)
+        # mainLayout - QGroupBox - QGridLayout - railPosHeaderLabel
+        railPosHeaderLabel = QLabel(textSetting.textList["railEditor"]["railPosRailPosLabel"], font=font6)
+        railPosHeaderLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        railPosHeaderLabel.setFixedSize(fixedWidth, fixedHeight)
+        railPosHeaderLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        railPosGridLayout.addWidget(railPosHeaderLabel, 0, 2)
+        # mainLayout - QGroupBox - QGridLayout - b1HeaderLabel
+        b1HeaderLabel = QLabel(textSetting.textList["railEditor"]["railPosB1Label"], font=font6)
+        b1HeaderLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        b1HeaderLabel.setFixedSize(fixedWidth - 20, fixedHeight)
+        b1HeaderLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        railPosGridLayout.addWidget(b1HeaderLabel, 0, 3)
 
-        railNoHeaderLb = ttkCustomWidget.CustomTtkLabel(railPosLf, text=textSetting.textList["railEditor"]["railPosRailNoLabel"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-        railNoHeaderLb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E)
-        railPosHeaderLb = ttkCustomWidget.CustomTtkLabel(railPosLf, text=textSetting.textList["railEditor"]["railPosRailPosLabel"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-        railPosHeaderLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E)
-        b1HeaderLb = ttkCustomWidget.CustomTtkLabel(railPosLf, text=textSetting.textList["railEditor"]["railPosB1Label"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=5, borderwidth=1, relief="solid")
-        b1HeaderLb.grid(row=0, column=3, sticky=tkinter.W + tkinter.E)
         if not (self.decryptFile.game == "LSTrial" and self.decryptFile.oldFlag):
-            f1HeaderLb = ttkCustomWidget.CustomTtkLabel(railPosLf, text=textSetting.textList["railEditor"]["railPosF1Label"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=5, borderwidth=1, relief="solid")
-            f1HeaderLb.grid(row=0, column=4, sticky=tkinter.W + tkinter.E)
+            # mainLayout - QGroupBox - QGridLayout - b1HeaderLabel
+            f1HeaderLabel = QLabel(textSetting.textList["railEditor"]["railPosF1Label"], font=font6)
+            f1HeaderLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            f1HeaderLabel.setFixedSize(fixedWidth - 20, fixedHeight)
+            f1HeaderLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            railPosGridLayout.addWidget(f1HeaderLabel, 0, 4)
 
-        for i in range(len(self.trainList)):
-            trainInfo = self.trainList[i]
-            playLb = ttkCustomWidget.CustomTtkLabel(railPosLf, text=textSetting.textList["railEditor"]["railPosPlayerNameLabel"].format(i + 1), font=textSetting.textList["font6"], anchor=tkinter.CENTER, borderwidth=1, relief="solid")
-            playLb.grid(row=i + 1, column=0, sticky=tkinter.W + tkinter.E)
+        for i, trainInfo in enumerate(self.trainList):
+            # mainLayout - QGroupBox - QGridLayout - playerLabel
+            playerLabel = QLabel(textSetting.textList["railEditor"]["railPosPlayerNameLabel"].format(i + 1), font=font6)
+            playerLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            playerLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            railPosGridLayout.addWidget(playerLabel, i + 1, 0)
             for j in range(len(trainInfo)):
-                valLb = ttkCustomWidget.CustomTtkLabel(railPosLf, text=trainInfo[j], font=textSetting.textList["font6"], anchor=tkinter.CENTER, borderwidth=1, relief="solid")
-                valLb.grid(row=i + 1, column=j + 1, sticky=tkinter.W + tkinter.E)
+                # mainLayout - QGroupBox - QGridLayout - valueLabel
+                valueLabel = QLabel("{0}".format(trainInfo[j]), font=font6)
+                valueLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+                valueLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                railPosGridLayout.addWidget(valueLabel, i + 1, j + 1)
 
             if self.decryptFile.game == "LSTrial" and self.decryptFile.oldFlag and i == 2:
                 continue
-            railBtn = ttkCustomWidget.CustomTtkButton(railPosLf, text=textSetting.textList["railEditor"]["modifyBtnLabel"], style="custom.update.TButton", command=partial(self.editVar, i, trainInfo))
-            railBtn.grid(row=i + 1, column=len(trainInfo) + 1, sticky=tkinter.W + tkinter.E)
+            # mainLayout - QGroupBox - QGridLayout - railPosButton
+            railPosButton = QPushButton(textSetting.textList["railEditor"]["modifyBtnLabel"], font=font6)
+            railPosButton.clicked.connect(partial(self.editVar, i, trainInfo))
+            railPosGridLayout.addWidget(railPosButton, i + 1, len(trainInfo) + 1)
 
     def editVar(self, i, trainInfo):
-        result = EditRailPosWidget(self.root, self.title + textSetting.textList["railEditor"]["commonModifyLabel"], self.decryptFile, trainInfo, self.rootFrameAppearance)
-
-        if result.reloadFlag:
-            self.trainList[i] = result.resultValueList
+        editRailPosWidget = EditRailPosWidget(self, self.title + textSetting.textList["railEditor"]["commonModifyLabel"], self.decryptFile, trainInfo)
+        if editRailPosWidget.exec() == QDialog.Accepted:
+            self.trainList[i] = editRailPosWidget.resultValueList
             if not self.decryptFile.saveRailPos(self.num, self.trainList):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E4"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=self.title + textSetting.textList["infoList"]["I61"])
-
             self.reloadFunc()
 
 
-class EditRailPosWidget(CustomSimpleDialog):
-    def __init__(self, master, title, decryptFile, trainInfo, rootFrameAppearance):
+class EditRailPosWidget(QDialog):
+    def __init__(self, parent, title, decryptFile, trainInfo):
+        super().__init__(parent)
+        self.setWindowTitle(title)
         self.decryptFile = decryptFile
         self.trainInfo = trainInfo
-        self.varList = []
         self.resultValueList = []
-        self.reloadFlag = False
-        super().__init__(master, title, rootFrameAppearance.bgColor)
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
+        numberValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+(\.\d+)?"), self)
 
-    def body(self, master):
-        self.resizable(False, False)
-
-        valLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["infoList"]["I44"], font=textSetting.textList["font2"])
-        valLb.grid(columnspan=2, row=0, column=0, sticky=tkinter.W + tkinter.E)
-
-        trainInfoLbList = textSetting.textList["railEditor"]["editRailPosLabelList"]
-        for i in range(len(self.trainInfo)):
-            railLb = ttkCustomWidget.CustomTtkLabel(master, text=trainInfoLbList[i], font=textSetting.textList["font2"])
-            railLb.grid(row=i + 1, column=0, sticky=tkinter.W + tkinter.E)
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
+        # layout - QGridLayout
+        self.railPosGridLayout = QGridLayout()
+        layout.addLayout(self.railPosGridLayout)
+        self.lineEditList = []
+        railPosLabelList = textSetting.textList["railEditor"]["editRailPosLabelList"]
+        for i, railPosLabel in enumerate(railPosLabelList):
+            # layout - QGridLayout - railLabel
+            railLabel = QLabel(railPosLabel, font=font2)
+            self.railPosGridLayout.addWidget(railLabel, i + 1, 0)
+            # layout - QGridLayout - railLineEdit
+            railLineEdit = QLineEdit(font=font2)
+            railLineEdit.setText("{0}".format(self.trainInfo[i]))
             if i == 3:
-                varRail = tkinter.DoubleVar()
-                varRail.set(self.trainInfo[i])
+                railLineEdit.setValidator(numberValidator)
             else:
-                varRail = tkinter.IntVar()
-                varRail.set(self.trainInfo[i])
-            self.varList.append(varRail)
-            railEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-            railEt.grid(row=i + 1, column=1, sticky=tkinter.W + tkinter.E)
-        super().body(master)
+                railLineEdit.setValidator(integerValidator)
+            self.lineEditList.append(railLineEdit)
+            self.railPosGridLayout.addWidget(railLineEdit, i + 1, 1)
+
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
     def validate(self):
         self.resultValueList = []
-        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"], parent=self)
-        if result:
-            try:
-                try:
-                    for i in range(len(self.varList)):
-                        if i == 3:
-                            res = float(self.varList[i].get())
-                        else:
-                            res = int(self.varList[i].get())
-                            if res < 0:
-                                errorMsg = textSetting.textList["errorList"]["E61"].format(0)
-                                mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                                return False
-                        self.resultValueList.append(res)
-                    return True
-                except Exception:
-                    errorMsg = textSetting.textList["errorList"]["E3"]
-                    mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                    return False
-            except Exception:
-                errorMsg = textSetting.textList["errorList"]["E14"]
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return False
+        for i, lineEdit in enumerate(self.lineEditList):
+            if not lineEdit.hasAcceptableInput():
+                mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+                return
+            if i == 3:
+                self.resultValueList.append(float(lineEdit.text()))
+            else:
+                self.resultValueList.append(int(lineEdit.text()))
+        return True
 
-    def apply(self):
-        self.reloadFlag = True
+    def accept(self):
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
+
+        if not self.validate():
+            return
+        super().accept()

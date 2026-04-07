@@ -3,7 +3,7 @@ import program.sub.textSetting as textSetting
 
 from program.sub.railEditor.importPy.tab1.musicWidget import MusicWidget
 from program.sub.railEditor.importPy.tab1.trainCountWidget import TrainCountWidget
-# from program.railEditor.importPy.tab1.railPosWidget import RailPosWidget
+from program.sub.railEditor.importPy.tab1.railPosWidget import RailPosWidget
 # from program.railEditor.importPy.tab1.stationNoWidget import StationNoWidget
 
 # from program.railEditor.importPy.tab2.else1ListWidget import Else1ListWidget
@@ -46,7 +46,8 @@ def tab1AllWidget(contentFrame, decryptFile, reloadFunc):
     tab1Layout.addWidget(musicWidget)
     trainCountWidget = TrainCountWidget(decryptFile, reloadFunc)
     tab1Layout.addWidget(trainCountWidget)
-    # RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["initPos"], 0, decryptFile, decryptFile.trainList, rootFrameAppearance, reloadFunc)
+    railPosWidget = RailPosWidget(textSetting.textList["railEditor"]["initPos"], 0, decryptFile, decryptFile.trainList, reloadFunc)
+    tab1Layout.addWidget(railPosWidget)
 
     # if decryptFile.game in ["BS", "CS", "RS"]:
     #     RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["dummyPos"], 1, decryptFile, decryptFile.trainList2, rootFrameAppearance, reloadFunc)
