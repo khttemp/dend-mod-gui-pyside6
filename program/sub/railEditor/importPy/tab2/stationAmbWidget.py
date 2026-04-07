@@ -107,9 +107,9 @@ class StationAmbWidget(QWidget):
                 stationAmbButton.clicked.connect(partial(self.editStation, i, stationInfo))
 
     def editStationAmbCount(self):
-        editStationAmbCntWidget = EditStationAmbCntWidget(self, textSetting.textList["railEditor"]["editStationCntLabel"], self.decryptFile)
-        if editStationAmbCntWidget.exec() == QDialog.Accepted:
-            resultValue = int(editStationAmbCntWidget.lineEdit.text())
+        editStationAmbCountWidget = EditStationAmbCountWidget(self, textSetting.textList["railEditor"]["editStationCntLabel"], self.decryptFile)
+        if editStationAmbCountWidget.exec() == QDialog.Accepted:
+            resultValue = int(editStationAmbCountWidget.lineEdit.text())
             if not self.decryptFile.saveStationCnt(resultValue):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
@@ -129,7 +129,7 @@ class StationAmbWidget(QWidget):
             self.reloadFunc()
 
 
-class EditStationAmbCntWidget(QDialog):
+class EditStationAmbCountWidget(QDialog):
     def __init__(self, parent, title, decryptFile):
         super().__init__(parent)
         self.setWindowTitle(title)
