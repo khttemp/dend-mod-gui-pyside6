@@ -127,7 +127,7 @@ class EditRailPosWidget(QDialog):
         for i, railPosLabel in enumerate(railPosLabelList):
             # layout - QGridLayout - railLabel
             railLabel = QLabel(railPosLabel, font=font2)
-            self.railPosGridLayout.addWidget(railLabel, i + 1, 0)
+            self.railPosGridLayout.addWidget(railLabel, i, 0)
             # layout - QGridLayout - railLineEdit
             railLineEdit = QLineEdit(font=font2)
             railLineEdit.setText("{0}".format(self.trainInfo[i]))
@@ -136,7 +136,7 @@ class EditRailPosWidget(QDialog):
             else:
                 railLineEdit.setValidator(integerValidator)
             self.lineEditList.append(railLineEdit)
-            self.railPosGridLayout.addWidget(railLineEdit, i + 1, 1)
+            self.railPosGridLayout.addWidget(railLineEdit, i, 1)
 
         # layout - QDialogButtonBox
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
