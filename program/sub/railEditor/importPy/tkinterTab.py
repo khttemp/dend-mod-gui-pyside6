@@ -7,7 +7,7 @@ from program.sub.railEditor.importPy.tab1.railPosWidget import RailPosWidget
 from program.sub.railEditor.importPy.tab1.stationNoWidget import StationNoWidget
 
 from program.sub.railEditor.importPy.tab2.else1ListWidget import Else1ListWidget
-# from program.railEditor.importPy.tab2.simpleListWidget import SimpleListWidget
+from program.sub.railEditor.importPy.tab2.simpleListWidget import SimpleListWidget
 # from program.railEditor.importPy.tab2.stationWidget import StationWidget
 # from program.railEditor.importPy.tab2.binAnimeListWidget import BinAnimeListWidget
 
@@ -31,7 +31,7 @@ from program.sub.railEditor.importPy.tab2.else1ListWidget import Else1ListWidget
 # from program.railEditor.importPy.tab11.ambListWidget import AmbListWidget
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QFrame
+    QVBoxLayout, QHBoxLayout, QFrame
 )
 from PySide6.QtCore import Qt
 
@@ -77,18 +77,23 @@ def tab2AllWidget(contentFrame, decryptFile, reloadFunc):
 
     else1ListWidget = Else1ListWidget(decryptFile, reloadFunc)
     tab2Layout.addWidget(else1ListWidget)
-    # if decryptFile.game in ["BS", "CS", "RS"]:
-    #     simpleListFrame = ttkCustomWidget.CustomTtkFrame(frame.interior)
-    #     simpleListFrame.pack(anchor=tkinter.NW)
-    #     SimpleListWidget(root, simpleListFrame, textSetting.textList["railEditor"]["lightInfo"], decryptFile, decryptFile.lightList, decryptFile.lightIdx, 1, rootFrameAppearance, reloadFunc)
-    #     if decryptFile.game in ["CS", "RS"]:
-    #         SimpleListWidget(root, simpleListFrame, textSetting.textList["railEditor"]["stationInfo"], decryptFile, decryptFile.pngList, decryptFile.pngIdx, 2, rootFrameAppearance, reloadFunc)
-    #         StationWidget(root, frame.interior, decryptFile, decryptFile.stationList, rootFrameAppearance, reloadFunc)
+    if decryptFile.game in ["BS", "CS", "RS"]:
+        simpleListLayout = QHBoxLayout()
+        simpleListLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        tab2Layout.addLayout(simpleListLayout)
+        lightListWidget = SimpleListWidget(textSetting.textList["railEditor"]["lightInfo"], decryptFile, decryptFile.lightList, decryptFile.lightIdx, 1, reloadFunc)
+        simpleListLayout.addWidget(lightListWidget)
+        if decryptFile.game in ["CS", "RS"]:
+            pngListWidget = SimpleListWidget(textSetting.textList["railEditor"]["stationInfo"], decryptFile, decryptFile.pngList, decryptFile.pngIdx, 2, reloadFunc)
+            simpleListLayout.addWidget(pngListWidget)
+            #StationWidget(root, frame.interior, decryptFile, decryptFile.stationList, rootFrameAppearance, reloadFunc)
 
-    # simpleListFrame2 = ttkCustomWidget.CustomTtkFrame(frame.interior)
-    # simpleListFrame2.pack(anchor=tkinter.NW)
-    # if decryptFile.game in ["BS", "CS", "RS"]:
-    #     SimpleListWidget(root, simpleListFrame2, textSetting.textList["railEditor"]["baseBinInfo"], decryptFile, decryptFile.baseBinList, decryptFile.binIdx, 1, rootFrameAppearance, reloadFunc)
+    simpleListLayout2 = QHBoxLayout()
+    simpleListLayout2.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+    tab2Layout.addLayout(simpleListLayout2)
+    if decryptFile.game in ["BS", "CS", "RS"]:
+        baseBinListWidget = SimpleListWidget(textSetting.textList["railEditor"]["baseBinInfo"], decryptFile, decryptFile.baseBinList, decryptFile.binIdx, 1, reloadFunc)
+        simpleListLayout2.addWidget(baseBinListWidget)
     # BinAnimeListWidget(root, simpleListFrame2, decryptFile, decryptFile.binAnimeList, rootFrameAppearance, reloadFunc)
 
 
