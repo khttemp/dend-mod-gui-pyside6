@@ -8,7 +8,7 @@ from program.sub.railEditor.importPy.tab1.stationNoWidget import StationNoWidget
 
 from program.sub.railEditor.importPy.tab2.else1ListWidget import Else1ListWidget
 from program.sub.railEditor.importPy.tab2.simpleListWidget import SimpleListWidget
-# from program.railEditor.importPy.tab2.stationWidget import StationWidget
+from program.sub.railEditor.importPy.tab2.stationAmbWidget import StationAmbWidget
 # from program.railEditor.importPy.tab2.binAnimeListWidget import BinAnimeListWidget
 
 # from program.railEditor.importPy.tab3.smfListWidget import SmfListWidget
@@ -86,7 +86,8 @@ def tab2AllWidget(contentFrame, decryptFile, reloadFunc):
         if decryptFile.game in ["CS", "RS"]:
             pngListWidget = SimpleListWidget(textSetting.textList["railEditor"]["stationInfo"], decryptFile, decryptFile.pngList, decryptFile.pngIdx, 2, reloadFunc)
             simpleListLayout.addWidget(pngListWidget)
-            #StationWidget(root, frame.interior, decryptFile, decryptFile.stationList, rootFrameAppearance, reloadFunc)
+            stationAmbWidget = StationAmbWidget(decryptFile, reloadFunc)
+            tab2Layout.addWidget(stationAmbWidget)
 
     simpleListLayout2 = QHBoxLayout()
     simpleListLayout2.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
