@@ -82,14 +82,7 @@ class EditTrainCountWidget(QDialog):
         layout.addWidget(buttonBox)
 
     def validate(self):
-        return self.lineEdit.hasAcceptableInput()
-
-    def accept(self):
-        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
-        if result != mb.OK:
-            return
-
-        if not self.validate():
+        if not self.lineEdit.hasAcceptableInput():
             mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E60"])
             return
 
@@ -99,4 +92,13 @@ class EditTrainCountWidget(QDialog):
             result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
             if result != mb.OK:
                 return
+        return True
+
+    def accept(self):
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
+
+        if not self.validate():
+            return
         super().accept()

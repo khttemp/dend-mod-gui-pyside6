@@ -96,7 +96,10 @@ class EditMusicCountDialog(QDialog):
         layout.addWidget(buttonBox)
 
     def validate(self):
-        return self.lineEdit.hasAcceptableInput()
+        if not self.lineEdit.hasAcceptableInput():
+            mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E60"])
+            return
+        return True
 
     def accept(self):
         result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
@@ -104,7 +107,6 @@ class EditMusicCountDialog(QDialog):
             return
 
         if not self.validate():
-            mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E60"])
             return
         super().accept()
 
@@ -297,17 +299,7 @@ class EditMusicElementWidget(QDialog):
         self.musicGridLayout.addWidget(self.insertCombo, insertRow + 1, 1)
 
     def validate(self):
-        infoMsg = textSetting.textList["infoList"]["I21"]
-        if self.mode == "insert":
-            infoMsg = textSetting.textList["infoList"]["I71"]
-            self.insertPos = 1
-            if self.insertCombo.currentIndex() == 1:
-                self.insertPos = 0
         self.resultValueList = []
-        result = mb.askokcancel(title=textSetting.textList["confirm"], message=infoMsg)
-        if result != mb.OK:
-            return
-
         for i, lineEdit in enumerate(self.lineEditList):
             if i in [2, 3]:
                 if not lineEdit.hasAcceptableInput():
@@ -316,10 +308,19 @@ class EditMusicElementWidget(QDialog):
                 self.resultValueList.append(float(lineEdit.text()))
             else:
                 self.resultValueList.append(lineEdit.text())
-
         return True
 
     def accept(self):
+        infoMsg = textSetting.textList["infoList"]["I21"]
+        if self.mode == "insert":
+            infoMsg = textSetting.textList["infoList"]["I71"]
+            self.insertPos = 1
+            if self.insertCombo.currentIndex() == 1:
+                self.insertPos = 0
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=infoMsg)
+        if result != mb.OK:
+            return
+
         if not self.validate():
             return
         super().accept()
