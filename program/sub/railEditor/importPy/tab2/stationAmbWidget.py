@@ -138,6 +138,9 @@ class EditStationAmbCntWidget(QDialog):
         font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
         # layout
         layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
         # layout - LineEdit
         self.lineEdit = QLineEdit(font=font2)
         validator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
