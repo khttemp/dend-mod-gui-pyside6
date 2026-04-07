@@ -4,7 +4,7 @@ import program.sub.textSetting as textSetting
 from program.sub.railEditor.importPy.tab1.musicWidget import MusicWidget
 from program.sub.railEditor.importPy.tab1.trainCountWidget import TrainCountWidget
 from program.sub.railEditor.importPy.tab1.railPosWidget import RailPosWidget
-# from program.railEditor.importPy.tab1.stationNoWidget import StationNoWidget
+from program.sub.railEditor.importPy.tab1.stationNoWidget import StationNoWidget
 
 # from program.railEditor.importPy.tab2.else1ListWidget import Else1ListWidget
 # from program.railEditor.importPy.tab2.simpleListWidget import SimpleListWidget
@@ -31,7 +31,7 @@ from program.sub.railEditor.importPy.tab1.railPosWidget import RailPosWidget
 # from program.railEditor.importPy.tab11.ambListWidget import AmbListWidget
 
 from PySide6.QtWidgets import (
-    QVBoxLayout
+    QVBoxLayout, QFrame
 )
 from PySide6.QtCore import Qt
 
@@ -49,16 +49,24 @@ def tab1AllWidget(contentFrame, decryptFile, reloadFunc):
     railPosWidget = RailPosWidget(textSetting.textList["railEditor"]["initPos"], 0, decryptFile, decryptFile.trainList, reloadFunc)
     tab1Layout.addWidget(railPosWidget)
 
-    # if decryptFile.game in ["BS", "CS", "RS"]:
-    #     RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["dummyPos"], 1, decryptFile, decryptFile.trainList2, rootFrameAppearance, reloadFunc)
-    #     RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["pracOrVsPos"], 2, decryptFile, decryptFile.trainList3, rootFrameAppearance, reloadFunc)
-    #     StationNoWidget(root, frame.interior, decryptFile, decryptFile.stationNo, 0, rootFrameAppearance, reloadFunc)
+    if decryptFile.game in ["BS", "CS", "RS"]:
+        railPos2Widget = RailPosWidget(textSetting.textList["railEditor"]["dummyPos"], 1, decryptFile, decryptFile.trainList2, reloadFunc)
+        tab1Layout.addWidget(railPos2Widget)
+        railPos3Widget = RailPosWidget(textSetting.textList["railEditor"]["pracOrVsPos"], 2, decryptFile, decryptFile.trainList3, reloadFunc)
+        tab1Layout.addWidget(railPos3Widget)
+        stationNoWidget = StationNoWidget(0, decryptFile, decryptFile.stationNo, reloadFunc)
+        tab1Layout.addWidget(stationNoWidget)
 
-    #     if decryptFile.game == "BS":
-    #         separator = ttkCustomWidget.CustomTtkSeparator(frame.interior, orient="horizontal")
-    #         separator.pack(fill=tkinter.X)
-    #         RailPosWidget(root, frame.interior, textSetting.textList["railEditor"]["dummyPos"], 3, decryptFile, decryptFile.trainList4, rootFrameAppearance, reloadFunc)
-    #         StationNoWidget(root, frame.interior, decryptFile, decryptFile.stationNo2, 1, rootFrameAppearance, reloadFunc)
+        if decryptFile.game == "BS":
+            horizentalLine = QFrame()
+            horizentalLine.setFrameShape(QFrame.Shape.HLine)
+            horizentalLine.setFrameShadow(QFrame.Shadow.Sunken)
+            tab1Layout.addWidget(horizentalLine)
+
+            railPos4Widget = RailPosWidget(textSetting.textList["railEditor"]["dummyPos"], 3, decryptFile, decryptFile.trainList4, reloadFunc)
+            tab1Layout.addWidget(railPos4Widget)
+            stationNo2Widget = StationNoWidget(1, decryptFile, decryptFile.stationNo2, reloadFunc)
+            tab1Layout.addWidget(stationNo2Widget)
 
 
 def tab2AllWidget(root, tabFrame, decryptFile, rootFrameAppearance, reloadFunc):
