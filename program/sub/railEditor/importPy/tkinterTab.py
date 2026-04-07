@@ -9,7 +9,7 @@ from program.sub.railEditor.importPy.tab1.stationNoWidget import StationNoWidget
 from program.sub.railEditor.importPy.tab2.else1ListWidget import Else1ListWidget
 from program.sub.railEditor.importPy.tab2.simpleListWidget import SimpleListWidget
 from program.sub.railEditor.importPy.tab2.stationAmbWidget import StationAmbWidget
-# from program.railEditor.importPy.tab2.binAnimeListWidget import BinAnimeListWidget
+from program.sub.railEditor.importPy.tab2.binAnimeListWidget import BinAnimeListWidget
 
 # from program.railEditor.importPy.tab3.smfListWidget import SmfListWidget
 
@@ -35,27 +35,29 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
+defaultAlignment = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+
 
 def tab1AllWidget(contentFrame, decryptFile, reloadFunc):
     tab1Layout = QVBoxLayout()
     tab1Layout.setContentsMargins(0, 0, 0, 0)
-    tab1Layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+    tab1Layout.setAlignment(defaultAlignment)
     contentFrame.setLayout(tab1Layout)
 
     musicWidget = MusicWidget(decryptFile, reloadFunc)
-    tab1Layout.addWidget(musicWidget)
+    tab1Layout.addWidget(musicWidget, alignment=defaultAlignment)
     trainCountWidget = TrainCountWidget(decryptFile, reloadFunc)
-    tab1Layout.addWidget(trainCountWidget)
+    tab1Layout.addWidget(trainCountWidget, alignment=defaultAlignment)
     railPosWidget = RailPosWidget(textSetting.textList["railEditor"]["initPos"], 0, decryptFile, decryptFile.trainList, reloadFunc)
-    tab1Layout.addWidget(railPosWidget)
+    tab1Layout.addWidget(railPosWidget, alignment=defaultAlignment)
 
     if decryptFile.game in ["BS", "CS", "RS"]:
         railPos2Widget = RailPosWidget(textSetting.textList["railEditor"]["dummyPos"], 1, decryptFile, decryptFile.trainList2, reloadFunc)
-        tab1Layout.addWidget(railPos2Widget)
+        tab1Layout.addWidget(railPos2Widget, alignment=defaultAlignment)
         railPos3Widget = RailPosWidget(textSetting.textList["railEditor"]["pracOrVsPos"], 2, decryptFile, decryptFile.trainList3, reloadFunc)
-        tab1Layout.addWidget(railPos3Widget)
+        tab1Layout.addWidget(railPos3Widget, alignment=defaultAlignment)
         stationNoWidget = StationNoWidget(0, decryptFile, decryptFile.stationNo, reloadFunc)
-        tab1Layout.addWidget(stationNoWidget)
+        tab1Layout.addWidget(stationNoWidget, alignment=defaultAlignment)
 
         if decryptFile.game == "BS":
             horizentalLine = QFrame()
@@ -64,38 +66,39 @@ def tab1AllWidget(contentFrame, decryptFile, reloadFunc):
             tab1Layout.addWidget(horizentalLine)
 
             railPos4Widget = RailPosWidget(textSetting.textList["railEditor"]["dummyPos"], 3, decryptFile, decryptFile.trainList4, reloadFunc)
-            tab1Layout.addWidget(railPos4Widget)
+            tab1Layout.addWidget(railPos4Widget, alignment=defaultAlignment)
             stationNo2Widget = StationNoWidget(1, decryptFile, decryptFile.stationNo2, reloadFunc)
-            tab1Layout.addWidget(stationNo2Widget)
+            tab1Layout.addWidget(stationNo2Widget, alignment=defaultAlignment)
 
 
 def tab2AllWidget(contentFrame, decryptFile, reloadFunc):
     tab2Layout = QVBoxLayout()
     tab2Layout.setContentsMargins(0, 0, 0, 0)
-    tab2Layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+    tab2Layout.setAlignment(defaultAlignment)
     contentFrame.setLayout(tab2Layout)
 
     else1ListWidget = Else1ListWidget(decryptFile, reloadFunc)
-    tab2Layout.addWidget(else1ListWidget)
+    tab2Layout.addWidget(else1ListWidget, alignment=defaultAlignment)
     if decryptFile.game in ["BS", "CS", "RS"]:
         simpleListLayout = QHBoxLayout()
-        simpleListLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        simpleListLayout.setAlignment(defaultAlignment)
         tab2Layout.addLayout(simpleListLayout)
         lightListWidget = SimpleListWidget(textSetting.textList["railEditor"]["lightInfo"], decryptFile, decryptFile.lightList, decryptFile.lightIdx, 1, reloadFunc)
-        simpleListLayout.addWidget(lightListWidget)
+        simpleListLayout.addWidget(lightListWidget, alignment=defaultAlignment)
         if decryptFile.game in ["CS", "RS"]:
             pngListWidget = SimpleListWidget(textSetting.textList["railEditor"]["stationInfo"], decryptFile, decryptFile.pngList, decryptFile.pngIdx, 2, reloadFunc)
-            simpleListLayout.addWidget(pngListWidget)
+            simpleListLayout.addWidget(pngListWidget, alignment=defaultAlignment)
             stationAmbWidget = StationAmbWidget(decryptFile, reloadFunc)
-            tab2Layout.addWidget(stationAmbWidget)
+            tab2Layout.addWidget(stationAmbWidget, alignment=defaultAlignment)
 
     simpleListLayout2 = QHBoxLayout()
-    simpleListLayout2.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+    simpleListLayout2.setAlignment(defaultAlignment)
     tab2Layout.addLayout(simpleListLayout2)
     if decryptFile.game in ["BS", "CS", "RS"]:
         baseBinListWidget = SimpleListWidget(textSetting.textList["railEditor"]["baseBinInfo"], decryptFile, decryptFile.baseBinList, decryptFile.binIdx, 1, reloadFunc)
-        simpleListLayout2.addWidget(baseBinListWidget)
-    # BinAnimeListWidget(root, simpleListFrame2, decryptFile, decryptFile.binAnimeList, rootFrameAppearance, reloadFunc)
+        simpleListLayout2.addWidget(baseBinListWidget, alignment=defaultAlignment)
+    binAnimeListWidget = BinAnimeListWidget(decryptFile, reloadFunc)
+    simpleListLayout2.addWidget(binAnimeListWidget, alignment=defaultAlignment)
 
 
 def tab3AllWidget(root, tabFrame, decryptFile, rootFrameAppearance, reloadFunc, selectId):
