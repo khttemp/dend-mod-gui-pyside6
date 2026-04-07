@@ -256,6 +256,9 @@ class EditMusicElementWidget(QDialog):
 
         # layout
         layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=self.font2)
+        layout.addWidget(label)
         # layout - QGridLayout
         self.musicGridLayout = QGridLayout()
         layout.addLayout(self.musicGridLayout)
