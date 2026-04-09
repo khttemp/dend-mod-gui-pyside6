@@ -20,6 +20,7 @@ class StationNameWidget(QWidget):
         self.decryptFile = decryptFile
         self.stationNameList = decryptFile.stationNameList
         self.reloadFunc = reloadFunc
+        self.selectId = selectId
         self.copyStationNameInfo = []
         font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
         labelWidth = 66
