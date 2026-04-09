@@ -93,7 +93,7 @@ class Else1ListWidget(QWidget):
             else1ListGridLayout.addWidget(else1Button, 0, len(self.else1List))
 
     def editVarList(self, i, valList):
-        editElse1ListWidget = EditElse1ListWidget(self, textSetting.textList["railEditor"]["editElse1Label"], i, self.decryptFile, valList)
+        editElse1ListWidget = EditElse1ListWidget(self, textSetting.textList["railEditor"]["editElse1Label"], self.decryptFile, valList)
         if editElse1ListWidget.exec() == QDialog.Accepted:
             if i == 0:
                 self.else1List[i] = editElse1ListWidget.resultValueList[0]
@@ -119,10 +119,9 @@ class Else1ListWidget(QWidget):
 
 
 class EditElse1ListWidget(QDialog):
-    def __init__(self, parent, title, num, decryptFile, valList):
+    def __init__(self, parent, title, decryptFile, valList):
         super().__init__(parent)
         self.setWindowTitle(title)
-        self.num = num
         self.decryptFile = decryptFile
         self.valList = valList
         self.resultValueList = []

@@ -113,7 +113,6 @@ class EditBinAnimeCountWidget(QDialog):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.decryptFile = decryptFile
-        self.val = len(decryptFile.binAnimeList)
         font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
         # layout
         layout = QVBoxLayout(self)
@@ -124,7 +123,7 @@ class EditBinAnimeCountWidget(QDialog):
         self.lineEdit = QLineEdit(font=font2)
         validator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
         self.lineEdit.setValidator(validator)
-        self.lineEdit.setText("{0}".format(self.val))
+        self.lineEdit.setText("{0}".format(len(decryptFile.binAnimeList)))
         layout.addWidget(self.lineEdit)
         # layout - QDialogButtonBox
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
