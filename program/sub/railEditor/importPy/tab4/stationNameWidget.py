@@ -116,7 +116,7 @@ class StationNameWidget(QWidget):
         contentLayout.addWidget(self.contentTable)
 
         self.createStationNameTable()
-        # self.jumpToSelect()
+        self.jumpToSelect()
 
     def createStationNameTable(self):
         self.setStationNameTableHeader()
