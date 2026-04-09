@@ -13,7 +13,7 @@ from program.sub.railEditor.importPy.tab2.binAnimeListWidget import BinAnimeList
 
 from program.sub.railEditor.importPy.tab3.smfListWidget import SmfListWidget
 
-# from program.railEditor.importPy.tab4.stationNameWidget import StationNameWidget
+from program.sub.railEditor.importPy.tab4.stationNameWidget import StationNameWidget
 
 # from program.railEditor.importPy.tab5.else2ListWidget import Else2ListWidget
 
@@ -110,8 +110,13 @@ def tab3AllWidget(contentFrame, decryptFile, reloadFunc, selectId):
     tab3Layout.addWidget(smfListWidget)
 
 
-def tab4AllWidget(root, tabFrame, decryptFile, rootFrameAppearance, reloadFunc, selectId):
-    StationNameWidget(root, tabFrame, decryptFile, decryptFile.stationNameList, rootFrameAppearance, reloadFunc, selectId)
+def tab4AllWidget(contentFrame, decryptFile, reloadFunc, selectId):
+    tab4Layout = QVBoxLayout()
+    tab4Layout.setContentsMargins(0, 0, 0, 0)
+    contentFrame.setLayout(tab4Layout)
+
+    stationNameWidget = StationNameWidget(decryptFile, reloadFunc, selectId)
+    tab4Layout.addWidget(stationNameWidget)
 
 
 def tab5AllWidget(root, tabFrame, decryptFile, rootFrameAppearance, reloadFunc):

@@ -4,9 +4,8 @@ import program.sub.textSetting as textSetting
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from program.sub.railEditor.importPy.tkinterTab import (
-    tab1AllWidget, tab2AllWidget, tab3AllWidget
+    tab1AllWidget, tab2AllWidget, tab3AllWidget, tab4AllWidget
 )
-#     tab4AllWidget,
 #     tab5AllWidget, tab6AllWidget, tab7AllWidget, tab8AllWidget,
 #     tab9AllWidget, tab10AllWidget, tab11AllWidget
 # )
@@ -186,8 +185,8 @@ class RailEditorWindow(QWidget):
             tab2AllWidget(contentFrame, self.decryptFile, self.reloadWidget)
         elif index == 2:
             tab3AllWidget(contentFrame, self.decryptFile, self.reloadWidget, selectId)
-        # elif index == 3:
-        #     tab4AllWidget(self.root, self.tabFrame, self.decryptFile, self.rootFrameAppearance, self.reloadWidget, selectId)
+        elif index == 3:
+            tab4AllWidget(contentFrame, self.decryptFile, self.reloadWidget, selectId)
         # elif index == 4:
         #     tab5AllWidget(self.root, self.tabFrame, self.decryptFile, self.rootFrameAppearance, self.reloadWidget)
         # elif index == 5:
