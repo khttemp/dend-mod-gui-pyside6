@@ -11,7 +11,7 @@ from program.sub.railEditor.importPy.tab2.simpleListWidget import SimpleListWidg
 from program.sub.railEditor.importPy.tab2.stationAmbWidget import StationAmbWidget
 from program.sub.railEditor.importPy.tab2.binAnimeListWidget import BinAnimeListWidget
 
-# from program.railEditor.importPy.tab3.smfListWidget import SmfListWidget
+from program.sub.railEditor.importPy.tab3.smfListWidget import SmfListWidget
 
 # from program.railEditor.importPy.tab4.stationNameWidget import StationNameWidget
 
@@ -31,7 +31,7 @@ from program.sub.railEditor.importPy.tab2.binAnimeListWidget import BinAnimeList
 # from program.railEditor.importPy.tab11.ambListWidget import AmbListWidget
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QFrame
+    QVBoxLayout, QHBoxLayout, QWidget, QFrame, QSizePolicy
 )
 from PySide6.QtCore import Qt
 
@@ -101,8 +101,13 @@ def tab2AllWidget(contentFrame, decryptFile, reloadFunc):
     simpleListLayout2.addWidget(binAnimeListWidget, alignment=defaultAlignment)
 
 
-def tab3AllWidget(root, tabFrame, decryptFile, rootFrameAppearance, reloadFunc, selectId):
-    SmfListWidget(root, tabFrame, decryptFile, decryptFile.smfList, rootFrameAppearance, reloadFunc, selectId)
+def tab3AllWidget(contentFrame, decryptFile, reloadFunc, selectId):
+    tab3Layout = QVBoxLayout()
+    tab3Layout.setContentsMargins(0, 0, 0, 0)
+    contentFrame.setLayout(tab3Layout)
+
+    smfListWidget = SmfListWidget(decryptFile, reloadFunc, selectId)
+    tab3Layout.addWidget(smfListWidget)
 
 
 def tab4AllWidget(root, tabFrame, decryptFile, rootFrameAppearance, reloadFunc, selectId):

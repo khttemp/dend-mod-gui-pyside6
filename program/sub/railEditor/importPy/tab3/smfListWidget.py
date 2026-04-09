@@ -1,299 +1,245 @@
 import copy
-import tkinter
-from tkinter import messagebox as mb
-import program.textSetting as textSetting
-import program.appearance.ttkCustomWidget as ttkCustomWidget
-from program.appearance.customSimpleDialog import CustomSimpleDialog
 
-from program.railEditor.importPy.tkinterScrollbarTreeviewRailEditor import ScrollbarTreeviewRailEditor
+import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
+
+from PySide6.QtWidgets import (
+    QWidget, QLabel, QLineEdit, QFrame, QPushButton,
+    QComboBox, QMenuBar, QListWidget,
+    QVBoxLayout, QHBoxLayout, QGridLayout, QDialog, QDialogButtonBox,
+    QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView, QSizePolicy
+)
+from PySide6.QtGui import QFont, QAction, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QRegularExpression
+
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
-class SmfListWidget:
-    def __init__(self, root, frame, decryptFile, smfList, rootFrameAppearance, reloadFunc, selectId):
-        self.root = root
-        self.frame = frame
+class SmfListWidget(QWidget):
+    def __init__(self, decryptFile, reloadFunc, selectId):
+        super().__init__()
+
         self.decryptFile = decryptFile
-        self.smfList = smfList
-        self.rootFrameAppearance = rootFrameAppearance
+        self.smfList = decryptFile.smfList
         self.reloadFunc = reloadFunc
+        self.selectId = selectId
         self.copySmfInfo = []
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        labelWidth = 66
+        labelHeight = 30
+        buttonWidth = 200
+        buttonHeight = 28
 
-        swfListLf = ttkCustomWidget.CustomTtkLabelFrame(self.frame, text=textSetting.textList["railEditor"]["smfInfoLabel"])
-        swfListLf.pack(anchor=tkinter.NW, padx=10, pady=5, fill=tkinter.BOTH, expand=True)
+        mainLayout = QVBoxLayout(self)
+        # header
+        headerLayout = QHBoxLayout()
+        mainLayout.addLayout(headerLayout, 2)
 
-        headerFrame = ttkCustomWidget.CustomTtkFrame(swfListLf)
-        headerFrame.pack()
+        # headerLeft
+        headerLeftLayout = QVBoxLayout()
+        headerLayout.addSpacing(20)
+        headerLayout.addLayout(headerLeftLayout, 3)
+        # headerLeft - select
+        headerSelectLayout = QHBoxLayout()
+        headerLeftLayout.addLayout(headerSelectLayout)
+        # headerLeft - select - Label1
+        selectLabel = QLabel(textSetting.textList["railEditor"]["selectNum"], font=font2)
+        headerSelectLayout.addWidget(selectLabel, 8)
+        # headerLeft - select - Label2
+        self.selectLineLabel = QLabel("", font=font2)
+        self.selectLineLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.selectLineLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.selectLineLabel.setFixedSize(labelWidth, labelHeight)
+        headerSelectLayout.addWidget(self.selectLineLabel, 3)
+        # space
+        headerLeftLayout.addSpacing(15)
+        # headerLeft - usedModelLayout
+        headerUsedModelLayout = QHBoxLayout()
+        headerUsedModelLayout.setAlignment(Qt.AlignmentFlag.AlignRight)
+        headerLeftLayout.addLayout(headerUsedModelLayout)
+        # headerLeft - usedModelLayout - railLabel
+        self.usedRailLabel = QLabel("", font=font2)
+        self.usedRailLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.usedRailLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.usedRailLabel.setFixedSize(labelWidth, labelHeight)
+        headerUsedModelLayout.addWidget(self.usedRailLabel)
+        # space
+        headerUsedModelLayout.addSpacing(20)
+        # headerLeft - usedModelLayout - ambLabel
+        self.usedAmbLabel = QLabel("", font=font2)
+        self.usedAmbLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.usedAmbLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.usedAmbLabel.setFixedSize(labelWidth, labelHeight)
+        headerUsedModelLayout.addWidget(self.usedAmbLabel)
 
-        selectLbFrame = ttkCustomWidget.CustomTtkFrame(headerFrame)
-        selectLbFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, pady=10)
-
-        selectLb = ttkCustomWidget.CustomTtkLabel(selectLbFrame, text=textSetting.textList["railEditor"]["selectNum"], font=textSetting.textList["font2"])
-        selectLb.grid(columnspan=2, row=0, column=0)
-
-        self.v_select = tkinter.StringVar()
-        selectEt = ttkCustomWidget.CustomTtkEntry(selectLbFrame, textvariable=self.v_select, font=textSetting.textList["font2"], width=5, state="readonly", justify="center")
-        selectEt.grid(row=0, column=2, pady=5)
-
-        self.v_railLb = tkinter.StringVar(value="")
-        usedRailLb = ttkCustomWidget.CustomTtkEntry(selectLbFrame, textvariable=self.v_railLb, font=textSetting.textList["font2"], width=5, state="readonly", justify="center")
-        usedRailLb.grid(row=1, column=1, pady=(15, 0))
-
-        self.v_ambLb = tkinter.StringVar(value="")
-        usedAmbLb = ttkCustomWidget.CustomTtkEntry(selectLbFrame, textvariable=self.v_ambLb, font=textSetting.textList["font2"], width=5, state="readonly", justify="center")
-        usedAmbLb.grid(row=1, column=2, pady=(15, 0))
-
-        btnFrame = ttkCustomWidget.CustomTtkFrame(headerFrame)
-        btnFrame.pack(anchor=tkinter.NE, padx=15)
-
-        editLineBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["railEditor"]["commonEditLineLabel"], width=25, state="disabled", command=self.editLine)
-        editLineBtn.grid(row=0, column=0, padx=10, pady=15)
-
-        insertLineBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["railEditor"]["commonInsertLineLabel"], width=25, state="disabled", command=self.insertLine)
-        insertLineBtn.grid(row=0, column=1, padx=10, pady=15)
-
-        deleteLineBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["railEditor"]["commonDeleteLineLabel"], width=25, state="disabled", command=self.deleteLine)
-        deleteLineBtn.grid(row=0, column=2, padx=10, pady=15)
-
-        copyLineBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["railEditor"]["commonCopyLineLabel"], width=25, state="disabled", command=self.copyLine)
-        copyLineBtn.grid(row=1, column=0, padx=10, pady=15)
-
-        self.pasteLineBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["railEditor"]["commonPasteLineLabel"], width=25, state="disabled", command=self.pasteLine)
-        self.pasteLineBtn.grid(row=1, column=1, padx=10, pady=15)
-
+        # stretch
+        headerLayout.addStretch(1)
+        # headerRight
+        headerRightLayout = QVBoxLayout()
+        headerLayout.addLayout(headerRightLayout, 9)
+        # headerRight - buttonLayout1
+        headerRightButtonLayout1 = QHBoxLayout()
+        headerRightButtonLayout1.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        headerRightLayout.addLayout(headerRightButtonLayout1)
+        # headerRight - buttonLayout1 - editButton
+        self.editLineButton = QPushButton(textSetting.textList["railEditor"]["commonEditLineLabel"])
+        self.editLineButton.setFixedSize(buttonWidth, buttonHeight)
+        self.editLineButton.setEnabled(False)
+        self.editLineButton.clicked.connect(self.editLineFunc)
+        headerRightButtonLayout1.addWidget(self.editLineButton)
+        # space
+        headerRightButtonLayout1.addSpacing(30)
+        # headerRight - buttonLayout1 - insertButton
+        self.insertLineButton = QPushButton(textSetting.textList["railEditor"]["commonInsertLineLabel"])
+        self.insertLineButton.setFixedSize(buttonWidth, buttonHeight)
+        self.insertLineButton.setEnabled(False)
+        self.insertLineButton.clicked.connect(self.insertLineFunc)
+        headerRightButtonLayout1.addWidget(self.insertLineButton)
+        # space
+        headerRightButtonLayout1.addSpacing(30)
+        # headerRight - buttonLayout1 - deleteButton
+        self.deleteLineButton = QPushButton(textSetting.textList["railEditor"]["commonDeleteLineLabel"])
+        self.deleteLineButton.setFixedSize(buttonWidth, buttonHeight)
+        self.deleteLineButton.setEnabled(False)
+        self.deleteLineButton.clicked.connect(self.deleteLineFunc)
+        headerRightButtonLayout1.addWidget(self.deleteLineButton)
+        # space
+        headerRightLayout.addSpacing(15)
+        # headerRight - buttonLayout2
+        headerRightButtonLayout2 = QHBoxLayout()
+        headerRightButtonLayout2.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        headerRightLayout.addLayout(headerRightButtonLayout2)
+        # headerRight - buttonLayout2 - copyButton
+        self.copyLineButton = QPushButton(textSetting.textList["railEditor"]["commonCopyLineLabel"])
+        self.copyLineButton.setFixedSize(buttonWidth, buttonHeight)
+        self.copyLineButton.setEnabled(False)
+        self.copyLineButton.clicked.connect(self.copyLineFunc)
+        headerRightButtonLayout2.addWidget(self.copyLineButton)
+        # space
+        headerRightButtonLayout2.addSpacing(30)
+        # headerRight - buttonLayout2 - pasteButton
+        self.pasteLineButton = QPushButton(textSetting.textList["railEditor"]["commonPasteLineLabel"])
+        self.pasteLineButton.setFixedSize(buttonWidth, buttonHeight)
+        self.pasteLineButton.setEnabled(False)
+        self.pasteLineButton.clicked.connect(self.pasteLineFunc)
+        headerRightButtonLayout2.addWidget(self.pasteLineButton)
+        # headerRight - buttonLayout2 - listModifyButton
         if self.decryptFile.game in ["LSTrial", "LS", "BS"]:
-            listModifyBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["railEditor"]["editSmfElementListLabel"], width=25, state="disabled", command=self.listModify)
-            listModifyBtn.grid(row=1, column=2, padx=10, pady=15)
+            # space
+            headerRightButtonLayout2.addSpacing(30)
+            self.listModifyButton = QPushButton(textSetting.textList["railEditor"]["editSmfElementListLabel"])
+            self.listModifyButton.setFixedSize(buttonWidth, buttonHeight)
+            self.listModifyButton.setEnabled(False)
+            self.listModifyButton.clicked.connect(self.listModifyFunc)
+            headerRightButtonLayout2.addWidget(self.listModifyButton)
+        # stretch
+        headerLayout.addStretch(1)
 
-        btnList = [
-            editLineBtn,
-            insertLineBtn,
-            deleteLineBtn,
-            copyLineBtn
-        ]
-        if self.decryptFile.game in ["LSTrial", "LS", "BS"]:
-            btnList.append(listModifyBtn)
+        # contentLayout
+        contentLayout = QVBoxLayout()
+        mainLayout.addLayout(contentLayout, 11)
+        self.contentTable = QTableWidget()
+        self.contentTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.contentTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.contentTable.setCornerButtonEnabled(False)
+        self.contentTable.itemSelectionChanged.connect(self.onSelectionChanged)
+        contentLayout.addWidget(self.contentTable)
 
-        useModelListObj = self.getUseModelList()
+        self.createSmfTable()
+        self.jumpToSelect()
 
-        self.treeviewFrame = ScrollbarTreeviewRailEditor(swfListLf, self.v_select, btnList, self.customSelectFunc)
-
+    def createSmfTable(self):
+        self.setSmfTableHeader()
+        self.setSmfTableData()
         if len(self.smfList) == 0:
-            insertLineBtn["state"] = "normal"
+            self.insertLineButton.setEnabled(True)
 
+    def setSmfTableHeader(self):
         if self.decryptFile.game in ["CS", "RS"]:
-            col_tuple = (
-                "treeNum",
-                "smfInfoName",
-                "smfInfoFlag1",
-                "smfInfoFlag2",
-                "smfInfoLength",
-                "smfInfoMesh1",
-                "smfInfoMesh2",
-                "smfInfoKasenchuNo",
-                "smfInfoKasenNo"
-            )
-
-            self.treeviewFrame.tree["columns"] = col_tuple
-            self.treeviewFrame.tree.column("#0", width=0, stretch=False)
-            self.treeviewFrame.tree.column("treeNum", anchor=tkinter.CENTER, width=50, stretch=False)
-            self.treeviewFrame.tree.column("smfInfoName", anchor=tkinter.CENTER, width=130)
-            self.treeviewFrame.tree.column("smfInfoFlag1", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("smfInfoFlag2", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("smfInfoLength", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("smfInfoMesh1", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("smfInfoMesh2", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("smfInfoKasenchuNo", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("smfInfoKasenNo", anchor=tkinter.CENTER, width=50)
-
-            self.treeviewFrame.tree.heading("treeNum", text=textSetting.textList["railEditor"]["smfInfoNum"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoName", text=textSetting.textList["railEditor"]["smfInfoName"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoFlag1", text=textSetting.textList["railEditor"]["smfInfoFlag1"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoFlag2", text=textSetting.textList["railEditor"]["smfInfoFlag2"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoLength", text=textSetting.textList["railEditor"]["smfInfoLength"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoMesh1", text=textSetting.textList["railEditor"]["smfInfoMesh1"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoMesh2", text=textSetting.textList["railEditor"]["smfInfoMesh2"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoKasenchuNo", text=textSetting.textList["railEditor"]["smfInfoKasenchuNo"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoKasenNo", text=textSetting.textList["railEditor"]["smfInfoKasenNo"], anchor=tkinter.CENTER)
-
-            self.treeviewFrame.tree["displaycolumns"] = col_tuple
-
-            index = 0
-            for smfInfo in self.smfList:
-                data = (index,)
-                tags = "used"
-                if smfInfo[0] not in useModelListObj["rail"] and smfInfo[0] not in useModelListObj["amb"]:
-                    tags = "notUse"
-                elif smfInfo[0] in useModelListObj["rail"] and smfInfo[0] in useModelListObj["amb"]:
-                    tags = "allUse"
-                elif smfInfo[0] in useModelListObj["rail"]:
-                    tags = "rail"
-                else:
-                    tags = "amb"
-                data += (smfInfo[0], self.toHex(smfInfo[1]), self.toHex(smfInfo[2]), smfInfo[3], smfInfo[4], smfInfo[5])
-                data += (smfInfo[6], smfInfo[7])
-                self.treeviewFrame.tree.insert(parent="", index="end", iid=index, values=data, tags=tags)
-                index += 1
+            headerLabelList = [
+                textSetting.textList["railEditor"]["smfInfoName"],
+                textSetting.textList["railEditor"]["smfInfoFlag1"],
+                textSetting.textList["railEditor"]["smfInfoFlag2"],
+                textSetting.textList["railEditor"]["smfInfoLength"],
+                textSetting.textList["railEditor"]["smfInfoMesh1"],
+                textSetting.textList["railEditor"]["smfInfoMesh2"],
+                textSetting.textList["railEditor"]["smfInfoKasenchuNo"],
+                textSetting.textList["railEditor"]["smfInfoKasenNo"]
+            ]
         elif self.decryptFile.game == "BS":
-            col_tuple = (
-                "treeNum",
-                "smfInfoName",
-                "smfInfoLength",
-                "smfInfoMesh1",
-                "smfInfoMesh2",
-                "smfInfoElementList"
-            )
-
-            self.treeviewFrame.tree["columns"] = col_tuple
-            self.treeviewFrame.tree.column("#0", width=0, stretch=False)
-            self.treeviewFrame.tree.column("treeNum", anchor=tkinter.CENTER, width=50, stretch=False)
-            self.treeviewFrame.tree.column("smfInfoName", anchor=tkinter.CENTER, width=130)
-            self.treeviewFrame.tree.column("smfInfoLength", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("smfInfoMesh1", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("smfInfoMesh2", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("smfInfoElementList", anchor=tkinter.CENTER, width=50)
-
-            self.treeviewFrame.tree.heading("treeNum", text=textSetting.textList["railEditor"]["smfInfoNum"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoName", text=textSetting.textList["railEditor"]["smfInfoName"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoLength", text=textSetting.textList["railEditor"]["smfInfoLength"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoMesh1", text=textSetting.textList["railEditor"]["smfInfoMesh1"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoMesh2", text=textSetting.textList["railEditor"]["smfInfoMesh2"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("smfInfoElementList", text=textSetting.textList["railEditor"]["smfInfoElementList"], anchor=tkinter.CENTER)
-
-            self.treeviewFrame.tree["displaycolumns"] = col_tuple
-
-            index = 0
-            for smfInfo in self.smfList:
-                data = (index,)
-                tags = "used"
-                if smfInfo[0] not in useModelListObj["rail"] and smfInfo[0] not in useModelListObj["amb"]:
-                    tags = "notUse"
-                elif smfInfo[0] in useModelListObj["rail"] and smfInfo[0] in useModelListObj["amb"]:
-                    tags = "allUse"
-                elif smfInfo[0] in useModelListObj["rail"]:
-                    tags = "rail"
-                else:
-                    tags = "amb"
-                data += (smfInfo[0], smfInfo[1], smfInfo[2], smfInfo[3], len(smfInfo[4]))
-                self.treeviewFrame.tree.insert(parent="", index="end", iid=index, values=data, tags=tags)
-                index += 1
+            headerLabelList = [
+                textSetting.textList["railEditor"]["smfInfoName"],
+                textSetting.textList["railEditor"]["smfInfoLength"],
+                textSetting.textList["railEditor"]["smfInfoMesh1"],
+                textSetting.textList["railEditor"]["smfInfoMesh2"],
+                textSetting.textList["railEditor"]["smfInfoElementList"]
+            ]
         elif self.decryptFile.game in ["LSTrial", "LS"]:
             if self.decryptFile.game == "LS" or (self.decryptFile.game == "LSTrial" and self.decryptFile.readFlag):
-                col_tuple = (
-                    "treeNum",
-                    "smfInfoName",
-                    "smfInfoLength",
-                    "smfInfoE1",
-                    "smfInfoElementList"
-                )
-                self.treeviewFrame.tree["columns"] = col_tuple
-                self.treeviewFrame.tree.column("#0", width=0, stretch=False)
-                self.treeviewFrame.tree.column("treeNum", anchor=tkinter.CENTER, width=50, stretch=False)
-                self.treeviewFrame.tree.column("smfInfoName", anchor=tkinter.CENTER, width=130)
-                self.treeviewFrame.tree.column("smfInfoLength", anchor=tkinter.CENTER, width=50)
-                self.treeviewFrame.tree.column("smfInfoE1", anchor=tkinter.CENTER, width=50)
-                self.treeviewFrame.tree.column("smfInfoElementList", anchor=tkinter.CENTER, width=50)
-
-                self.treeviewFrame.tree.heading("treeNum", text=textSetting.textList["railEditor"]["smfInfoNum"], anchor=tkinter.CENTER)
-                self.treeviewFrame.tree.heading("smfInfoName", text=textSetting.textList["railEditor"]["smfInfoName"], anchor=tkinter.CENTER)
-                self.treeviewFrame.tree.heading("smfInfoLength", text=textSetting.textList["railEditor"]["smfInfoLength"], anchor=tkinter.CENTER)
-                self.treeviewFrame.tree.heading("smfInfoE1", text=textSetting.textList["railEditor"]["smfInfoE1"], anchor=tkinter.CENTER)
-                self.treeviewFrame.tree.heading("smfInfoElementList", text=textSetting.textList["railEditor"]["smfInfoElementList"], anchor=tkinter.CENTER)
-
-                self.treeviewFrame.tree["displaycolumns"] = col_tuple
-
-                index = 0
-                for smfInfo in self.smfList:
-                    data = (index,)
-                    tags = "used"
-                    if smfInfo[0] not in useModelListObj["rail"] and smfInfo[0] not in useModelListObj["amb"]:
-                        tags = "notUse"
-                    elif smfInfo[0] in useModelListObj["rail"] and smfInfo[0] in useModelListObj["amb"]:
-                        tags = "allUse"
-                    elif smfInfo[0] in useModelListObj["rail"]:
-                        tags = "rail"
-                    else:
-                        tags = "amb"
-
-                    if len(smfInfo[3]) == 0:
-                        data += (smfInfo[0], smfInfo[1], smfInfo[2], -1)
-                    else:
-                        data += (smfInfo[0], smfInfo[1], smfInfo[2], len(smfInfo[3]))
-                    self.treeviewFrame.tree.insert(parent="", index="end", iid=index, values=data, tags=tags)
-                    index += 1
+                headerLabelList = [
+                    textSetting.textList["railEditor"]["smfInfoName"],
+                    textSetting.textList["railEditor"]["smfInfoLength"],
+                    textSetting.textList["railEditor"]["smfInfoE1"],
+                    textSetting.textList["railEditor"]["smfInfoElementList"]
+                ]
             else:
-                col_tuple = (
-                    "treeNum",
-                    "smfInfoName",
-                    "smfInfoLength",
-                    "smfInfoElementList"
-                )
-                self.treeviewFrame.tree["columns"] = col_tuple
-                self.treeviewFrame.tree.column("#0", width=0, stretch=False)
-                self.treeviewFrame.tree.column("treeNum", anchor=tkinter.CENTER, width=50, stretch=False)
-                self.treeviewFrame.tree.column("smfInfoName", anchor=tkinter.CENTER, width=130)
-                self.treeviewFrame.tree.column("smfInfoLength", anchor=tkinter.CENTER, width=50)
-                self.treeviewFrame.tree.column("smfInfoElementList", anchor=tkinter.CENTER, width=50)
+                headerLabelList = [
+                    textSetting.textList["railEditor"]["smfInfoName"],
+                    textSetting.textList["railEditor"]["smfInfoLength"],
+                    textSetting.textList["railEditor"]["smfInfoElementList"]
+                ]
+        self.contentTable.setColumnCount(len(headerLabelList))
+        self.contentTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.contentTable.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.contentTable.setHorizontalHeaderLabels(headerLabelList)
 
-                self.treeviewFrame.tree.heading("treeNum", text=textSetting.textList["railEditor"]["smfInfoNum"], anchor=tkinter.CENTER)
-                self.treeviewFrame.tree.heading("smfInfoName", text=textSetting.textList["railEditor"]["smfInfoName"], anchor=tkinter.CENTER)
-                self.treeviewFrame.tree.heading("smfInfoLength", text=textSetting.textList["railEditor"]["smfInfoLength"], anchor=tkinter.CENTER)
-                self.treeviewFrame.tree.heading("smfInfoElementList", text=textSetting.textList["railEditor"]["smfInfoElementList"], anchor=tkinter.CENTER)
-
-                self.treeviewFrame.tree["displaycolumns"] = col_tuple
-
-                index = 0
-                for smfInfo in self.smfList:
-                    data = (index,)
-                    tags = "used"
-                    if smfInfo[0] not in useModelListObj["rail"] and smfInfo[0] not in useModelListObj["amb"]:
-                        tags = "notUse"
-                    elif smfInfo[0] in useModelListObj["rail"] and smfInfo[0] in useModelListObj["amb"]:
-                        tags = "allUse"
-                    elif smfInfo[0] in useModelListObj["rail"]:
-                        tags = "rail"
+    def setSmfTableData(self):
+        useModelListObj = self.getUseModelList()
+        for i, smfInfo in enumerate(self.smfList):
+            rowCount = self.contentTable.rowCount()
+            self.contentTable.insertRow(rowCount)
+            for j, smfValue in enumerate(smfInfo):
+                if self.decryptFile.game in ["CS", "RS"]:
+                    if j in [1, 2]:
+                        item = QTableWidgetItem(self.toHex(smfValue))
                     else:
-                        tags = "amb"
-
-                    if len(smfInfo[2]) == 0:
-                        data += (smfInfo[0], smfInfo[1], -1)
+                        item = QTableWidgetItem(str(smfValue))
+                elif self.decryptFile.game == "BS":
+                    if j == 4:
+                        item = QTableWidgetItem(str(len(smfValue)))
                     else:
-                        data += (smfInfo[0], smfInfo[1], len(smfInfo[2]))
-                    self.treeviewFrame.tree.insert(parent="", index="end", iid=index, values=data, tags=tags)
-                    index += 1
+                        item = QTableWidgetItem(str(smfValue))
+                elif self.decryptFile.game in ["LSTrial", "LS"]:
+                    if self.decryptFile.game == "LS" or (self.decryptFile.game == "LSTrial" and self.decryptFile.readFlag):
+                        if j == 3:
+                            if len(smfValue) == 0:
+                                item = QTableWidgetItem(str(-1))
+                            else:
+                                item = QTableWidgetItem(str(len(smfValue)))
+                        else:        
+                            item = QTableWidgetItem(str(smfValue))
+                    else:
+                        if j == 2:
+                            if len(smfValue) == 0:
+                                item = QTableWidgetItem(str(-1))
+                            else:
+                                item = QTableWidgetItem(str(len(smfValue)))
+                        else:
+                            item = QTableWidgetItem(str(smfValue))
 
-        self.treeviewFrame.tree.tag_configure("notUse", background="#CCCCCC", foreground="black")
-        self.treeviewFrame.tree.tag_configure("rail", background="#FFC8C8", foreground="black")
-        self.treeviewFrame.tree.tag_configure("amb", background="#C8FFFF", foreground="black")
-
-        if selectId is not None:
-            if selectId >= len(self.smfList):
-                selectId = len(self.smfList) - 1
-            if selectId - 3 < 0:
-                self.treeviewFrame.tree.see(0)
-            else:
-                self.treeviewFrame.tree.see(selectId - 3)
-            self.treeviewFrame.tree.selection_set(selectId)
-
-    def customSelectFunc(self):
-        if len(self.treeviewFrame.tree.selection()) > 0:
-            selectId = self.treeviewFrame.tree.selection()[0]
-            selectItem = self.treeviewFrame.tree.item(selectId)
-            tagName = selectItem["tags"][0]
-            if tagName == "notUse":
-                self.v_railLb.set("")
-                self.v_ambLb.set("")
-            elif tagName == "allUse":
-                self.v_railLb.set(textSetting.textList["railEditor"]["usedRail"])
-                self.v_ambLb.set(textSetting.textList["railEditor"]["usedAmb"])
-            elif tagName == "rail":
-                self.v_railLb.set(textSetting.textList["railEditor"]["usedRail"])
-                self.v_ambLb.set("")
-            elif tagName == "amb":
-                self.v_railLb.set("")
-                self.v_ambLb.set(textSetting.textList["railEditor"]["usedAmb"])
-
-    def toHex(self, num):
-        return "0x{0:02x}".format(num)
+                if j == 0:
+                    modelName = smfValue
+                    if modelName in useModelListObj["rail"] and modelName in useModelListObj["amb"]:
+                        category = "allUse"
+                    elif modelName not in useModelListObj["rail"] and modelName not in useModelListObj["amb"]:
+                        category = "notUse"
+                    elif modelName in useModelListObj["rail"]:
+                        category = "rail"
+                    else:
+                        category = "amb"
+                    item.setData(Qt.UserRole, category)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.contentTable.setItem(rowCount, j, item)
 
     def getUseModelList(self):
         mdlInfoObj = {}
@@ -399,9 +345,19 @@ class SmfListWidget:
                     railMdlSet.add(mdlName)
 
                 kasenNo = rail[7]
-                if kasenNo != -1 and len(self.decryptFile.smfList) > kasenNo:
-                    kasenName = self.decryptFile.smfList[kasenNo][0]
-                    railMdlSet.add(kasenName)
+                if kasenNo == -2:
+                    pass
+                elif kasenNo == -1:
+                    if len(self.decryptFile.smfList) > mdlNo:
+                        kasenNo = self.decryptFile.smfList[mdlNo][-1]
+                        if kasenNo != 255:
+                            if len(self.decryptFile.smfList) > kasenNo:
+                                kasenName = self.decryptFile.smfList[kasenNo][0]
+                                railMdlSet.add(kasenName)
+                else:
+                    if len(self.decryptFile.smfList) > kasenNo:
+                        kasenName = self.decryptFile.smfList[kasenNo][0]
+                        railMdlSet.add(kasenName)
 
                 kasenchuNo = rail[8]
                 if kasenchuNo == -2:
@@ -493,567 +449,568 @@ class SmfListWidget:
                         ambMdlName = self.decryptFile.smfList[tempList[4]][0]
                         ambMdlSet.add(ambMdlName)
         mdlInfoObj["amb"] = ambMdlSet
-
         return mdlInfoObj
 
-    def editLine(self):
-        selectId = self.treeviewFrame.tree.selection()[0]
-        selectItem = self.treeviewFrame.tree.set(selectId)
-        num = int(selectItem["treeNum"])
-        result = EditSmfListWidget(self.root, textSetting.textList["railEditor"]["modifySmfInfo"], self.decryptFile, "modify", num, selectItem, self.rootFrameAppearance)
-        if result.reloadFlag:
-            if not self.decryptFile.saveSmfInfo(num, "modify", result.resultValueList):
+    def toHex(self, num):
+        return "0x{0:02x}".format(num)
+
+    def setUsedModelLabel(self, item):
+        category = item.data(Qt.UserRole)
+        if category == "notUse":
+            self.usedRailLabel.setText("")
+            self.usedAmbLabel.setText("")
+        elif category == "allUse":
+            self.usedRailLabel.setText(textSetting.textList["railEditor"]["usedRail"])
+            self.usedAmbLabel.setText(textSetting.textList["railEditor"]["usedAmb"])
+        elif category == "rail":
+            self.usedRailLabel.setText(textSetting.textList["railEditor"]["usedRail"])
+            self.usedAmbLabel.setText("")
+        elif category == "amb":
+            self.usedRailLabel.setText("")
+            self.usedAmbLabel.setText(textSetting.textList["railEditor"]["usedAmb"])
+
+    def jumpToSelect(self):
+        if self.selectId is not None:
+            if self.selectId >= len(self.smfList):
+                self.selectId = len(self.smfList) - 1
+            self.contentTable.selectRow(self.selectId)
+
+    def onSelectionChanged(self):
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            self.selectLineLabel.setText("")
+            self.usedRailLabel.setText("")
+            self.usedAmbLabel.setText("")
+            self.editLineButton.setEnabled(False)
+            self.insertLineButton.setEnabled(False)
+            self.deleteLineButton.setEnabled(False)
+            self.copyLineButton.setEnabled(False)
+            if self.decryptFile.game in ["LSTrial", "LS", "BS"]:
+                self.listModifyButton.setEnabled(False)
+            return
+
+        row = selectedItems[0].row()
+        self.selectLineLabel.setText(str(row + 1))
+        self.setUsedModelLabel(selectedItems[0])
+        self.editLineButton.setEnabled(True)
+        self.insertLineButton.setEnabled(True)
+        self.deleteLineButton.setEnabled(True)
+        self.copyLineButton.setEnabled(True)
+        if self.decryptFile.game in ["LSTrial", "LS", "BS"]:
+            self.listModifyButton.setEnabled(True)
+
+    def editLineFunc(self):
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
+
+        headerNameList = [self.contentTable.horizontalHeaderItem(i).text() for i in range(self.contentTable.columnCount())]
+        num = selectedItems[0].row()
+        editSmfListWidget = EditSmfListWidget(self, textSetting.textList["railEditor"]["modifySmfInfo"], self.decryptFile, "modify", num, headerNameList, self.smfList[num])
+        if editSmfListWidget.exec() == QDialog.Accepted:
+            if not self.decryptFile.saveSmfInfo(num, "modify", editSmfListWidget.resultValueList):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I79"])
-            self.reloadFunc(selectId)
+            self.reloadFunc(num)
 
-    def insertLine(self):
-        noSmfInfoFlag = False
-        if not self.treeviewFrame.tree.selection():
-            noSmfInfoFlag = True
-            selectId = None
+    def insertLineFunc(self):
+        headerNameList = [self.contentTable.horizontalHeaderItem(i).text() for i in range(self.contentTable.columnCount())]
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
             num = 0
-            keyList = self.treeviewFrame.tree["columns"]
-            selectItem = {}
-            for key in keyList:
-                selectItem[key] = None
         else:
-            selectId = self.treeviewFrame.tree.selection()[0]
-            selectItem = self.treeviewFrame.tree.set(selectId)
-            num = int(selectItem["treeNum"])
-        result = EditSmfListWidget(self.root, textSetting.textList["railEditor"]["insertSmfInfo"], self.decryptFile, "insert", num, selectItem, self.rootFrameAppearance)
-        if result.reloadFlag:
-            if not noSmfInfoFlag:
-                if result.insert == 0:
-                    num += 1
-            if not self.decryptFile.saveSmfInfo(num, "insert", result.resultValueList):
+            num = selectedItems[0].row() + 1
+
+        editSmfListWidget = EditSmfListWidget(self, textSetting.textList["railEditor"]["insertSmfInfo"], self.decryptFile, "insert", num, headerNameList)
+        if editSmfListWidget.exec() == QDialog.Accepted:
+            if not self.decryptFile.saveSmfInfo(num + editSmfListWidget.insertPos, "insert", editSmfListWidget.resultValueList):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I79"])
-            self.reloadFunc(selectId)
+            self.reloadFunc(num + editSmfListWidget.insertPos)
 
-    def deleteLine(self):
-        selectId = self.treeviewFrame.tree.selection()[0]
-        selectItem = self.treeviewFrame.tree.set(selectId)
-        num = int(selectItem["treeNum"])
-        warnMsg = textSetting.textList["infoList"]["I9"]
-        result = mb.askokcancel(title=textSetting.textList["warning"], message=warnMsg, icon="warning")
-        if result:
+    def deleteLineFunc(self):
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
+
+        num = selectedItems[0].row()
+        result = mb.askokcancel(title=textSetting.textList["warning"], message=textSetting.textList["infoList"]["I9"], icon="warning")
+        if result == mb.OK:
             if not self.decryptFile.saveSmfInfo(num, "delete", []):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I79"])
-            if len(self.smfList) == 1:
-                selectId = None
-            self.reloadFunc(selectId)
+            self.reloadFunc()
 
-    def copyLine(self):
-        selectId = self.treeviewFrame.tree.selection()[0]
-        selectItem = self.treeviewFrame.tree.set(selectId)
+    def copyLineFunc(self):
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
 
-        smfInfoKeyList = list(selectItem.keys())
-        smfInfoKeyList.pop(0)
-        copyList = []
-
-        if self.decryptFile.game in ["CS", "RS"]:
-            for i in range(len(smfInfoKeyList)):
-                key = smfInfoKeyList[i]
-                if i == 0:
-                    copyList.append(selectItem[key])
-                elif i in [1, 2]:
-                    copyList.append(int(selectItem[key], 16))
-                else:
-                    copyList.append(int(selectItem[key]))
-        elif self.decryptFile.game == "BS":
-            for i in range(len(smfInfoKeyList)):
-                key = smfInfoKeyList[i]
-                if i == 0:
-                    copyList.append(selectItem[key])
-                elif i in [1, 2, 3]:
-                    copyList.append(int(selectItem[key]))
-                else:
-                    tempInfo = self.smfList[int(selectId)][4]
-                    copyList.append(tempInfo)
-        elif self.decryptFile.game in ["LSTrial", "LS"]:
-            for i in range(len(smfInfoKeyList)):
-                key = smfInfoKeyList[i]
-                if self.decryptFile.game == "LS" or (self.decryptFile.game == "LSTrial" and self.decryptFile.readFlag):
-                    if i == 0:
-                        copyList.append(selectItem[key])
-                    elif i in [1, 2]:
-                        copyList.append(int(selectItem[key]))
-                    else:
-                        tempInfo = self.smfList[int(selectId)][3]
-                        copyList.append(tempInfo)
-                else:
-                    if i == 0:
-                        copyList.append(selectItem[key])
-                    elif i == 1:
-                        copyList.append(int(selectItem[key]))
-                    else:
-                        tempInfo = self.smfList[int(selectId)][2]
-                        copyList.append(tempInfo)
-        self.copySmfInfo = copyList
+        num = selectedItems[0].row()
+        self.copySmfInfo = copy.deepcopy(self.smfList[num])
         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I12"])
-        self.pasteLineBtn["state"] = "normal"
+        self.pasteLineButton.setEnabled(True)
 
-    def pasteLine(self):
-        selectId = self.treeviewFrame.tree.selection()[0]
-        selectItem = self.treeviewFrame.tree.set(selectId)
-        result = PasteSmfListDialog(self.root, textSetting.textList["railEditor"]["pasteSmfInfo"], self.decryptFile, int(selectItem["treeNum"]), self.copySmfInfo, self.rootFrameAppearance)
-        if result.reloadFlag:
-            self.reloadFunc(selectId)
+    def pasteLineFunc(self):
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
 
-    def listModify(self):
-        selectId = self.treeviewFrame.tree.selection()[0]
-        originTempList = self.decryptFile.smfList[int(selectId)][-1]
-        result = EditListElement(self.root, textSetting.textList["railEditor"]["editSmfElementList"], self.decryptFile, originTempList, self.rootFrameAppearance)
-        if result.reloadFlag:
-            if not self.decryptFile.saveSmfListElement(int(selectId), result.tempList):
-                self.decryptFile.printError()
-                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-                return False
-            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I80"])
-            self.reloadFunc(selectId)
+        num = selectedItems[0].row()
+        pasteSmfListDialog = PasteSmfListDialog(self, textSetting.textList["railEditor"]["pasteSmfInfo"], self.decryptFile, num, self.copySmfInfo)
+        if pasteSmfListDialog.exec() == QDialog.Accepted:
+            self.reloadFunc(num)
+
+    def listModifyFunc(self):
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
+
+        num = selectedItems[0].row()
+        originTempList = self.smfList[num][-1]
+        editListWidget = EditListWidget(self, textSetting.textList["railEditor"]["editSmfElementList"], self.decryptFile, originTempList)
+        if editListWidget.exec() == QDialog.Accepted:
+            if editListWidget.reloadFlag:
+                if not self.decryptFile.saveSmfListElement(num, editListWidget.tempList):
+                    self.decryptFile.printError()
+                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                    return False
+                mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I80"])
+                self.reloadFunc(num)
 
 
-class EditSmfListWidget(CustomSimpleDialog):
-    def __init__(self, master, title, decryptFile, mode, num, smfInfo, rootFrameAppearance):
+class EditSmfListWidget(QDialog):
+    def __init__(self, parent, title, decryptFile, mode, num, headerNameList, smfInfo=None):
+        super().__init__(parent)
+        self.setWindowTitle(title)
         self.decryptFile = decryptFile
         self.mode = mode
         self.num = num
+        self.headerNameList = headerNameList
         self.smfInfo = smfInfo
-        self.rootFrameAppearance = rootFrameAppearance
-        self.varList = []
-        self.reloadFlag = False
-        self.insert = 0
+        self.insertPos = 0
         self.resultValueList = []
-        super().__init__(master, title, rootFrameAppearance.bgColor)
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
 
-    def body(self, master):
-        self.resizable(False, False)
-
-        smfInfoKeyList = list(self.smfInfo.keys())
-        smfInfoKeyList.pop(0)
+        self.font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=self.font2)
+        layout.addWidget(label)
+        # layout - QGridLayout
+        self.smfListGridLayout = QGridLayout()
+        layout.addLayout(self.smfListGridLayout)
+        self.lineEditList = []
         if self.decryptFile.game in ["CS", "RS"]:
             modelFlagList = textSetting.textList["railEditor"]["modelFlagList"]
-            for i in range(len(smfInfoKeyList)):
-                smfInfoLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["railEditor"][smfInfoKeyList[i]], font=textSetting.textList["font2"])
-                smfInfoLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-                if i == 0:
-                    self.varList.append(tkinter.StringVar())
-                    smfInfoEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-                    smfInfoEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
+            for i, headerName in enumerate(self.headerNameList):
+                # layout - QGridLayout - label
+                smfInfoLabel = QLabel(headerName, font=self.font2)
+                self.smfListGridLayout.addWidget(smfInfoLabel, i, 0)
+                # layout - QGridLayout - lineEdit, menu
+                if i in [1, 2]:
+                    menubar = QMenuBar()
+                    menu = menubar.addMenu(textSetting.textList["railEditor"]["setSmfSwitch"])
+                    for modelFlagValue in reversed(modelFlagList[i - 1]):
+                        action = QAction(modelFlagValue, self)
+                        action.setCheckable(True)
+                        menu.addAction(action)
+                    self.lineEditList.append(menu)
+                    self.smfListGridLayout.addWidget(menubar, i, 1)
 
                     if self.mode == "modify":
-                        self.varList[i].set(self.smfInfo[smfInfoKeyList[i]])
-                elif i in [1, 2]:
-                    mb = ttkCustomWidget.CustomTtkMenubutton(master, text=textSetting.textList["railEditor"]["setSmfSwitch"])
-                    menu = tkinter.Menu(mb, tearoff=0, bg=self.rootFrameAppearance.bgColor, fg=self.rootFrameAppearance.fgColor)
-                    mb["menu"] = menu
-
-                    Flg0 = tkinter.BooleanVar()
-                    Flg1 = tkinter.BooleanVar()
-                    Flg2 = tkinter.BooleanVar()
-                    Flg3 = tkinter.BooleanVar()
-                    Flg4 = tkinter.BooleanVar()
-                    Flg5 = tkinter.BooleanVar()
-                    Flg6 = tkinter.BooleanVar()
-                    Flg7 = tkinter.BooleanVar()
-                    flagList = [Flg0, Flg1, Flg2, Flg3, Flg4, Flg5, Flg6, Flg7]
-                    self.varList.append(flagList)
-                    menu.add_checkbutton(label=modelFlagList[i - 1][7], variable=Flg7)
-                    menu.add_checkbutton(label=modelFlagList[i - 1][6], variable=Flg6)
-                    menu.add_checkbutton(label=modelFlagList[i - 1][5], variable=Flg5)
-                    menu.add_checkbutton(label=modelFlagList[i - 1][4], variable=Flg4)
-                    menu.add_checkbutton(label=modelFlagList[i - 1][3], variable=Flg3)
-                    menu.add_checkbutton(label=modelFlagList[i - 1][2], variable=Flg2)
-                    menu.add_checkbutton(label=modelFlagList[i - 1][1], variable=Flg1)
-                    menu.add_checkbutton(label=modelFlagList[i - 1][0], variable=Flg0)
-                    if self.mode == "modify":
-                        val = int(self.smfInfo[smfInfoKeyList[i]], 16)
-                        for j in range(8):
-                            if val & (2**j) == 0:
-                                flagList[j].set(False)
+                        for j, action in enumerate(reversed(menu.actions())):
+                            if self.smfInfo[i] & (2**j) == 0:
+                                action.setChecked(False)
                             else:
-                                flagList[j].set(True)
-
-                    mb.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
+                                action.setChecked(True)
                 else:
-                    self.varList.append(tkinter.IntVar())
-                    smfInfoEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-                    smfInfoEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
+                    smfInfoLineEdit = QLineEdit(font=self.font2)
+                    if i > 2:
+                        smfInfoLineEdit.setValidator(integerValidator)
+                    self.lineEditList.append(smfInfoLineEdit)
+                    self.smfListGridLayout.addWidget(smfInfoLineEdit, i, 1)
                     if self.mode == "modify":
-                        self.varList[i].set(self.smfInfo[smfInfoKeyList[i]])
+                        smfInfoLineEdit.setText("{0}".format(self.smfInfo[i]))
                     elif self.mode == "insert":
-                        if i == 3:
-                            default = 8
-                        else:
-                            default = 255
-                        self.varList[i].set(default)
-        elif self.decryptFile.game == "BS":
-            smfInfoKeyList.pop()
-            for i in range(len(smfInfoKeyList)):
-                smfInfoLb = ttkCustomWidget.CustomTtkLabel(master, text=smfInfoKeyList[i], font=textSetting.textList["font2"])
-                smfInfoLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-                if i == 0:
-                    self.varList.append(tkinter.StringVar())
-                    smfInfoEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-                    smfInfoEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-
-                    if self.mode == "modify":
-                        self.varList[i].set(self.smfInfo[smfInfoKeyList[i]])
-                else:
-                    self.varList.append(tkinter.IntVar())
-                    smfInfoEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-                    smfInfoEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-                    if self.mode == "modify":
-                        self.varList[i].set(self.smfInfo[smfInfoKeyList[i]])
-                    elif self.mode == "insert":
-                        if i == 1:
-                            default = 8
-                        else:
-                            default = 255
-                        self.varList[i].set(default)
+                        if i > 2:
+                            if i == 3:
+                                default = 8
+                            else:
+                                default = 255
+                            smfInfoLineEdit.setText("{0}".format(default))
         else:
-            smfInfoKeyList.pop()
-            for i in range(len(smfInfoKeyList)):
-                smfInfoLb = ttkCustomWidget.CustomTtkLabel(master, text=smfInfoKeyList[i], font=textSetting.textList["font2"])
-                smfInfoLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-                if i == 0:
-                    self.varList.append(tkinter.StringVar())
-                    smfInfoEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-                    smfInfoEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-
-                    if self.mode == "modify":
-                        self.varList[i].set(self.smfInfo[smfInfoKeyList[i]])
-                else:
-                    self.varList.append(tkinter.IntVar())
-                    smfInfoEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-                    smfInfoEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-                    if self.mode == "modify":
-                        self.varList[i].set(self.smfInfo[smfInfoKeyList[i]])
-                    elif self.mode == "insert":
+            self.headerNameList.pop()
+            for i, headerName in enumerate(self.headerNameList):
+                # layout - QGridLayout - label
+                smfInfoLabel = QLabel(headerName, font=self.font2)
+                self.smfListGridLayout.addWidget(smfInfoLabel, i, 0)
+                # layout - QGridLayout - lineEdit
+                smfInfoLineEdit = QLineEdit(font=self.font2)
+                if i > 0:
+                    smfInfoLineEdit.setValidator(integerValidator)
+                self.lineEditList.append(smfInfoLineEdit)
+                self.smfListGridLayout.addWidget(smfInfoLineEdit, i, 1)
+                if self.mode == "modify":
+                    smfInfoLineEdit.setText("{0}".format(self.smfInfo[i]))
+                elif self.mode == "insert":
+                    if i > 0:
                         if i == 1:
                             default = 8
                         else:
                             default = 255
-                        self.varList[i].set(default)
+                        smfInfoLineEdit.setText("{0}".format(default))
 
         if self.mode == "insert":
-            self.setInsertWidget(master, len(smfInfoKeyList))
-        super().body(master)
+            self.setInsertWidget(len(self.headerNameList))
 
-    def setInsertWidget(self, master, index):
-        xLine = ttkCustomWidget.CustomTtkSeparator(master, orient=tkinter.HORIZONTAL)
-        xLine.grid(row=index, column=0, columnspan=2, sticky=tkinter.W + tkinter.E, pady=10)
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
-        insertLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["railEditor"]["posLabel"], font=textSetting.textList["font2"])
-        insertLb.grid(row=index + 1, column=0, sticky=tkinter.W + tkinter.E)
-        self.v_insert = tkinter.StringVar()
-        self.insertCb = ttkCustomWidget.CustomTtkCombobox(master, state="readonly", font=textSetting.textList["font2"], textvariable=self.v_insert, values=textSetting.textList["railEditor"]["posValue"])
-        self.insertCb.grid(row=index + 1, column=1, sticky=tkinter.W + tkinter.E)
-        self.insertCb.current(0)
+    def setInsertWidget(self, insertRow):
+        # layout - QGridLayout - QFrame (colspan=2)
+        horizentalLine = QFrame()
+        horizentalLine.setFrameShape(QFrame.Shape.HLine)
+        horizentalLine.setFrameShadow(QFrame.Shadow.Sunken)
+        self.smfListGridLayout.addWidget(horizentalLine, insertRow, 0, 1, 2)
+        # layout - QGridLayout - insertLabel
+        insertLabel = QLabel(textSetting.textList["railEditor"]["posLabel"], font=self.font2)
+        self.smfListGridLayout.addWidget(insertLabel, insertRow + 1, 0)
+        # layout - QGridLayout - insertCombo
+        self.insertCombo = QComboBox(font=self.font2)
+        self.insertCombo.addItems(textSetting.textList["railEditor"]["posValue"])
+        self.smfListGridLayout.addWidget(self.insertCombo, insertRow + 1, 1)
 
     def validate(self):
         self.resultValueList = []
-        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"], parent=self)
-        if result:
-            try:
-                if self.decryptFile.game in ["CS", "RS"]:
-                    try:
-                        for i in range(len(self.varList)):
-                            if i == 0:
-                                res = self.varList[i].get()
-                            elif i in [1, 2]:
-                                bitList = self.varList[i]
-                                res = 0
-                                for j in range(len(bitList)):
-                                    if bitList[j].get():
-                                        res |= (2**j)
-                            else:
-                                res = int(self.varList[i].get())
-                            self.resultValueList.append(res)
-                        if self.mode == "insert":
-                            self.insert = self.insertCb.current()
-                        return True
-                    except Exception:
-                        errorMsg = textSetting.textList["errorList"]["E60"]
-                        mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                        return False
-                elif self.decryptFile.game == "BS":
-                    try:
-                        for i in range(len(self.varList)):
-                            if i == 0:
-                                res = self.varList[i].get()
-                            else:
-                                res = int(self.varList[i].get())
-                            self.resultValueList.append(res)
+        for i, lineEdit in enumerate(self.lineEditList):
+            if self.decryptFile.game in ["CS", "RS"]:
+                if i == 0:
+                    self.resultValueList.append(lineEdit.text())
+                elif i in [1, 2]:
+                    res = 0
+                    menu = lineEdit
+                    for j, action in enumerate(reversed(menu.actions())):
+                        if action.isChecked():
+                            res |= (2**j)
+                    self.resultValueList.append(res)
+                else:
+                    if not lineEdit.hasAcceptableInput():
+                        mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+                        return
+                    self.resultValueList.append(int(lineEdit.text()))
+            elif self.decryptFile.game == "BS":
+                if i == 0:
+                    self.resultValueList.append(lineEdit.text())
+                else:
+                    if not lineEdit.hasAcceptableInput():
+                        mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+                        return
+                    self.resultValueList.append(int(lineEdit.text()))
+            elif self.decryptFile.game in ["LSTrial", "LS"]:
+                if i == 0:
+                    self.resultValueList.append(lineEdit.text())
+                else:
+                    if not lineEdit.hasAcceptableInput():
+                        mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+                        return
+                    self.resultValueList.append(int(lineEdit.text()))
 
-                        if self.mode == "modify":
-                            originTempList = self.decryptFile.smfList[self.num][4]
-                            self.resultValueList.append(originTempList)
-                        else:
-                            self.resultValueList.append([])
+        if self.decryptFile.game == "BS":
+            if self.mode == "modify":
+                originTempList = self.decryptFile.smfList[self.num][4]
+                self.resultValueList.append(originTempList)
+            else:
+                self.resultValueList.append([])
+        elif self.decryptFile.game in ["LSTrial", "LS"]:
+            if self.mode == "modify":
+                if self.decryptFile.game == "LS" or (self.decryptFile.game == "LSTrial" and self.decryptFile.readFlag):
+                    originTempList = self.decryptFile.smfList[self.num][3]
+                else:
+                    originTempList = self.decryptFile.smfList[self.num][2]
+                self.resultValueList.append(originTempList)
+            else:
+                self.resultValueList.append([])
 
-                        if self.mode == "insert":
-                            self.insert = self.insertCb.current()
-                        return True
-                    except Exception:
-                        errorMsg = textSetting.textList["errorList"]["E60"]
-                        mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                        return False
-                elif self.decryptFile.game in ["LSTrial", "LS"]:
-                    try:
-                        for i in range(len(self.varList)):
-                            if i == 0:
-                                res = self.varList[i].get()
-                            else:
-                                res = int(self.varList[i].get())
-                            self.resultValueList.append(res)
+        if self.mode == "insert":
+            self.insertPos = 0
+            if self.insertCombo.currentIndex() == 1:
+                self.insertPos = -1
+        return True
 
-                        if self.mode == "modify":
-                            if self.decryptFile.game == "LS" or (self.decryptFile.game == "LSTrial" and self.decryptFile.readFlag):
-                                originTempList = self.decryptFile.smfList[self.num][3]
-                            else:
-                                originTempList = self.decryptFile.smfList[self.num][2]
-                            self.resultValueList.append(originTempList)
-                        else:
-                            self.resultValueList.append([])
+    def accept(self):
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
 
-                        if self.mode == "insert":
-                            self.insert = self.insertCb.current()
-                        return True
-                    except Exception:
-                        errorMsg = textSetting.textList["errorList"]["E60"]
-                        mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                        return False
-            except Exception:
-                errorMsg = textSetting.textList["errorList"]["E14"]
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return False
-
-    def apply(self):
-        self.reloadFlag = True
+        if not self.validate():
+            return
+        super().accept()
 
 
-class PasteSmfListDialog(CustomSimpleDialog):
-    def __init__(self, master, title, decryptFile, num, copySmfInfo, rootFrameAppearance):
+class PasteSmfListDialog(QDialog):
+    def __init__(self, parent, title, decryptFile, num, copySmfInfo):
+        super().__init__(parent)
+        self.setWindowTitle(title)
         self.decryptFile = decryptFile
         self.num = num
         self.copySmfInfo = copySmfInfo
-        self.reloadFlag = False
-        super().__init__(master, title, rootFrameAppearance.bgColor)
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
 
-    def body(self, master):
-        self.resizable(False, False)
-        posLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["infoList"]["I4"], font=textSetting.textList["font2"])
-        posLb.pack(padx=10, pady=10)
-        super().body(master)
-
-    def buttonbox(self):
-        super().buttonbox()
-        for idx, child in enumerate(self.buttonList):
-            child.destroy()
-        self.box.config(padx=5, pady=5)
-        self.frontBtn = ttkCustomWidget.CustomTtkButton(self.box, text=textSetting.textList["railEditor"]["pasteFront"], style="custom.paste.TButton", command=self.frontInsert)
-        self.frontBtn.pack(side=tkinter.LEFT, padx=5, pady=5)
-        self.backBtn = ttkCustomWidget.CustomTtkButton(self.box, text=textSetting.textList["railEditor"]["pasteBack"], style="custom.paste.TButton", command=self.backInsert)
-        self.backBtn.pack(side=tkinter.LEFT, padx=5, pady=5)
-        self.cancelBtn = ttkCustomWidget.CustomTtkButton(self.box, text=textSetting.textList["railEditor"]["pasteCancel"], style="custom.paste.TButton", command=self.cancel)
-        self.cancelBtn.pack(side=tkinter.LEFT, padx=5, pady=5)
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        pastePosLabel = QLabel(textSetting.textList["infoList"]["I4"], font=font2)
+        layout.addWidget(pastePosLabel)
+        # layout - buttonLayout
+        buttonLayout = QHBoxLayout()
+        layout.addLayout(buttonLayout)
+        # layout - buttonLayout - frontButton
+        frontButton = QPushButton(textSetting.textList["railEditor"]["pasteFront"], font=font2)
+        frontButton.clicked.connect(self.frontInsert)
+        buttonLayout.addWidget(frontButton)
+        # layout - buttonLayout - backButton
+        backButton = QPushButton(textSetting.textList["railEditor"]["pasteBack"], font=font2)
+        backButton.clicked.connect(self.backInsert)
+        buttonLayout.addWidget(backButton)
+        # layout - buttonLayout - cancelButton
+        cancelButton = QPushButton(textSetting.textList["railEditor"]["pasteCancel"], font=font2)
+        cancelButton.clicked.connect(self.reject)
+        buttonLayout.addWidget(cancelButton)
 
     def frontInsert(self):
-        self.ok()
+        super().accept()
         if not self.decryptFile.saveSmfInfo(self.num, "insert", self.copySmfInfo):
             self.decryptFile.printError()
             mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
             return
         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I79"])
-        self.reloadFlag = True
 
     def backInsert(self):
-        self.ok()
+        super().accept()
         if not self.decryptFile.saveSmfInfo(self.num + 1, "insert", self.copySmfInfo):
             self.decryptFile.printError()
             mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
             return
         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I79"])
-        self.reloadFlag = True
 
 
-class EditListElement(CustomSimpleDialog):
-    def __init__(self, master, title, decryptFile, tempList, rootFrameAppearance):
+class EditListWidget(QDialog):
+    def __init__(self, parent, title, decryptFile, modifyList):
+        super().__init__(parent)
+        self.setWindowTitle(title)
         self.decryptFile = decryptFile
-        self.tempList = copy.deepcopy(tempList)
+        self.tempList = copy.deepcopy(modifyList)
         self.dirtyFlag = False
         self.reloadFlag = False
-        self.resultList = []
-        self.rootFrameAppearance = rootFrameAppearance
-        super().__init__(master, title, rootFrameAppearance.bgColor)
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        font6 = QFont(textSetting.textList["font6"][0], textSetting.textList["font6"][1])
 
-    def body(self, master):
-        self.frame = master
-        self.resizable(False, False)
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - buttonLayout
+        buttonLayout = QHBoxLayout()
+        layout.addLayout(buttonLayout)
+        # layout - buttonLayout - modifyButton
+        self.modifyButton = QPushButton(textSetting.textList["modify"], font=font6)
+        self.modifyButton.setEnabled(False)
+        self.modifyButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.modifyButton.clicked.connect(self.modifyFunc)
+        buttonLayout.addWidget(self.modifyButton)
+        # layout - buttonLayout - insertButton
+        self.insertButton = QPushButton(textSetting.textList["insert"], font=font6)
+        self.insertButton.setEnabled(False)
+        self.insertButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.insertButton.clicked.connect(self.insertFunc)
+        buttonLayout.addWidget(self.insertButton)
+        # layout - buttonLayout - deleteButton
+        self.deleteButton = QPushButton(textSetting.textList["delete"], font=font6)
+        self.deleteButton.setEnabled(False)
+        self.deleteButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.deleteButton.clicked.connect(self.deleteFunc)
+        buttonLayout.addWidget(self.deleteButton)
 
-        btnFrame = ttkCustomWidget.CustomTtkFrame(master)
-        btnFrame.pack()
+        # layout - QListWidget
+        self.modifyListWidget = QListWidget(font=font2)
+        displayModifyList = self.setListboxInfo(self.tempList)
+        self.modifyListWidget.addItems(displayModifyList)
+        self.modifyListWidget.setMinimumWidth(self.getMaxWidth() + 20)
+        self.modifyListWidget.itemClicked.connect(self.onItemClicked)
+        self.selectIndex = -1
+        layout.addWidget(self.modifyListWidget, stretch=1)
 
-        self.modifyBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["modify"], style="custom.listbox.TButton", state="disabled", command=self.modify)
-        self.modifyBtn.grid(padx=10, row=0, column=0, sticky=tkinter.W + tkinter.E)
-        self.insertBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["insert"], style="custom.listbox.TButton", state="disabled", command=self.insert)
-        self.insertBtn.grid(padx=10, row=0, column=1, sticky=tkinter.W + tkinter.E)
-        self.deleteBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["delete"], style="custom.listbox.TButton", state="disabled", command=self.delete)
-        self.deleteBtn.grid(padx=10, row=0, column=2, sticky=tkinter.W + tkinter.E)
-
-        listFrame = ttkCustomWidget.CustomTtkFrame(master)
-        listFrame.pack()
-
-        copyTempList = self.setListboxInfo(self.tempList)
-        self.v_tempList = tkinter.StringVar(value=copyTempList)
-        tempListListbox = tkinter.Listbox(listFrame, selectmode="single", font=textSetting.textList["font2"], width=25, height=6, listvariable=self.v_tempList, bg=self.rootFrameAppearance.bgColor, fg=self.rootFrameAppearance.fgColor)
-        tempListListbox.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
-        tempListListbox.bind("<<ListboxSelect>>", lambda e: self.buttonActive(tempListListbox, tempListListbox.curselection()))
-        super().body(master)
-
-    def buttonActive(self, listbox, value):
-        if len(value) == 0:
-            self.modifyBtn["state"] = "disabled"
-            self.insertBtn["state"] = "disabled"
-            self.deleteBtn["state"] = "disabled"
-            return
-        self.selectIndexNum = value[0]
-
-        if listbox.get(value[0]) == textSetting.textList["railEditor"]["noList"]:
-            self.modifyBtn["state"] = "disabled"
-            self.deleteBtn["state"] = "disabled"
-        else:
-            self.modifyBtn["state"] = "normal"
-            self.deleteBtn["state"] = "normal"
-        self.insertBtn["state"] = "normal"
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
     def setListboxInfo(self, tempList):
-        copyTempList = copy.deepcopy(tempList)
-        if len(copyTempList) > 0:
-            for i in range(len(copyTempList)):
-                tempInfo = copyTempList[i]
-                copyTempList[i] = "{0:02d}→{1}".format(i, tempInfo)
+        displayModifyList = []
+        if len(tempList) > 0:
+            for i in range(len(tempList)):
+                tempInfo = tempList[i]
+                displayModifyList.append("{0:02d}→{1}".format(i, tempInfo))
         else:
-            copyTempList = [textSetting.textList["railEditor"]["noList"]]
+            displayModifyList = [textSetting.textList["railEditor"]["noList"]]
+        return displayModifyList
 
-        return copyTempList
+    def getMaxWidth(self):
+        maxWidth = 0
+        for i in range(self.modifyListWidget.count()):
+            size = self.modifyListWidget.sizeHintForIndex(self.modifyListWidget.model().index(i, 0))
+            if size.width() > maxWidth:
+                maxWidth = size.width()
+        return maxWidth
 
-    def modify(self):
-        result = EditListElementWidget(self.frame, textSetting.textList["railEditor"]["modifySmfElementListLabel"], self.decryptFile, "modify", self.selectIndexNum, self.tempList, self.rootFrameAppearance)
-        if result.dirtyFlag:
+    def onItemClicked(self, item):
+        self.selectIndex = self.modifyListWidget.row(item)
+        self.insertButton.setEnabled(True)
+        if item.text() == textSetting.textList["railEditor"]["noList"]:
+            self.modifyButton.setEnabled(False)
+            self.deleteButton.setEnabled(False)
+        else:
+            self.modifyButton.setEnabled(True)
+            self.deleteButton.setEnabled(True)
+
+    def modifyFunc(self):
+        item = self.tempList[self.selectIndex]
+        editListElementWidget = EditListElementWidget(self, textSetting.textList["railEditor"]["modifySmfElementListLabel"], self.decryptFile, "modify", item)
+        if editListElementWidget.exec() == QDialog.Accepted:
             self.dirtyFlag = True
-            self.tempList[self.selectIndexNum] = result.resultValueList
-            copyTempList = self.setListboxInfo(self.tempList)
-            self.v_tempList.set(copyTempList)
+            self.tempList[self.selectIndex] = editListElementWidget.resultValueList
+            self.modifyListWidget.clear()
+            displayModifyList = self.setListboxInfo(self.tempList)
+            self.modifyListWidget.addItems(displayModifyList)
+            self.modifyListWidget.setCurrentRow(self.selectIndex)
 
-    def insert(self):
-        result = EditListElementWidget(self.frame, textSetting.textList["railEditor"]["insertSmfElementListLabel"], self.decryptFile, "insert", self.selectIndexNum, self.tempList, self.rootFrameAppearance)
-        if result.dirtyFlag:
+    def insertFunc(self):
+        editListElementWidget = EditListElementWidget(self, textSetting.textList["railEditor"]["insertSmfElementListLabel"], self.decryptFile, "insert")
+        if editListElementWidget.exec() == QDialog.Accepted:
             self.dirtyFlag = True
-            self.tempList.insert(self.selectIndexNum + result.insertPos, result.resultValueList)
-            copyTempList = self.setListboxInfo(self.tempList)
-            self.v_tempList.set(copyTempList)
+            self.tempList.insert(self.selectIndex + editListElementWidget.insertPos, editListElementWidget.resultValueList)
+            self.modifyListWidget.clear()
+            displayModifyList = self.setListboxInfo(self.tempList)
+            self.modifyListWidget.addItems(displayModifyList)
+            self.modifyListWidget.setCurrentRow(self.selectIndex + editListElementWidget.insertPos)
+            self.selectIndex = self.selectIndex + editListElementWidget.insertPos
 
-    def delete(self):
-        msg = textSetting.textList["infoList"]["I25"].format(self.selectIndexNum + 1)
+    def deleteFunc(self):
+        msg = textSetting.textList["infoList"]["I25"].format(self.selectIndex + 1)
         result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
-        if result:
+        if result == mb.OK:
             self.dirtyFlag = True
-            self.tempList.pop(self.selectIndexNum)
-            copyTempList = self.setListboxInfo(self.tempList)
-            self.v_tempList.set(copyTempList)
-            self.modifyBtn["state"] = "disabled"
-            self.insertBtn["state"] = "disabled"
-            self.deleteBtn["state"] = "disabled"
+            self.tempList.pop(self.selectIndex)
+            self.modifyListWidget.clear()
+            displayModifyList = self.setListboxInfo(self.tempList)
+            self.modifyListWidget.addItems(displayModifyList)
+            self.modifyButton.setEnabled(False)
+            self.insertButton.setEnabled(False)
+            self.deleteButton.setEnabled(False)
 
     def validate(self):
         if self.dirtyFlag:
-            result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I70"], parent=self)
-            if result:
+            result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I70"])
+            if result == mb.OK:
                 self.reloadFlag = True
                 return True
         else:
             return True
 
+    def accept(self):
+        if not self.validate():
+            return
+        super().accept()
 
-class EditListElementWidget(CustomSimpleDialog):
-    def __init__(self, master, title, decryptFile, mode, index, tempList, rootFrameAppearance):
+
+class EditListElementWidget(QDialog):
+    def __init__(self, parent, title, decryptFile, mode, item=None):
+        super().__init__(parent)
+        self.setWindowTitle(title)
         self.decryptFile = decryptFile
         self.mode = mode
-        self.index = index
-        self.tempList = tempList
-        self.varList = []
-        self.resultValueList = []
+        self.font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
         self.insertPos = -1
-        self.dirtyFlag = False
-        super().__init__(master, title, rootFrameAppearance.bgColor)
+        self.resultValueList = []
 
-    def body(self, master):
-        self.resizable(False, False)
-
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=self.font2)
+        layout.addWidget(label)
+        # layout - QGridLayout
+        self.tempInfoGridLayout = QGridLayout()
+        layout.addLayout(self.tempInfoGridLayout)
+        self.lineEditList = []
         if self.decryptFile.game == "BS":
-            tempInfoLb = textSetting.textList["railEditor"]["smfElementListLabel1"]
+            tempInfoLabel = textSetting.textList["railEditor"]["smfElementListLabel1"]
         else:
-            tempInfoLb = textSetting.textList["railEditor"]["smfElementListLabel2"]
-        for i in range(len(tempInfoLb)):
-            tempLb = ttkCustomWidget.CustomTtkLabel(master, text=tempInfoLb[i], font=textSetting.textList["font2"])
-            tempLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-            varTemp = tkinter.IntVar()
+            tempInfoLabel = textSetting.textList["railEditor"]["smfElementListLabel2"]
+        for i, tempInfoValue in enumerate(tempInfoLabel):
+            # layout - QGridLayout - label
+            tempLabel = QLabel(tempInfoValue, font=self.font2)
+            self.tempInfoGridLayout.addWidget(tempLabel, i, 0)
+            # layout - QGridLayout - LineEdit
+            tempLineEdit = QLineEdit(font=self.font2)
+            self.lineEditList.append(tempLineEdit)
+            tempLineEdit.setValidator(integerValidator)
+            self.tempInfoGridLayout.addWidget(tempLineEdit, i, 1)
+
             if self.mode == "modify":
-                tempInfo = self.tempList[self.index]
-                varTemp.set(tempInfo[i])
-            self.varList.append(varTemp)
-            tempEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-            tempEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
+                tempLineEdit.setText("{0}".format(item[i]))
 
         if self.mode == "insert":
-            self.setInsertWidget(master, len(tempInfoLb))
-        super().body(master)
+            self.setInsertWidget(len(tempInfoLabel))
+        
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
-    def setInsertWidget(self, master, index):
-        xLine = ttkCustomWidget.CustomTtkSeparator(master, orient=tkinter.HORIZONTAL)
-        xLine.grid(row=index, column=0, columnspan=2, sticky=tkinter.W + tkinter.E, pady=10)
-
-        insertLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["railEditor"]["posLabel"], font=textSetting.textList["font2"])
-        insertLb.grid(row=index + 1, column=0, sticky=tkinter.W + tkinter.E)
-        self.v_insert = tkinter.StringVar()
-        self.insertCb = ttkCustomWidget.CustomTtkCombobox(master, state="readonly", font=textSetting.textList["font2"], textvariable=self.v_insert, values=textSetting.textList["railEditor"]["posValue"])
-        self.insertCb.grid(row=index + 1, column=1, sticky=tkinter.W + tkinter.E)
-        self.insertCb.current(0)
+    def setInsertWidget(self, insertRow):
+        # layout - QGridLayout - QFrame (colspan=2)
+        horizentalLine = QFrame()
+        horizentalLine.setFrameShape(QFrame.Shape.HLine)
+        horizentalLine.setFrameShadow(QFrame.Shadow.Sunken)
+        self.tempInfoGridLayout.addWidget(horizentalLine, insertRow, 0, 1, 2)
+        # layout - QGridLayout - insertLabel
+        insertLabel = QLabel(textSetting.textList["railEditor"]["posLabel"], font=self.font2)
+        self.tempInfoGridLayout.addWidget(insertLabel, insertRow + 1, 0)
+        # layout - QGridLayout - insertCombo
+        self.insertCombo = QComboBox(font=self.font2)
+        self.insertCombo.addItems(textSetting.textList["railEditor"]["posValue"])
+        self.tempInfoGridLayout.addWidget(self.insertCombo, insertRow + 1, 1)
 
     def validate(self):
-        infoMsg = textSetting.textList["infoList"]["I21"]
-        if self.mode == "insert":
-            infoMsg = textSetting.textList["infoList"]["I71"]
-            self.insertPos = 1
-            if self.insertCb.current() == 1:
-                self.insertPos = 0
         self.resultValueList = []
-        result = mb.askokcancel(title=textSetting.textList["confirm"], message=infoMsg, parent=self)
-        if result:
-            try:
-                for i in range(len(self.varList)):
-                    try:
-                        res = int(self.varList[i].get())
-                    except Exception:
-                        errorMsg = textSetting.textList["errorList"]["E3"]
-                        mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                        return False
-                    self.resultValueList.append(res)
-                return True
-            except Exception:
-                errorMsg = textSetting.textList["errorList"]["E14"]
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return False
+        for i, lineEdit in enumerate(self.lineEditList):
+            if not lineEdit.hasAcceptableInput():
+                mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+                return
+            self.resultValueList.append(int(lineEdit.text()))
+        return True
 
-    def apply(self):
-        self.dirtyFlag = True
+    def accept(self):
+        if self.mode == "insert":
+            self.insertPos = 1
+            if self.insertCombo.currentIndex() == 1:
+                self.insertPos = 0
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
+
+        if not self.validate():
+            return
+        super().accept()

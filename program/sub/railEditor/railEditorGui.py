@@ -4,9 +4,9 @@ import program.sub.textSetting as textSetting
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from program.sub.railEditor.importPy.tkinterTab import (
-    tab1AllWidget, tab2AllWidget
+    tab1AllWidget, tab2AllWidget, tab3AllWidget
 )
-#     , tab3AllWidget, tab4AllWidget,
+#     tab4AllWidget,
 #     tab5AllWidget, tab6AllWidget, tab7AllWidget, tab8AllWidget,
 #     tab9AllWidget, tab10AllWidget, tab11AllWidget
 # )
@@ -174,19 +174,18 @@ class RailEditorWindow(QWidget):
 
         widget.deleteLater()
 
-    def selectInfo(self, selectId=None):
+    def selectInfo(self, index, selectId=None):
         self.clearContent()
 
         contentFrame = QFrame()
         self.contentScrollArea.setWidget(contentFrame)
-        index = self.tabCombo.currentIndex()
 
         if index == 0:
             tab1AllWidget(contentFrame, self.decryptFile, self.reloadWidget)
         elif index == 1:
             tab2AllWidget(contentFrame, self.decryptFile, self.reloadWidget)
-        # elif index == 2:
-        #     tab3AllWidget(self.root, self.tabFrame, self.decryptFile, self.rootFrameAppearance, self.reloadWidget, selectId)
+        elif index == 2:
+            tab3AllWidget(contentFrame, self.decryptFile, self.reloadWidget, selectId)
         # elif index == 3:
         #     tab4AllWidget(self.root, self.tabFrame, self.decryptFile, self.rootFrameAppearance, self.reloadWidget, selectId)
         # elif index == 4:
@@ -206,10 +205,11 @@ class RailEditorWindow(QWidget):
 
     def reloadWidget(self, *selectId):
         self.decryptFile = self.decryptFile.reload()
+        index = self.tabCombo.currentIndex()
         selId = None
         if selectId and selectId[0] is not None:
             selId = int(selectId[0])
-        self.selectInfo(selId)
+        self.selectInfo(index, selId)
 
     def openFile(self):
         fileType = "{0} ({1})".format(textSetting.textList["railEditor"]["fileType"], "*.BIN")
