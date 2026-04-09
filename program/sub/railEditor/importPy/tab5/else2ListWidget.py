@@ -4,9 +4,9 @@ import program.sub.textSetting as textSetting
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QGroupBox, QGridLayout,
+    QWidget, QVBoxLayout, QGridLayout,
     QFrame, QLabel, QLineEdit, QPushButton,
-    QDialog, QDialogButtonBox, QSizePolicy
+    QDialog, QDialogButtonBox
 )
 from PySide6.QtGui import QFont, QRegularExpressionValidator
 from PySide6.QtCore import Qt, QRegularExpression
