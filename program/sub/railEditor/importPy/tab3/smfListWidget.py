@@ -18,7 +18,6 @@ mb = customMessageBoxWidget.CustomMessageBox()
 class SmfListWidget(QWidget):
     def __init__(self, decryptFile, reloadFunc, selectId):
         super().__init__()
-
         self.decryptFile = decryptFile
         self.smfList = decryptFile.smfList
         self.reloadFunc = reloadFunc
