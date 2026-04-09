@@ -194,7 +194,7 @@ class SmfListWidget(QWidget):
 
     def setSmfTableData(self):
         useModelListObj = self.getUseModelList()
-        for i, smfInfo in enumerate(self.smfList):
+        for smfInfo in self.smfList:
             rowCount = self.contentTable.rowCount()
             self.contentTable.insertRow(rowCount)
             for j, smfValue in enumerate(smfInfo):
