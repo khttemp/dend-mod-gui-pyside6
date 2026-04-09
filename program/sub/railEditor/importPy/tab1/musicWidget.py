@@ -84,9 +84,8 @@ class EditMusicCountDialog(QDialog):
         layout.addWidget(label)
         # layout - LineEdit
         self.lineEdit = QLineEdit(font=font2)
-        rx = QRegularExpression(r"^\d+$")
-        validator = QRegularExpressionValidator(rx, self)
-        self.lineEdit.setValidator(validator)
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
+        self.lineEdit.setValidator(integerValidator)
         self.lineEdit.setText("{0}".format(self.decryptFile.musicCnt))
         layout.addWidget(self.lineEdit)
         # layout - QDialogButtonBox
