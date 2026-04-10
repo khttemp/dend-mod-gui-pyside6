@@ -528,7 +528,6 @@ class PasteStationNameDialog(QDialog):
             mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
             return
         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I81"])
-        self.reloadFlag = True
 
     def backInsert(self):
         super().accept()
@@ -537,4 +536,3 @@ class PasteStationNameDialog(QDialog):
             mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
             return
         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I81"])
-        self.reloadFlag = True
