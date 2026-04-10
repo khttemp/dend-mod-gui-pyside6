@@ -247,7 +247,7 @@ class StationNameWidget(QWidget):
 
         headerNameList = [self.contentTable.horizontalHeaderItem(i).text() for i in range(self.contentTable.columnCount())]
         num = selectedItems[0].row()
-        editStationNameListWidget = EditStationNameListWidget(self, textSetting.textList["railEditor"]["modifyStationNameLabel"], self.decryptFile, "modify", num, headerNameList, self.stationNameList[num])
+        editStationNameListWidget = EditStationNameListWidget(self, textSetting.textList["railEditor"]["modifyStationNameLabel"], self.decryptFile, "modify", headerNameList, self.stationNameList[num])
         if editStationNameListWidget.exec() == QDialog.Accepted:
             if not self.decryptFile.saveStationNameInfo(num, "modify", editStationNameListWidget.resultValueList):
                 self.decryptFile.printError()
@@ -264,7 +264,7 @@ class StationNameWidget(QWidget):
         else:
             num = selectedItems[0].row() + 1
 
-        editStationNameListWidget = EditStationNameListWidget(self, textSetting.textList["railEditor"]["insertStationNameLabel"], self.decryptFile, "insert", num, headerNameList)
+        editStationNameListWidget = EditStationNameListWidget(self, textSetting.textList["railEditor"]["insertStationNameLabel"], self.decryptFile, "insert", headerNameList)
         if editStationNameListWidget.exec() == QDialog.Accepted:
             if not self.decryptFile.saveStationNameInfo(num + editStationNameListWidget.insertPos, "insert", editStationNameListWidget.resultValueList):
                 self.decryptFile.printError()
@@ -310,12 +310,11 @@ class StationNameWidget(QWidget):
 
 
 class EditStationNameListWidget(QDialog):
-    def __init__(self, parent, title, decryptFile, mode, num, headerNameList, stationNameInfo=None):
+    def __init__(self, parent, title, decryptFile, mode, headerNameList, stationNameInfo=None):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.decryptFile = decryptFile
         self.mode = mode
-        self.num = num
         self.headerNameList = headerNameList
         self.stationNameInfo = stationNameInfo
         self.insertPos = 0

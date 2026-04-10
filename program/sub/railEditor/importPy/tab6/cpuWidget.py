@@ -257,7 +257,7 @@ class CpuWidget(QWidget):
 
         headerNameList = [self.contentTable.horizontalHeaderItem(i).text() for i in range(self.contentTable.columnCount())]
         num = selectedItems[0].row()
-        editCpuListWidget = EditCpuListWidget(self, textSetting.textList["railEditor"]["modifyCpuInfoLabel"], self.decryptFile, "modify", num, headerNameList, self.cpuList[num])
+        editCpuListWidget = EditCpuListWidget(self, textSetting.textList["railEditor"]["modifyCpuInfoLabel"], self.decryptFile, "modify", headerNameList, self.cpuList[num])
         if editCpuListWidget.exec() == QDialog.Accepted:
             if not self.decryptFile.saveCpuInfo(num, "modify", editCpuListWidget.resultValueList):
                 self.decryptFile.printError()
@@ -274,7 +274,7 @@ class CpuWidget(QWidget):
         else:
             num = selectedItems[0].row() + 1
 
-        editCpuListWidget = EditCpuListWidget(self, textSetting.textList["railEditor"]["insertCpuInfoLabel"], self.decryptFile, "insert", num, headerNameList)
+        editCpuListWidget = EditCpuListWidget(self, textSetting.textList["railEditor"]["insertCpuInfoLabel"], self.decryptFile, "insert", headerNameList)
         if editCpuListWidget.exec() == QDialog.Accepted:
             if not self.decryptFile.saveCpuInfo(num + editCpuListWidget.insertPos, "insert", editCpuListWidget.resultValueList):
                 self.decryptFile.printError()
@@ -320,12 +320,11 @@ class CpuWidget(QWidget):
 
 
 class EditCpuListWidget(QDialog):
-    def __init__(self, parent, title, decryptFile, mode, num, headerNameList, cpuInfo=None):
+    def __init__(self, parent, title, decryptFile, mode, headerNameList, cpuInfo=None):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.decryptFile = decryptFile
         self.mode = mode
-        self.num = num
         self.headerNameList = headerNameList
         self.cpuInfo = cpuInfo
         self.insertPos = 0
