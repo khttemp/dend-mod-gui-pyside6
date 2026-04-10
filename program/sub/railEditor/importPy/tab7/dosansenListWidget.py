@@ -1,89 +1,158 @@
 from functools import partial
 
-import tkinter
-from tkinter import messagebox as mb
-import program.textSetting as textSetting
-import program.appearance.ttkCustomWidget as ttkCustomWidget
-from program.appearance.customSimpleDialog import CustomSimpleDialog
+import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
-from program.tkinterScrollbarFrameClass import ScrollbarFrame
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QGroupBox, QScrollArea, QGridLayout,
+    QFrame, QLabel, QLineEdit, QPushButton,
+    QDialog, QDialogButtonBox, QSizePolicy
+)
+from PySide6.QtGui import QFont, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QRegularExpression
+
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
-class DosansenListWidget:
-    def __init__(self, root, frame, decryptFile, dosansenList, rootFrameAppearance, reloadFunc):
-        self.root = root
-        self.frame = frame
+class DosansenListWidget(QWidget):
+    def __init__(self, decryptFile, reloadFunc):
+        super().__init__()
         self.decryptFile = decryptFile
-        self.dosansenList = dosansenList
-        self.rootFrameAppearance = rootFrameAppearance
+        self.dosansenList = decryptFile.dosansenList
         self.reloadFunc = reloadFunc
+        font6 = QFont(textSetting.textList["font6"][0], textSetting.textList["font6"][1])
+        fixedWidth = 86
+        fixedHeight = 40
 
-        dosansenListLf = ttkCustomWidget.CustomTtkLabelFrame(self.frame, text=textSetting.textList["railEditor"]["dosansenInfoLabel"], height=900)
-        dosansenListLf.pack(anchor=tkinter.NW, padx=10, expand=True, fill=tkinter.BOTH)
+        # mainLayout
+        mainLayout = QVBoxLayout(self)
+        mainLayout.setContentsMargins(0, 5, 5, 5)
+        # mainLayout - QGroupBox
+        mainGroupBox = QGroupBox(textSetting.textList["railEditor"]["dosansenInfoLabel"])
+        mainLayout.addWidget(mainGroupBox)
+        # mainLayout - QGroupBox - QVBoxLayout
+        scrollBoxLayout = QVBoxLayout()
+        scrollBoxLayout.setContentsMargins(0, 0, 0, 0)
+        mainGroupBox.setLayout(scrollBoxLayout)
+        # mainLayout - QGroupBox - QVBoxLayout - QScrollArea
+        contentScrollArea = QScrollArea()
+        contentScrollArea.setWidgetResizable(True)
+        scrollBoxLayout.addWidget(contentScrollArea)
+        # mainLayout - QGroupBox - QVBoxLayout - QScrollArea - QFrame
+        contentFrame = QFrame()
+        contentScrollArea.setWidget(contentFrame)
 
-        scrollbarFrame = ScrollbarFrame(dosansenListLf, bgColor=rootFrameAppearance.bgColor)
-        scrollbarFrame.pack(expand=True, fill=tkinter.BOTH)
+        # dosanInfoLayout
+        dosanInfoLayout = QVBoxLayout()
+        contentFrame.setLayout(dosanInfoLayout)
+        # dosanInfoLayout - dosanCountGridLayout
+        dosanCountGridLayout = QGridLayout()
+        dosanCountGridLayout.setSpacing(0)
+        dosanCountGridLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        dosanInfoLayout.addLayout(dosanCountGridLayout)
+        # dosanInfoLayout - dosanCountGridLayout - dosanCountNameLabel
+        dosanCountNameLabel = QLabel(textSetting.textList["railEditor"]["dosansenCntLabel"], font=font6)
+        dosanCountNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        dosanCountNameLabel.setFixedSize(fixedWidth * 2, fixedHeight)
+        dosanCountNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        dosanCountGridLayout.addWidget(dosanCountNameLabel, 0, 0)
+        # dosanInfoLayout - dosanCountGridLayout - dosanCountLabel
+        dosanCountLabel = QLabel("{0}".format(len(self.dosansenList)), font=font6)
+        dosanCountLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        dosanCountLabel.setFixedSize(fixedWidth, fixedHeight)
+        dosanCountLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        dosanCountGridLayout.addWidget(dosanCountLabel, 0, 1)
+        # dosanInfoLayout - dosanCountGridLayout - dosanCountButton
+        dosanCountButton = QPushButton(textSetting.textList["railEditor"]["modifyBtnLabel"], font=font6)
+        dosanCountButton.clicked.connect(self.editDosansenCnt)
+        dosanCountGridLayout.addWidget(dosanCountButton, 0, 2)
 
-        txtFrame = ttkCustomWidget.CustomTtkFrame(scrollbarFrame.interior)
-        txtFrame.pack(anchor=tkinter.NW)
+        for i, dosansenInfo in enumerate(self.dosansenList):
+            # dosanInfoLayout - dosanInfoGridLayout
+            dosanInfoGridLayout = QGridLayout()
+            dosanInfoGridLayout.setSpacing(0)
+            dosanInfoGridLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+            dosanInfoLayout.addLayout(dosanInfoGridLayout)
+            # dosanInfoLayout - dosanInfoGridLayout - dosanInfoModifyButton
+            dosanInfoModifyButton = QPushButton(textSetting.textList["railEditor"]["modifyBtnLabel"], font=font6)
+            dosanInfoModifyButton.setEnabled(True)
+            dosanInfoModifyButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            dosanInfoModifyButton.clicked.connect(partial(self.editDosansenList, i, dosansenInfo))
+            dosanInfoGridLayout.addWidget(dosanInfoModifyButton, 0, 0)
+            # dosanInfoLayout - dosanInfoGridLayout - startLabel
+            startLabel = QLabel(textSetting.textList["railEditor"]["dosansenStart"], font=font6)
+            startLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            startLabel.setFixedSize(fixedWidth, fixedHeight)
+            startLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            dosanInfoGridLayout.addWidget(startLabel, 0, 1)
+            # dosanInfoLayout - dosanInfoGridLayout - endLabel
+            endLabel = QLabel(textSetting.textList["railEditor"]["dosansenEnd"], font=font6)
+            endLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            endLabel.setFixedSize(fixedWidth, fixedHeight)
+            endLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            dosanInfoGridLayout.addWidget(endLabel, 1, 1)
+            # dosanInfoLayout - dosanInfoGridLayout - e1Label
+            e1Label = QLabel(textSetting.textList["railEditor"]["dosansenE1"], font=font6)
+            e1Label.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            e1Label.setFixedSize(fixedWidth, fixedHeight)
+            e1Label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            dosanInfoGridLayout.addWidget(e1Label, 2, 1)
+            # dosanInfoLayout - dosanInfoGridLayout - animeLabel
+            animeLabel = QLabel(textSetting.textList["railEditor"]["dosansenAnime"], font=font6)
+            animeLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            animeLabel.setFixedSize(fixedWidth, fixedHeight)
+            animeLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            dosanInfoGridLayout.addWidget(animeLabel, 3, 1)
+            # dosanInfoLayout - dosanInfoGridLayout - e2Label
+            e2Label = QLabel(textSetting.textList["railEditor"]["dosansenE2"], font=font6)
+            e2Label.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            e2Label.setFixedSize(fixedWidth, fixedHeight)
+            e2Label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            dosanInfoGridLayout.addWidget(e2Label, 4, 1)
+            # dosanInfoLayout - dosanInfoGridLayout - f1Label
+            f1Label = QLabel(textSetting.textList["railEditor"]["dosansenF1"], font=font6)
+            f1Label.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            f1Label.setFixedSize(fixedWidth, fixedHeight)
+            f1Label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            dosanInfoGridLayout.addWidget(f1Label, 5, 1)
 
-        dosansenCntNameLb = ttkCustomWidget.CustomTtkLabel(txtFrame, text=textSetting.textList["railEditor"]["dosansenCntLabel"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=12, borderwidth=1, relief="solid")
-        dosansenCntNameLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
-        self.varDosansenCnt = tkinter.IntVar()
-        self.varDosansenCnt.set(len(self.dosansenList))
-        dosansenCntTextLb = ttkCustomWidget.CustomTtkLabel(txtFrame, textvariable=self.varDosansenCnt, font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-        dosansenCntTextLb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E)
-        dosansenCntBtn = ttkCustomWidget.CustomTtkButton(txtFrame, text=textSetting.textList["railEditor"]["modifyBtnLabel"], style="custom.update.TButton", command=lambda: self.editDosansenCnt(self.varDosansenCnt.get()))
-        dosansenCntBtn.grid(row=0, column=2, sticky=tkinter.W + tkinter.E)
-
-        self.varList = []
-        self.varCnt = 0
-        for i in range(len(self.dosansenList)):
-            txtFrame2 = ttkCustomWidget.CustomTtkFrame(scrollbarFrame.interior)
-            txtFrame2.pack(anchor=tkinter.NW, pady=5, fill=tkinter.BOTH)
-
-            dosansenInfo = self.dosansenList[i]
-            tempBtn = ttkCustomWidget.CustomTtkButton(txtFrame2, text=textSetting.textList["railEditor"]["modifyBtnLabel"], style="custom.update.TButton", command=partial(self.editDosansenList, i, dosansenInfo))
-            tempBtn.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-            startLb = ttkCustomWidget.CustomTtkLabel(txtFrame2, text=textSetting.textList["railEditor"]["dosansenStart"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-            startLb.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-            endLb = ttkCustomWidget.CustomTtkLabel(txtFrame2, text=textSetting.textList["railEditor"]["dosansenEnd"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-            endLb.grid(row=i + 1, column=1, sticky=tkinter.W + tkinter.E)
-            ele1Lb = ttkCustomWidget.CustomTtkLabel(txtFrame2, text=textSetting.textList["railEditor"]["dosansenE1"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-            ele1Lb.grid(row=i + 2, column=1, sticky=tkinter.W + tkinter.E)
-            endLb = ttkCustomWidget.CustomTtkLabel(txtFrame2, text=textSetting.textList["railEditor"]["dosansenAnime"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-            endLb.grid(row=i + 3, column=1, sticky=tkinter.W + tkinter.E)
-            ele2Lb = ttkCustomWidget.CustomTtkLabel(txtFrame2, text=textSetting.textList["railEditor"]["dosansenE2"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-            ele2Lb.grid(row=i + 4, column=1, sticky=tkinter.W + tkinter.E)
-            f1Lb = ttkCustomWidget.CustomTtkLabel(txtFrame2, text=textSetting.textList["railEditor"]["dosansenF1"], font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
-            f1Lb.grid(row=i + 5, column=1, sticky=tkinter.W + tkinter.E)
-            for j in range(len(dosansenInfo)):
-                tempTextLb = ttkCustomWidget.CustomTtkLabel(txtFrame2, font=textSetting.textList["font6"], anchor=tkinter.CENTER, width=7, borderwidth=1, relief="solid")
+            for j, dosansenValue in enumerate(dosansenInfo):
+                # dosanInfoLayout - dosanInfoGridLayout - dosanLabel
+                dosanLabel = QLabel("", font=font6)
+                dosanLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+                dosanLabel.setFixedSize(fixedWidth, fixedHeight)
+                dosanLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                # start
                 if j in [0, 1, 2]:
-                    self.varList.append(tkinter.IntVar(value=int(dosansenInfo[j])))
-                    tempTextLb.grid(row=i, column=2 + j, sticky=tkinter.W + tkinter.E)
+                    dosanLabel.setText("{0}".format(dosansenValue))
+                    dosanInfoGridLayout.addWidget(dosanLabel, 0, 2 + j)
+                # end
                 elif j in [3, 4, 5]:
-                    self.varList.append(tkinter.IntVar(value=int(dosansenInfo[j])))
-                    tempTextLb.grid(row=i + 1, column=j - 1, sticky=tkinter.W + tkinter.E)
+                    dosanLabel.setText("{0}".format(dosansenValue))
+                    dosanInfoGridLayout.addWidget(dosanLabel, 1, j - 1)
+                # e1
                 elif j == 6:
-                    self.varList.append(tkinter.IntVar(value=int(dosansenInfo[j])))
-                    tempTextLb.grid(row=i + 2, column=j - 4, sticky=tkinter.W + tkinter.E)
+                    dosanLabel.setText("{0}".format(dosansenValue))
+                    dosanInfoGridLayout.addWidget(dosanLabel, 2, j - 4)
+                # anime
                 elif j in [7, 8, 9, 10]:
-                    self.varList.append(tkinter.DoubleVar(value=round(float(dosansenInfo[j]), 3)))
-                    tempTextLb.grid(row=i + 3, column=j - 5, sticky=tkinter.W + tkinter.E)
+                    dosanLabel.setText("{0}".format(round(float(dosansenValue), 3)))
+                    dosanInfoGridLayout.addWidget(dosanLabel, 3, j - 5)
+                # e2
                 elif j == 11:
-                    self.varList.append(tkinter.IntVar(value=int(dosansenInfo[j])))
-                    tempTextLb.grid(row=i + 4, column=j - 9, sticky=tkinter.W + tkinter.E)
+                    dosanLabel.setText("{0}".format(dosansenValue))
+                    dosanInfoGridLayout.addWidget(dosanLabel, 4, j - 9)
+                # f1
                 elif j == 12:
-                    self.varList.append(tkinter.DoubleVar(value=round(float(dosansenInfo[j]), 3)))
-                    tempTextLb.grid(row=i + 5, column=j - 10, sticky=tkinter.W + tkinter.E)
-                tempTextLb.configure(textvariable=self.varList[self.varCnt])
-                self.varCnt += 1
+                    dosanLabel.setText("{0}".format(round(float(dosansenValue), 3)))
+                    dosanInfoGridLayout.addWidget(dosanLabel, 5, j - 10)
+        dosanInfoLayout.addStretch()
 
-    def editDosansenCnt(self, val):
-        result = EditDosansenCntWidget(self.root, textSetting.textList["railEditor"]["editDosansenCntLabel"], self.decryptFile, val, self.rootFrameAppearance)
-        if result.reloadFlag:
-            if not self.decryptFile.saveDosansenCnt(result.resultValue):
+    def editDosansenCnt(self):
+        editDosansenCountWidget = EditDosansenCountWidget(self, textSetting.textList["railEditor"]["editDosansenCntLabel"], self.decryptFile)
+        if editDosansenCountWidget.exec() == QDialog.Accepted:
+            resultValue = int(editDosansenCountWidget.lineEdit.text())
+            if not self.decryptFile.saveDosansenCnt(resultValue):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
@@ -91,9 +160,9 @@ class DosansenListWidget:
             self.reloadFunc()
 
     def editDosansenList(self, i, valList):
-        result = EditDosansenWidget(self.root, textSetting.textList["railEditor"]["editDosansenInfoLabel"], self.decryptFile, valList, self.rootFrameAppearance)
-        if result.reloadFlag:
-            self.dosansenList[i] = result.resultValueList
+        editDosansenWidget = EditDosansenWidget(self, textSetting.textList["railEditor"]["editDosansenInfoLabel"], self.decryptFile, valList)
+        if editDosansenWidget.exec() == QDialog.Accepted:
+            self.dosansenList[i] = editDosansenWidget.resultValueList
             if not self.decryptFile.saveDosansenList(self.dosansenList):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
@@ -102,107 +171,112 @@ class DosansenListWidget:
             self.reloadFunc()
 
 
-class EditDosansenCntWidget(CustomSimpleDialog):
-    def __init__(self, master, title, decryptFile, val, rootFrameAppearance):
+class EditDosansenCountWidget(QDialog):
+    def __init__(self, parent, title, decryptFile):
+        super().__init__(parent)
+        self.setWindowTitle(title)
         self.decryptFile = decryptFile
-        self.val = val
-        self.resultValue = 0
-        self.reloadFlag = False
-        super().__init__(master, title, rootFrameAppearance.bgColor)
-
-    def body(self, master):
-        self.resizable(False, False)
-
-        valLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["infoList"]["I44"], font=textSetting.textList["font2"])
-        valLb.pack()
-
-        self.varDosansenCnt = tkinter.IntVar()
-        self.varDosansenCnt.set(self.val)
-        valEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varDosansenCnt, font=textSetting.textList["font2"], width=16)
-        valEt.pack()
-        super().body(master)
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
+        # layout - LineEdit
+        self.lineEdit = QLineEdit(font=font2)
+        validator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
+        self.lineEdit.setValidator(validator)
+        self.lineEdit.setText("{0}".format(len(decryptFile.dosansenList)))
+        layout.addWidget(self.lineEdit)
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
     def validate(self):
-        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"], parent=self)
+        if not self.lineEdit.hasAcceptableInput():
+            mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E60"])
+            return
 
-        if result:
-            try:
-                try:
-                    res = int(self.varDosansenCnt.get())
-                    if res < 0:
-                        errorMsg = textSetting.textList["errorList"]["E61"].format(0)
-                        mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                        return False
-                    self.resultValue = res
-                except Exception:
-                    errorMsg = textSetting.textList["errorList"]["E60"]
-                    mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                    return False
-            except Exception:
-                errorMsg = textSetting.textList["errorList"]["E14"]
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return False
+        resultValue = int(self.lineEdit.text())
+        if resultValue < len(self.decryptFile.dosansenList):
+            msg = textSetting.textList["infoList"]["I20"] + textSetting.textList["infoList"]["I21"]
+            result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
+            if result != mb.OK:
+                return
+        return True
 
-            if self.resultValue < self.val:
-                msg = textSetting.textList["infoList"]["I20"] + textSetting.textList["infoList"]["I21"]
-                result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning", parent=self)
-                if result:
-                    return True
-            else:
-                return True
+    def accept(self):
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
 
-    def apply(self):
-        self.reloadFlag = True
+        if not self.validate():
+            return
+        super().accept()
 
 
-class EditDosansenWidget(CustomSimpleDialog):
-    def __init__(self, master, title, decryptFile, dosansenInfo, rootFrameAppearance):
+class EditDosansenWidget(QDialog):
+    def __init__(self, parent, title, decryptFile, dosansenInfo):
+        super().__init__(parent)
+        self.setWindowTitle(title)
         self.decryptFile = decryptFile
         self.dosansenInfo = dosansenInfo
-        self.varList = []
         self.resultValueList = []
-        self.reloadFlag = False
-        super().__init__(master, title, rootFrameAppearance.bgColor)
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        numberValidator = QRegularExpressionValidator(QRegularExpression(r"^-?\d+(\.\d+)?$"), self)
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^-?\d+$"), self)
 
-    def body(self, master):
-        self.resizable(False, False)
-
-        dosansenInfoLbList = textSetting.textList["railEditor"]["editDosansenLabelList"]
-        for i in range(len(self.dosansenInfo)):
-            stationLb = ttkCustomWidget.CustomTtkLabel(master, text=dosansenInfoLbList[i], font=textSetting.textList["font2"])
-            stationLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
+        # layout - QGridLayout
+        self.dosansenInfoGridLayout = QGridLayout()
+        layout.addLayout(self.dosansenInfoGridLayout)
+        self.lineEditList = []
+        dosansenInfoLabelList = textSetting.textList["railEditor"]["editDosansenLabelList"]
+        for i, dosansenInfoLabel in enumerate(dosansenInfoLabelList):
+            # layout - QGridLayout - dosanLabel
+            dosanLabel = QLabel(dosansenInfoLabel, font=font2)
+            self.dosansenInfoGridLayout.addWidget(dosanLabel, i, 0)
+            # layout - QGridLayout - dosanLineEdit
+            dosanLineEdit = QLineEdit(font=font2)
             if i in [7, 8, 9, 10, 12]:
-                varDosansen = tkinter.DoubleVar()
-                varDosansen.set(round(float(self.dosansenInfo[i]), 3))
+                lineEditValue = round(float(self.dosansenInfo[i]), 3)
+                dosanLineEdit.setValidator(numberValidator)
             else:
-                varDosansen = tkinter.IntVar()
-                varDosansen.set(self.dosansenInfo[i])
-            self.varList.append(varDosansen)
-            dosansenEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-            dosansenEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-        super().body(master)
+                lineEditValue = self.dosansenInfo[i]
+                dosanLineEdit.setValidator(integerValidator)
+            dosanLineEdit.setText("{0}".format(lineEditValue))
+            self.lineEditList.append(dosanLineEdit)
+            self.dosansenInfoGridLayout.addWidget(dosanLineEdit, i, 1)
+
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
     def validate(self):
         self.resultValueList = []
-        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"], parent=self)
-        if result:
-            try:
-                try:
-                    for i in range(len(self.varList)):
-                        if i in [7, 8, 9, 10, 12]:
-                            res = float(self.varList[i].get())
-                        else:
-                            res = int(self.varList[i].get())
-                        self.resultValueList.append(res)
-                    return True
-                except Exception:
-                    errorMsg = textSetting.textList["errorList"]["E3"]
-                    mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                    return False
-            except Exception:
-                errorMsg = textSetting.textList["errorList"]["E14"]
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return False
+        for i, lineEdit in enumerate(self.lineEditList):
+            if not lineEdit.hasAcceptableInput():
+                mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+                return
+            if i in [7, 8, 9, 10, 12]:
+                self.resultValueList.append(float(lineEdit.text()))
+            else:
+                self.resultValueList.append(int(lineEdit.text()))
+        return True
 
-    def apply(self):
-        self.reloadFlag = True
+    def accept(self):
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
+
+        if not self.validate():
+            return
+        super().accept()
