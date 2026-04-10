@@ -62,7 +62,7 @@ class Else2ListWidget(QWidget):
                 if j in [2, 3, 4]:
                     else1Value = round(float(else2Info[j]), 3)
                 else:
-                    else1Value = int(else2Info[j])
+                    else1Value = else2Info[j]
                 else2Label = QLabel("{0}".format(else1Value), font=font6)
                 else2Label.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
                 else2Label.setFixedSize(fixedWidth, fixedHeight)
@@ -173,7 +173,7 @@ class EditElse2ListWidget(QDialog):
                 lineEditValue = round(float(self.else2Info[i]), 3)
                 else2LineEdit.setValidator(numberValidator)
             else:
-                lineEditValue = int(self.else2Info[i])
+                lineEditValue = self.else2Info[i]
                 else2LineEdit.setValidator(integerValidator)
             else2LineEdit.setText("{0}".format(lineEditValue))
             self.lineEditList.append(else2LineEdit)

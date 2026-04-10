@@ -63,7 +63,7 @@ class Else1ListWidget(QWidget):
                     if j in [0, 1]:
                         else1Value = round(float(else1Info[j]), 3)
                     else:
-                        else1Value = int(else1Info[j])
+                        else1Value = else1Info[j]
                     else1Label = QLabel("{0}".format(else1Value), font=font6)
                     else1Label.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
                     else1Label.setFixedSize(fixedWidth, fixedHeight)

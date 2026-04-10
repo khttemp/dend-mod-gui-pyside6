@@ -199,7 +199,6 @@ class CpuWidget(QWidget):
                         item = QTableWidgetItem(str(round(float(cpuValue), 3)))
                     else:
                         item = QTableWidgetItem(str(cpuValue))
-
                 elif self.decryptFile.game == "LS":
                     if j in [1, 9]:
                         joinCpuValue = ",".join([str(round(x, 3)) for x in cpuValue])
@@ -362,7 +361,7 @@ class EditCpuListWidget(QDialog):
                     if i > 2:
                         cpuValue = round(float(self.cpuInfo[i]), 3)
                     else:
-                        cpuValue = int(self.cpuInfo[i])
+                        cpuValue = self.cpuInfo[i]
                     cpuNameInfoLineEdit.setText("{0}".format(cpuValue))
                 self.lineEditList.append(cpuNameInfoLineEdit)
                 self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, i, 1)
@@ -378,7 +377,7 @@ class EditCpuListWidget(QDialog):
                     self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, rowNum, 2*colNum + 1)
 
                     if self.mode == "modify":
-                        cpuNameInfoLineEdit.setText("{0}".format(int(self.cpuInfo[i])))
+                        cpuNameInfoLineEdit.setText("{0}".format(self.cpuInfo[i]))
                     rowNum += 1
                 elif i in [1, 9]:
                     if i == 1:
@@ -429,7 +428,7 @@ class EditCpuListWidget(QDialog):
                         self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, rowNum, 2*colNum + 1)
 
                         if self.mode == "modify":
-                            cpuNameInfoLineEdit.setText("{0}".format(int(self.cpuInfo[i])))
+                            cpuNameInfoLineEdit.setText("{0}".format(self.cpuInfo[i]))
                         rowNum += 1
                     elif i in [1, 8]:
                         if i == 1:
@@ -477,7 +476,7 @@ class EditCpuListWidget(QDialog):
                         self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, rowNum, 2*colNum + 1)
 
                         if self.mode == "modify":
-                            cpuNameInfoLineEdit.setText("{0}".format(int(self.cpuInfo[i])))
+                            cpuNameInfoLineEdit.setText("{0}".format(self.cpuInfo[i]))
                         rowNum += 1
                     elif i == 0:
                         tempListLen = 6
