@@ -128,7 +128,7 @@ class EditSimpleListWidget(QDialog):
         self.decryptFile = decryptFile
         self.mode = mode
         self.font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
-        self.insertPos = -1
+        self.insertPos = None
 
         # layout
         layout = QVBoxLayout(self)

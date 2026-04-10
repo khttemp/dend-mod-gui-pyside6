@@ -147,7 +147,7 @@ class EditComicScriptListWidget(QDialog):
         integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
         allIntegerValidator = QRegularExpressionValidator(QRegularExpression(r"^-?\d+$"), self)
         numberValidator = QRegularExpressionValidator(QRegularExpression(r"^-?\d+(\.\d+)?$"), self)
-        self.insertPos = -1
+        self.insertPos = None
         self.resultValueList = []
 
         # layout

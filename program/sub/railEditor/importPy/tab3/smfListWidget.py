@@ -593,7 +593,7 @@ class EditSmfListWidget(QDialog):
         self.num = num
         self.headerNameList = headerNameList
         self.smfInfo = smfInfo
-        self.insertPos = 0
+        self.insertPos = None
         self.resultValueList = []
         integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
 
@@ -940,7 +940,7 @@ class EditListElementWidget(QDialog):
         self.mode = mode
         self.font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
         integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
-        self.insertPos = -1
+        self.insertPos = None
         self.resultValueList = []
 
         # layout

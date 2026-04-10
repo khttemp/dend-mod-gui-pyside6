@@ -250,7 +250,7 @@ class EditMusicElementWidget(QDialog):
         self.mode = mode
         self.font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
         numberValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+(\.\d+)?"), self)
-        self.insertPos = -1
+        self.insertPos = None
         self.resultValueList = []
 
         # layout

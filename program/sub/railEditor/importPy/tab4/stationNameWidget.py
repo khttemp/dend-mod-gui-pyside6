@@ -317,7 +317,7 @@ class EditStationNameListWidget(QDialog):
         self.mode = mode
         self.headerNameList = headerNameList
         self.stationNameInfo = stationNameInfo
-        self.insertPos = 0
+        self.insertPos = None
         self.resultValueList = []
         numberValidator = QRegularExpressionValidator(QRegularExpression(r"^-?\d+(\.\d+)?$"), self)
         integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
