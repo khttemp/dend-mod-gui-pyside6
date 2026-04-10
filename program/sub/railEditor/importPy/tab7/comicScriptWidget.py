@@ -192,7 +192,7 @@ class EditComicScriptListWidget(QDialog):
                 self.comicScriptInfoGridLayout.addWidget(comicScriptTempListLineEdit, len(comicScriptLabelList) + i + 1, 1)
 
                 if self.mode == "modify":
-                    if self.decryptFile.filenameNum == 7:
+                    if self.decryptFile.game == "LSTrial" and self.decryptFile.filenameNum == 7:
                         comicScriptTempListLineEdit.setText("{0}".format(item[2][i]))
                     else:
                         comicScriptTempListLineEdit.setText("{0}".format(item[3][i]))
