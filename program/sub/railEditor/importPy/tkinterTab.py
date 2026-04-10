@@ -24,7 +24,7 @@ from program.sub.railEditor.importPy.tab7.dosansenListWidget import DosansenList
 
 # from program.railEditor.importPy.tab8.railListWidget import RailListWidget
 
-# from program.railEditor.importPy.tab9.else3ListWidget import Else3ListWidget
+from program.sub.railEditor.importPy.tab9.else3ListWidget import Else3ListWidget
 
 # from program.railEditor.importPy.tab10.else4ListWidget import Else4ListWidget
 
@@ -155,8 +155,13 @@ def tab8AllWidget(tabFrame, decryptFile, rootFrameAppearance, reloadFunc):
     RailListWidget(frame.interior, decryptFile, decryptFile.railList, rootFrameAppearance, reloadFunc)
 
 
-def tab9AllWidget(root, tabFrame, decryptFile, rootFrameAppearance, reloadFunc, selectId):
-    Else3ListWidget(root, tabFrame, decryptFile, decryptFile.else3List, rootFrameAppearance, reloadFunc, selectId)
+def tab9AllWidget(contentFrame, decryptFile, reloadFunc, selectId):
+    tab9Layout = QHBoxLayout()
+    tab9Layout.setContentsMargins(0, 0, 0, 0)
+    contentFrame.setLayout(tab9Layout)
+
+    else3ListWidget = Else3ListWidget(decryptFile, reloadFunc, selectId)
+    tab9Layout.addWidget(else3ListWidget)
 
 
 def tab10AllWidget(root, tabFrame, decryptFile, rootFrameAppearance, reloadFunc):
