@@ -19,8 +19,8 @@ from program.sub.railEditor.importPy.tab5.else2ListWidget import Else2ListWidget
 
 from program.sub.railEditor.importPy.tab6.cpuWidget import CpuWidget
 
-# from program.railEditor.importPy.tab7.comicScriptWidget import ComicScriptWidget
-# from program.railEditor.importPy.tab7.dosansenListWidget import DosansenListWidget
+from program.sub.railEditor.importPy.tab7.comicScriptWidget import ComicScriptWidget
+from program.sub.railEditor.importPy.tab7.dosansenListWidget import DosansenListWidget
 
 # from program.railEditor.importPy.tab8.railListWidget import RailListWidget
 
@@ -137,10 +137,16 @@ def tab6AllWidget(contentFrame, decryptFile, reloadFunc, selectId):
     tab6Layout.addWidget(cpuWidget)
 
 
-def tab7AllWidget(root, tabFrame, decryptFile, rootFrameAppearance, reloadFunc):
-    ComicScriptWidget(root, tabFrame, decryptFile, decryptFile.comicScriptList, rootFrameAppearance, reloadFunc)
+def tab7AllWidget(contentFrame, decryptFile, reloadFunc):
+    tab7Layout = QHBoxLayout()
+    tab7Layout.setContentsMargins(0, 0, 0, 0)
+    contentFrame.setLayout(tab7Layout)
+
+    comicScriptWidget = ComicScriptWidget(decryptFile, reloadFunc)
+    tab7Layout.addWidget(comicScriptWidget, stretch=3)
     if decryptFile.game in ["CS", "RS"]:
-        DosansenListWidget(root, tabFrame, decryptFile, decryptFile.dosansenList, rootFrameAppearance, reloadFunc)
+        dosansenListWidget = DosansenListWidget(decryptFile, reloadFunc)
+        tab7Layout.addWidget(dosansenListWidget, stretch=7)
 
 
 def tab8AllWidget(tabFrame, decryptFile, rootFrameAppearance, reloadFunc):
