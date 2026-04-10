@@ -71,12 +71,15 @@ class ComicScriptWidget(QWidget):
                 if self.decryptFile.game in ["BS", "CS", "RS"]:
                     displayComicScriptList.append("{0:02d}→{1}, [{2}, {3}]".format(i, comicScriptInfo[0], comicScriptInfo[1], comicScriptInfo[2]))
                 elif self.decryptFile.game == "LS":
-                    displayComicScriptList.append("{0:02d}→{1}, [{2}, {3}], {4}".format(i, comicScriptInfo[0], comicScriptInfo[1], comicScriptInfo[2], comicScriptInfo[3]))
+                    comicScriptTempList = [round(x, 3) for x in comicScriptInfo[3]]
+                    displayComicScriptList.append("{0:02d}→{1}, [{2}, {3}], {4}".format(i, comicScriptInfo[0], comicScriptInfo[1], comicScriptInfo[2], comicScriptTempList))
                 elif self.decryptFile.game == "LSTrial":
                     if self.decryptFile.readFlag:
-                        displayComicScriptList.append("{0:02d}→{1}, [{2}, {3}], {4}".format(i, comicScriptInfo[0], comicScriptInfo[1], comicScriptInfo[2], comicScriptInfo[3]))
+                        comicScriptTempList = [round(x, 3) for x in comicScriptInfo[3]]
+                        displayComicScriptList.append("{0:02d}→{1}, [{2}, {3}], {4}".format(i, comicScriptInfo[0], comicScriptInfo[1], comicScriptInfo[2], comicScriptTempList))
                     else:
-                        displayComicScriptList.append("{0:02d}→{1}, [{2}], {3}".format(i, comicScriptInfo[0], comicScriptInfo[1], comicScriptInfo[2]))
+                        comicScriptTempList = [round(x, 3) for x in comicScriptInfo[2]]
+                        displayComicScriptList.append("{0:02d}→{1}, [{2}], {3}".format(i, comicScriptInfo[0], comicScriptInfo[1], comicScriptTempList))
         else:
             displayComicScriptList = [textSetting.textList["railEditor"]["noList"]]
         return displayComicScriptList
@@ -193,9 +196,9 @@ class EditComicScriptListWidget(QDialog):
 
                 if self.mode == "modify":
                     if self.decryptFile.game == "LSTrial" and self.decryptFile.filenameNum == 7:
-                        comicScriptTempListLineEdit.setText("{0}".format(item[2][i]))
+                        comicScriptTempListLineEdit.setText("{0}".format(round(float(item[2][i]), 3)))
                     else:
-                        comicScriptTempListLineEdit.setText("{0}".format(item[3][i]))
+                        comicScriptTempListLineEdit.setText("{0}".format(round(float(item[3][i]), 3)))
 
         if self.mode == "insert":
             if self.decryptFile.game in ["BS", "CS", "RS"]:
