@@ -24,6 +24,9 @@ class Else2ListWidget(QWidget):
         fixedWidth = 86
         fixedHeight = 40
 
+        if len(self.else2List) == 0:
+            return
+
         # mainLayout
         mainLayout = QVBoxLayout(self)
 
@@ -45,11 +48,10 @@ class Else2ListWidget(QWidget):
         else2CountLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         else2CountGridLayout.addWidget(else2CountLabel, 0, 1)
 
-        if self.decryptFile.game in ["BS", "CS", "RS"]:
-            # mainLayout - QGridLayout - else2CountButton
-            else2CountButton = QPushButton(textSetting.textList["railEditor"]["modifyBtnLabel"], font=font6)
-            else2CountButton.clicked.connect(self.editElse2Count)
-            else2CountGridLayout.addWidget(else2CountButton, 0, 2)
+        # mainLayout - QGridLayout - else2CountButton
+        else2CountButton = QPushButton(textSetting.textList["railEditor"]["modifyBtnLabel"], font=font6)
+        else2CountButton.clicked.connect(self.editElse2Count)
+        else2CountGridLayout.addWidget(else2CountButton, 0, 2)
 
         # mainLayout - QGridLayout(List)
         else2ListGridLayout = QGridLayout()
