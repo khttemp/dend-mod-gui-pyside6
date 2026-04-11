@@ -83,7 +83,7 @@ class Else1ListWidget(QWidget):
             else1ListGridLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
             groupBoxInLayout.addLayout(else1ListGridLayout)
             for i in range(len(self.else1List)):
-                else1Value = round(float(self.else1List[i]), 5)
+                else1Value = round(float(self.else1List[i]), 3)
                 # mainLayout - QGroupBox - QGridLayout(List) - label
                 else1Label = QLabel("{0}".format(else1Value), font=font6)
                 else1Label.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
@@ -216,7 +216,7 @@ class EditLsElse1ListWidget(QDialog):
             self.else1ListGridLayout.addWidget(eles1Label, i, 0)
             # layout - QGridLayout - else1LineEdit
             else1LineEdit = QLineEdit(font=font2)
-            else1LineEdit.setText("{0}".format(round(float(else1Value), 5)))
+            else1LineEdit.setText("{0}".format(round(float(else1Value), 3)))
             else1LineEdit.setValidator(numberValidator)
             self.lineEditList.append(else1LineEdit)
             self.else1ListGridLayout.addWidget(else1LineEdit, i, 1)
