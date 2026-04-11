@@ -79,7 +79,11 @@ class RailPosWidget(QWidget):
             railPosGridLayout.addWidget(playerLabel, i + 1, 0)
             for j in range(len(trainInfo)):
                 # mainLayout - QGroupBox - QGridLayout - valueLabel
-                valueLabel = QLabel("{0}".format(trainInfo[j]), font=font6)
+                if j == 3:
+                    trainValue = round(float(trainInfo[j]), 3)
+                else:
+                    trainValue = trainInfo[j]
+                valueLabel = QLabel("{0}".format(trainValue), font=font6)
                 valueLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
                 valueLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 railPosGridLayout.addWidget(valueLabel, i + 1, j + 1)
@@ -124,17 +128,18 @@ class EditRailPosWidget(QDialog):
         layout.addLayout(self.railPosGridLayout)
         self.lineEditList = []
         railPosLabelList = textSetting.textList["railEditor"]["editRailPosLabelList"]
-        for i, railPosLabel in enumerate(railPosLabelList):
+        for i, trainValue in enumerate(self.trainInfo):
             # layout - QGridLayout - railLabel
-            railLabel = QLabel(railPosLabel, font=font2)
+            railLabel = QLabel(railPosLabelList[i], font=font2)
             self.railPosGridLayout.addWidget(railLabel, i, 0)
             # layout - QGridLayout - railLineEdit
             railLineEdit = QLineEdit(font=font2)
-            railLineEdit.setText("{0}".format(self.trainInfo[i]))
             if i == 3:
+                trainValue = round(float(trainValue), 3)
                 railLineEdit.setValidator(numberValidator)
             else:
                 railLineEdit.setValidator(integerValidator)
+            railLineEdit.setText("{0}".format(trainValue))
             self.lineEditList.append(railLineEdit)
             self.railPosGridLayout.addWidget(railLineEdit, i, 1)
 

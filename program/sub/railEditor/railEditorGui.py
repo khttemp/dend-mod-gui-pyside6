@@ -38,7 +38,7 @@ class RailEditorWindow(QWidget):
         labelHeight = 28
         buttonWidth = 200
         buttonHeight = 28
-        self.LSTrial = -1
+        self.LSTrial = -2
         self.LS = 0
         self.BS = 1
         self.CS = 2

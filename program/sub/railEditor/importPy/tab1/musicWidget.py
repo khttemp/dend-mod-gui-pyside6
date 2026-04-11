@@ -132,7 +132,7 @@ class EditMusicListDialog(QDialog):
         self.modifyButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.modifyButton.clicked.connect(self.modifyFunc)
         buttonLayout.addWidget(self.modifyButton)
-        if self.decryptFile.game != "LS":
+        if self.decryptFile.game not in ["LS", "LSTrial"]:
             # layout - buttonLayout - insertButton
             self.insertButton = QPushButton(textSetting.textList["insert"], font=font6)
             self.insertButton.setEnabled(False)
