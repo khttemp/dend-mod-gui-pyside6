@@ -273,6 +273,8 @@ class EditMusicElementWidget(QDialog):
             self.musicGridLayout.addWidget(musicLineEdit, i, 1)
             if i in [2, 3]:
                 musicLineEdit.setValidator(numberValidator)
+                if self.mode == "insert":
+                    musicLineEdit.setText("{0}".format(float(0)))
 
             if self.mode == "modify":
                 musicLineEdit.setText("{0}".format(item[i]))

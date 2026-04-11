@@ -174,11 +174,10 @@ class EditComicScriptListWidget(QDialog):
             self.comicScriptInfoGridLayout.addWidget(comicScriptNameLabel, i, 0)
             # layout - QGridLayout - LineEdit
             comicScriptLineEdit = QLineEdit(font=self.font2)
+            comicScriptLineEdit.setValidator(allIntegerValidator)
+            if self.mode == "insert":
+                comicScriptLineEdit.setText("{0}".format(0))
             self.lineEditList.append(comicScriptLineEdit)
-            if i > 1:
-                comicScriptLineEdit.setValidator(allIntegerValidator)
-            else:
-                comicScriptLineEdit.setValidator(integerValidator)
             self.comicScriptInfoGridLayout.addWidget(comicScriptLineEdit, i, 1)
 
             if self.mode == "modify":
@@ -196,6 +195,8 @@ class EditComicScriptListWidget(QDialog):
                 comicScriptTempListLineEdit = QLineEdit(font=self.font2)
                 self.lineEditList.append(comicScriptTempListLineEdit)
                 comicScriptTempListLineEdit.setValidator(numberValidator)
+                if self.mode == "insert":
+                    comicScriptTempListLineEdit.setText("{0}".format(float(0)))
                 self.comicScriptInfoGridLayout.addWidget(comicScriptTempListLineEdit, len(comicScriptLabelList) + i + 1, 1)
 
                 if self.mode == "modify":
@@ -248,14 +249,12 @@ class EditComicScriptListWidget(QDialog):
             elif self.decryptFile.game == "LSTrial":
                 if self.decryptFile.readFlag:
                     if i in [0, 1, 2]:
-                        res = int(self.varList[i].get())
-                        self.resultValueList.append(res)
+                        self.resultValueList.append(int(lineEdit.text()))
                     else:
                         tempList.append(float(lineEdit.text()))
                 else:
                     if i in [0, 1]:
-                        res = int(self.varList[i].get())
-                        self.resultValueList.append(res)
+                        self.resultValueList.append(int(lineEdit.text()))
                     else:
                         tempList.append(float(lineEdit.text()))
         if len(tempList) > 0:

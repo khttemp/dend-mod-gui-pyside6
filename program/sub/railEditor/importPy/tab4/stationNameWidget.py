@@ -344,16 +344,25 @@ class EditStationNameListWidget(QDialog):
             if self.decryptFile.game in ["CS", "RS"]:
                 if i in [3, 4, 5]:
                     stationNameInfoLineEdit.setValidator(numberValidator)
+                    if self.mode == "insert":
+                        stationNameInfoLineEdit.setText("{0}".format(float(0)))
+
                     if self.mode == "modify":
                         stationNameInfoLineEdit.setText("{0}".format(round(float(self.stationNameInfo[i]), 3)))
                 else:
                     if i > 0:
                         stationNameInfoLineEdit.setValidator(integerValidator)
+                        if self.mode == "insert":
+                            stationNameInfoLineEdit.setText("{0}".format(0))
+
                     if self.mode == "modify":
                         stationNameInfoLineEdit.setText("{0}".format(self.stationNameInfo[i]))
             elif self.decryptFile.game == "BS":
                 if i > 0:
                     stationNameInfoLineEdit.setValidator(integerValidator)
+                    if self.mode == "insert":
+                        stationNameInfoLineEdit.setText("{0}".format(0))
+
                 if self.mode == "modify":
                     stationNameInfoLineEdit.setText("{0}".format(self.stationNameInfo[i]))
             elif self.decryptFile.game == "LS":
@@ -362,10 +371,16 @@ class EditStationNameListWidget(QDialog):
                         stationNameInfoLineEdit.setText("{0}".format(self.stationNameInfo[i]))
                 elif i in [1, 2]:
                     stationNameInfoLineEdit.setValidator(integerValidator)
+                    if self.mode == "insert":
+                        stationNameInfoLineEdit.setText("{0}".format(0))
+
                     if self.mode == "modify":
                         stationNameInfoLineEdit.setText("{0}".format(self.stationNameInfo[i]))
                 else:
                     stationNameInfoLineEdit.setValidator(numberValidator)
+                    if self.mode == "insert":
+                        stationNameInfoLineEdit.setText("{0}".format(float(0)))
+
                     if self.mode == "modify":
                         stationNameInfoLineEdit.setText("{0}".format(round(float(self.stationNameInfo[i]), 3)))
             elif self.decryptFile.game == "LSTrial":
@@ -375,10 +390,16 @@ class EditStationNameListWidget(QDialog):
                             stationNameInfoLineEdit.setText("{0}".format(self.stationNameInfo[i]))
                     elif i in [1, 2]:
                         stationNameInfoLineEdit.setValidator(integerValidator)
+                        if self.mode == "insert":
+                            stationNameInfoLineEdit.setText("{0}".format(0))
+
                         if self.mode == "modify":
                             stationNameInfoLineEdit.setText("{0}".format(self.stationNameInfo[i]))
                     else:
                         stationNameInfoLineEdit.setValidator(numberValidator)
+                        if self.mode == "insert":
+                            stationNameInfoLineEdit.setText("{0}".format(float(0)))
+
                         if self.mode == "modify":
                             stationNameInfoLineEdit.setText("{0}".format(round(float(self.stationNameInfo[i]), 3)))
                 else:
@@ -387,10 +408,16 @@ class EditStationNameListWidget(QDialog):
                             stationNameInfoLineEdit.setText("{0}".format(self.stationNameInfo[i]))
                     elif i == 1:
                         stationNameInfoLineEdit.setValidator(integerValidator)
+                        if self.mode == "insert":
+                            stationNameInfoLineEdit.setText("{0}".format(0))
+
                         if self.mode == "modify":
                             stationNameInfoLineEdit.setText("{0}".format(self.stationNameInfo[i]))
                     else:
                         stationNameInfoLineEdit.setValidator(numberValidator)
+                        if self.mode == "insert":
+                            stationNameInfoLineEdit.setText("{0}".format(float(0)))
+
                         if self.mode == "modify":
                             stationNameInfoLineEdit.setText("{0}".format(round(float(self.stationNameInfo[i]), 3)))
 

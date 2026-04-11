@@ -353,8 +353,12 @@ class EditCpuListWidget(QDialog):
                 cpuNameInfoLineEdit = QLineEdit(font=self.font2)
                 if i > 2:
                     cpuNameInfoLineEdit.setValidator(numberValidator)
+                    if self.mode == "insert":
+                        cpuNameInfoLineEdit.setText("{0}".format(float(0)))
                 else:
                     cpuNameInfoLineEdit.setValidator(integerValidator)
+                    if self.mode == "insert":
+                        cpuNameInfoLineEdit.setText("{0}".format(0))
 
                 if self.mode == "modify":
                     if i > 2:
@@ -372,6 +376,8 @@ class EditCpuListWidget(QDialog):
                     # layout - QGridLayout - lineEdit
                     cpuNameInfoLineEdit = QLineEdit(font=self.font2)
                     cpuNameInfoLineEdit.setValidator(integerValidator)
+                    if self.mode == "insert":
+                        cpuNameInfoLineEdit.setText("{0}".format(0))
                     self.lineEditList.append(cpuNameInfoLineEdit)
                     self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, rowNum, 2*colNum + 1)
 
@@ -391,6 +397,8 @@ class EditCpuListWidget(QDialog):
                         # layout - QGridLayout - lineEdit
                         cpuNameInfoLineEdit = QLineEdit(font=self.font2)
                         cpuNameInfoLineEdit.setValidator(numberValidator)
+                        if self.mode == "insert":
+                            cpuNameInfoLineEdit.setText("{0}".format(float(0)))
                         self.lineEditList.append(cpuNameInfoLineEdit)
                         self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, rowNum, 2*colNum + 1)
 
@@ -406,6 +414,8 @@ class EditCpuListWidget(QDialog):
                     # layout - QGridLayout - lineEdit
                     cpuNameInfoLineEdit = QLineEdit(font=self.font2)
                     cpuNameInfoLineEdit.setValidator(numberValidator)
+                    if self.mode == "insert":
+                        cpuNameInfoLineEdit.setText("{0}".format(float(0)))
                     self.lineEditList.append(cpuNameInfoLineEdit)
                     self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, rowNum, 2*colNum + 1)
 
@@ -421,6 +431,8 @@ class EditCpuListWidget(QDialog):
                         # layout - QGridLayout - lineEdit
                         cpuNameInfoLineEdit = QLineEdit(font=self.font2)
                         cpuNameInfoLineEdit.setValidator(integerValidator)
+                        if self.mode == "insert":
+                            cpuNameInfoLineEdit.setText("{0}".format(0))
                         self.lineEditList.append(cpuNameInfoLineEdit)
                         self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, rowNum, 2*colNum + 1)
 
@@ -440,6 +452,8 @@ class EditCpuListWidget(QDialog):
                             # layout - QGridLayout - lineEdit
                             cpuNameInfoLineEdit = QLineEdit(font=self.font2)
                             cpuNameInfoLineEdit.setValidator(numberValidator)
+                            if self.mode == "insert":
+                                cpuNameInfoLineEdit.setText("{0}".format(float(0)))
                             self.lineEditList.append(cpuNameInfoLineEdit)
                             self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, rowNum, 2*colNum + 1)
 
@@ -455,6 +469,8 @@ class EditCpuListWidget(QDialog):
                         # layout - QGridLayout - lineEdit
                         cpuNameInfoLineEdit = QLineEdit(font=self.font2)
                         cpuNameInfoLineEdit.setValidator(numberValidator)
+                        if self.mode == "insert":
+                            cpuNameInfoLineEdit.setText("{0}".format(float(0)))
                         self.lineEditList.append(cpuNameInfoLineEdit)
                         self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, rowNum, 2*colNum + 1)
 
@@ -469,6 +485,8 @@ class EditCpuListWidget(QDialog):
                         # layout - QGridLayout - lineEdit
                         cpuNameInfoLineEdit = QLineEdit(font=self.font2)
                         cpuNameInfoLineEdit.setValidator(integerValidator)
+                        if self.mode == "insert":
+                            cpuNameInfoLineEdit.setText("{0}".format(0))
                         self.lineEditList.append(cpuNameInfoLineEdit)
                         self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, rowNum, 2*colNum + 1)
 
@@ -485,6 +503,8 @@ class EditCpuListWidget(QDialog):
                             # layout - QGridLayout - lineEdit
                             cpuNameInfoLineEdit = QLineEdit(font=self.font2)
                             cpuNameInfoLineEdit.setValidator(numberValidator)
+                            if self.mode == "insert":
+                                cpuNameInfoLineEdit.setText("{0}".format(float(0)))
                             self.lineEditList.append(cpuNameInfoLineEdit)
                             self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, rowNum, 2*colNum + 1)
 
@@ -500,6 +520,8 @@ class EditCpuListWidget(QDialog):
                         # layout - QGridLayout - lineEdit
                         cpuNameInfoLineEdit = QLineEdit(font=self.font2)
                         cpuNameInfoLineEdit.setValidator(numberValidator)
+                        if self.mode == "insert":
+                            cpuNameInfoLineEdit.setText("{0}".format(float(0)))
                         self.lineEditList.append(cpuNameInfoLineEdit)
                         self.cpuInfoGridLayout.addWidget(cpuNameInfoLineEdit, rowNum, 2*colNum + 1)
 

@@ -968,6 +968,8 @@ class EditListElementWidget(QDialog):
 
             if self.mode == "modify":
                 tempLineEdit.setText("{0}".format(item[i]))
+            elif self.mode == "insert":
+                tempLineEdit.setText("{0}".format(0))
 
         if self.mode == "insert":
             self.setInsertWidget(len(tempInfoLabel))
