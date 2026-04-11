@@ -413,8 +413,6 @@ class EditCpuListWidget(QDialog):
                         cpuNameInfoLineEdit.setText("{0}".format(round(float(self.cpuInfo[i]), 3)))
                     rowNum += 1
             elif self.decryptFile.game == "LSTrial":
-                rowNum = 0
-                colNum = 0
                 if self.decryptFile.readFlag:
                     if i in [0, 2]:
                         # layout - QGridLayout - label
