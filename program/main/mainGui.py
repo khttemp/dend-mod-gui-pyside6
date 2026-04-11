@@ -85,6 +85,11 @@ class MainWindow(QMainWindow):
         menu.addAction(action)
 
     def checkUpdate(self):
+        if self.onlineVersion == "":
+            return
+        if self.onlineVersion == self.version:
+            return
+
         msg = textSetting.textList["update"]["message"].format(self.onlineVersion)
         result = mb.askyesno(title=textSetting.textList["update"]["title"], message=msg)
         if result == mb.YES:
