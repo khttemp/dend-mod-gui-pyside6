@@ -23,13 +23,14 @@ class MainWindow(QMainWindow):
 
         self.selectedProgram = None
         self.version = mainProcess.getUpdateVer(self.importDict["rootPath"])
+        self.onlineVersion = mainProcess.getOnlineUpdateVer(self.importDict["configPath"])
         self.checkConfig()
         self.drawMenu()
 
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
 
-        self.checkUpdate()
+        QTimer.singleShot(100, self.checkUpdate)
 
     def checkConfig(self):
         configPath = self.importDict["configPath"]
@@ -84,8 +85,10 @@ class MainWindow(QMainWindow):
         menu.addAction(action)
 
     def checkUpdate(self):
-        configPath = self.importDict["configPath"]
-        QTimer.singleShot(100, partial(mainProcess.confirmUpdate, mb, self.version, configPath))
+        msg = textSetting.textList["update"]["message"].format(self.onlineVersion)
+        result = mb.askyesno(title=textSetting.textList["update"]["title"], message=msg)
+        if result == mb.YES:
+            mainProcess.openReleases()
 
     def clearContainer(self):
         currentWidget = self.stack.currentWidget()
