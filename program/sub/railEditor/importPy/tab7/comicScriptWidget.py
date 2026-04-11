@@ -24,6 +24,10 @@ class ComicScriptWidget(QWidget):
         font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
         font6 = QFont(textSetting.textList["font6"][0], textSetting.textList["font6"][1])
 
+        if self.decryptFile.game == "LSTrial":
+            if not (self.decryptFile.readFlag or self.decryptFile.filenameNum == 7):
+                return
+
         # mainLayout
         mainLayout = QVBoxLayout(self)
         mainLayout.setContentsMargins(5, 5, 0, 5)
