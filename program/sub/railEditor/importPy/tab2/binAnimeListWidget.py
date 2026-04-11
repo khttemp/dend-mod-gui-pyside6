@@ -24,6 +24,9 @@ class BinAnimeListWidget(QWidget):
         fixedWidth = 86
         fixedHeight = 40
 
+        if len(self.binAnimeList) == 0:
+            return
+
         # mainLayout
         mainLayout = QVBoxLayout(self)
         # mainLayout - QGroupBox

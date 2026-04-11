@@ -24,6 +24,9 @@ class Else1ListWidget(QWidget):
         fixedWidth = 86
         fixedHeight = 40
 
+        if len(self.else1List) == 0:
+            return
+
         # mainLayout
         mainLayout = QVBoxLayout(self)
         # mainLayout - QGroupBox
