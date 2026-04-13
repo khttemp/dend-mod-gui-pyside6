@@ -2,14 +2,18 @@ import copy
 
 import program.sub.textSetting as textSetting
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
+import program.sub.railEditor.importPy.tab9.else3CsvProcess as else3CsvProcess
 
 from PySide6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QFrame, QPushButton, QComboBox,
     QVBoxLayout, QHBoxLayout, QGridLayout, QDialog, QDialogButtonBox,
-    QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView
+    QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView,
+    QFileDialog
 )
 from PySide6.QtGui import QFont, QRegularExpressionValidator
 from PySide6.QtCore import Qt, QRegularExpression
+
+
 
 mb = customMessageBoxWidget.CustomMessageBox()
 
@@ -54,6 +58,7 @@ class Else3ListWidget(QWidget):
         headerSelectLayout.addStretch()
 
         if self.decryptFile.game in ["BS", "CS", "RS"]:
+            self.title = textSetting.textList["railEditor"]["else3Label"]
             # space
             headerLeftLayout.addSpacing(13)
             # headerLeft - csvLayout
@@ -63,12 +68,16 @@ class Else3ListWidget(QWidget):
             csvExtractButton = QPushButton(textSetting.textList["railEditor"]["else3ExtractCsvLabel"])
             csvExtractButton.setFixedSize(csvButtonWidth, buttonHeight)
             csvExtractButton.setEnabled(True)
+            csvExtractButton.clicked.connect(self.else3ExtractCsv)
             headerCsvLayout.addWidget(csvExtractButton)
             # headerLeft - csvLayout - csvLoadAndSaveButton
             csvLoadAndSaveButton = QPushButton(textSetting.textList["railEditor"]["else3LoadAndSaveCsvLabel"])
             csvLoadAndSaveButton.setFixedSize(csvButtonWidth, buttonHeight)
             csvLoadAndSaveButton.setEnabled(True)
+            csvLoadAndSaveButton.clicked.connect(self.else3LoadAndSaveCsv)
             headerCsvLayout.addWidget(csvLoadAndSaveButton)
+        else:
+            self.title = textSetting.textList["railEditor"]["camLabel"]
 
         # stretch
         headerLayout.addStretch(1)
@@ -143,78 +152,55 @@ class Else3ListWidget(QWidget):
         self.contentTable.itemSelectionChanged.connect(self.onSelectionChanged)
         contentLayout.addWidget(self.contentTable)
 
-    def createSmfTable(self):
+        self.createElse3Table()
+        self.jumpToSelect()
+
+    def createElse3Table(self):
+        self.setElse3TableHeader()
+        self.setElse3TableData()
         if len(self.else3List) == 0:
-            insertLineBtn["state"] = "normal"
+            self.insertLineButton.setEnabled(True)
 
+    def setElse3TableHeader(self):
         if self.decryptFile.game in ["BS", "CS", "RS"]:
-            col_tuple = (
-                "treeNum",
-                "railNo",
-                "else3ListNum",
-            )
+            headerLabelList = [
+                textSetting.textList["railEditor"]["editElse3LabelList"][0],
+                textSetting.textList["railEditor"]["editElse3LabelList"][1]
+            ]
+        else:
+            headerLabelList = [
+                textSetting.textList["railEditor"]["editElse3LsLabelList"][0],
+                textSetting.textList["railEditor"]["editElse3LsLabelList"][1],
+                textSetting.textList["railEditor"]["editElse3LsLabelList"][2],
+                textSetting.textList["railEditor"]["editElse3LsLabelList"][3]
+            ]
+        self.contentTable.setColumnCount(len(headerLabelList))
+        self.contentTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.contentTable.setHorizontalHeaderLabels(headerLabelList)
 
-            self.treeviewFrame.tree["columns"] = col_tuple
-            self.treeviewFrame.tree.column("#0", width=0, stretch=False)
-            self.treeviewFrame.tree.column("treeNum", anchor=tkinter.CENTER, width=50, stretch=False)
-            self.treeviewFrame.tree.column("railNo", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("else3ListNum", anchor=tkinter.CENTER, width=50)
+    def setElse3TableData(self):
+        for else3Info in self.else3List:
+            rowCount = self.contentTable.rowCount()
+            self.contentTable.insertRow(rowCount)
+            for j, else3Value in enumerate(else3Info):
+                if self.decryptFile.game in ["BS", "CS", "RS"]:
+                    if j == 1:
+                        item = QTableWidgetItem(str(len(else3Value)))
+                    else:
+                        item = QTableWidgetItem(str(else3Value))
+                else:
+                    if j == 3:
+                        item = QTableWidgetItem(str(len(else3Value)))
+                    else:
+                        item = QTableWidgetItem(str(else3Value))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.contentTable.setItem(rowCount, j, item)
 
-            else3InfoLbList = textSetting.textList["railEditor"]["editElse3LabelList"]
-            self.treeviewFrame.tree.heading("treeNum", text=textSetting.textList["railEditor"]["else3Num"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("railNo", text=else3InfoLbList[0], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("else3ListNum", text=else3InfoLbList[1], anchor=tkinter.CENTER)
-
-            self.treeviewFrame.tree["displaycolumns"] = col_tuple
-
-            index = 0
-            for else3Info in self.else3List:
-                data = (index,)
-                data += (else3Info[0], len(else3Info[1]))
-                self.treeviewFrame.tree.insert(parent="", index="end", iid=index, values=data)
-                index += 1
-
-        elif self.decryptFile.game in ["LSTrial", "LS"]:
-            col_tuple = (
-                "treeNum",
-                "cameraF1",
-                "cameraF2",
-                "cameraF3",
-                "cameraListNum",
-            )
-
-            self.treeviewFrame.tree["columns"] = col_tuple
-            self.treeviewFrame.tree.column("#0", width=0, stretch=False)
-            self.treeviewFrame.tree.column("treeNum", anchor=tkinter.CENTER, width=50, stretch=False)
-            self.treeviewFrame.tree.column("cameraF1", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("cameraF2", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("cameraF3", anchor=tkinter.CENTER, width=50)
-            self.treeviewFrame.tree.column("cameraListNum", anchor=tkinter.CENTER, width=50)
-
-            else3InfoLbList = textSetting.textList["railEditor"]["editElse3LsLabelList"]
-            self.treeviewFrame.tree.heading("treeNum", text=textSetting.textList["railEditor"]["else3Num"], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("cameraF1", text=else3InfoLbList[0], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("cameraF2", text=else3InfoLbList[1], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("cameraF3", text=else3InfoLbList[2], anchor=tkinter.CENTER)
-            self.treeviewFrame.tree.heading("cameraListNum", text=else3InfoLbList[3], anchor=tkinter.CENTER)
-
-            self.treeviewFrame.tree["displaycolumns"] = col_tuple
-
-            index = 0
-            for else3Info in self.else3List:
-                data = (index,)
-                data += (else3Info[0], else3Info[1], else3Info[2], len(else3Info[3]))
-                self.treeviewFrame.tree.insert(parent="", index="end", iid=index, values=data)
-                index += 1
-
-        if selectId is not None:
-            if selectId >= len(self.else3List):
-                selectId = len(self.else3List) - 1
-            if selectId - 3 < 0:
-                self.treeviewFrame.tree.see(0)
-            else:
-                self.treeviewFrame.tree.see(selectId - 3)
-            self.treeviewFrame.tree.selection_set(selectId)
+    def jumpToSelect(self):
+        if self.selectId is not None:
+            if self.selectId >= len(self.else3List):
+                self.selectId = len(self.else3List) - 1
+            self.contentTable.selectRow(self.selectId)
 
     def onSelectionChanged(self):
         selectedItems = self.contentTable.selectedItems()
@@ -236,719 +222,776 @@ class Else3ListWidget(QWidget):
         self.listModifyButton.setEnabled(True)
 
     def editLineFunc(self):
-        selectId = self.treeviewFrame.tree.selection()[0]
-        selectItem = self.treeviewFrame.tree.set(selectId)
-        num = int(selectItem["treeNum"])
-        result = EditElse3ListCntWidget(self.root, textSetting.textList["railEditor"]["editElse3Label"].format(self.text), "modify", self.decryptFile, selectItem, self.rootFrameAppearance)
-        if result.reloadFlag:
-            if self.decryptFile.game in ["BS", "CS", "RS"]:
-                self.else3List[num][0] = result.resultValueList[0]
-            elif self.decryptFile.game in ["LSTrial", "LS"]:
-                for j in range(3):
-                    self.else3List[num][j] = result.resultValueList[j]
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
 
+        headerNameList = [self.contentTable.horizontalHeaderItem(i).text() for i in range(self.contentTable.columnCount())]
+        num = selectedItems[0].row()
+        item = self.else3List[num]
+        editElse3ListWidget = EditElse3ListWidget(self, textSetting.textList["railEditor"]["editElse3Label"].format(self.title), self.decryptFile, "modify", headerNameList, item)
+        if editElse3ListWidget.exec() == QDialog.Accepted:
+            self.else3List[num] = editElse3ListWidget.resultValueList
             if not self.decryptFile.saveElse3List(self.else3List):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
-            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.text))
-            self.reloadFunc(selectId)
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.title))
+            self.reloadFunc(num)
 
     def insertLineFunc(self):
-        noElse3InfoFlag = False
-        if not self.treeviewFrame.tree.selection():
-            noElse3InfoFlag = True
-            selectId = None
+        headerNameList = [self.contentTable.horizontalHeaderItem(i).text() for i in range(self.contentTable.columnCount())]
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
             num = 0
-            keyList = self.treeviewFrame.tree["columns"]
-            selectItem = {}
-            for key in keyList:
-                selectItem[key] = None
         else:
-            selectId = self.treeviewFrame.tree.selection()[0]
-            selectItem = self.treeviewFrame.tree.set(selectId)
-            num = int(selectItem["treeNum"])
-        selectId = self.treeviewFrame.tree.selection()[0]
-        selectItem = self.treeviewFrame.tree.set(selectId)
-        num = int(selectItem["treeNum"])
-        result = EditElse3ListCntWidget(self.root, textSetting.textList["railEditor"]["insertElse3Label"].format(self.text), "insert", self.decryptFile, selectItem, self.rootFrameAppearance)
-        if result.reloadFlag:
-            if not noElse3InfoFlag:
-                if result.insert == 0:
-                    num += 1
-            insertInfo = []
-            if self.decryptFile.game in ["BS", "CS", "RS"]:
-                insertInfo.append(result.resultValueList[0])
-                insertInfo.append([[0, 0, 0, 0, 0]])
-            elif self.decryptFile.game in ["LSTrial", "LS"]:
-                for j in range(3):
-                    insertInfo.append(result.resultValueList[j])
-                insertInfo.append([])
+            num = selectedItems[0].row() + 1
 
-            self.else3List.insert(num, insertInfo)
+        editElse3ListWidget = EditElse3ListWidget(self, textSetting.textList["railEditor"]["insertElse3Label"].format(self.title), self.decryptFile, "insert", headerNameList)
+        if editElse3ListWidget.exec() == QDialog.Accepted:
+            self.else3List.insert(num + editElse3ListWidget.insertPos, editElse3ListWidget.resultValueList)
             if not self.decryptFile.saveElse3List(self.else3List):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
-            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.text))
-            self.reloadFunc(selectId)
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.title))
+            self.reloadFunc(num)
 
     def deleteLineFunc(self):
-        selectId = self.treeviewFrame.tree.selection()[0]
-        selectItem = self.treeviewFrame.tree.set(selectId)
-        num = int(selectItem["treeNum"])
-        warnMsg = textSetting.textList["infoList"]["I9"]
-        result = mb.askokcancel(title=textSetting.textList["warning"], message=warnMsg, icon="warning")
-        if result:
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
+
+        num = selectedItems[0].row()
+        result = mb.askokcancel(title=textSetting.textList["warning"], message=textSetting.textList["infoList"]["I9"], icon="warning")
+        if result == mb.OK:
             self.else3List.pop(num)
             if not self.decryptFile.saveElse3List(self.else3List):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
-            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.text))
-            if len(self.else3List) == 1:
-                selectId = None
-            self.reloadFunc(selectId)
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.title))
+            self.reloadFunc()
 
     def copyLineFunc(self):
-        selectId = self.treeviewFrame.tree.selection()[0]
-        selectItem = self.treeviewFrame.tree.set(selectId)
-        num = int(selectItem["treeNum"])
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
 
-        smfInfoKeyList = list(selectItem.keys())
-        smfInfoKeyList.pop(0)
-        copyList = []
-
-        if self.decryptFile.game in ["BS", "CS", "RS"]:
-            key = smfInfoKeyList[0]
-            copyList.append(int(selectItem[key]))
-            copyList.append(self.else3List[num][-1])
-        elif self.decryptFile.game in ["LSTrial", "LS"]:
-            for i in range(len(smfInfoKeyList)):
-                key = smfInfoKeyList[i]
-                if i < len(smfInfoKeyList)-1:
-                    copyList.append(float(selectItem[key]))
-                else:
-                    copyList.append(self.else3List[num][-1])
-
-        self.copyElse3Info = copyList
+        num = selectedItems[0].row()
+        self.copyElse3Info = copy.deepcopy(self.else3List[num])
         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I12"])
-        self.pasteLineBtn["state"] = "normal"
+        self.pasteLineButton.setEnabled(True)
 
     def pasteLineFunc(self):
-        selectId = self.treeviewFrame.tree.selection()[0]
-        selectItem = self.treeviewFrame.tree.set(selectId)
-        num = int(selectItem["treeNum"])
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
 
-        result = PasteElse3ListDialog(self.root, textSetting.textList["railEditor"]["pasteElse3InfoLabel"].format(self.text), self.decryptFile, self.rootFrameAppearance)
-        if result.reloadFlag:
-            if result.insert == 0:
-                num += 1
-            self.else3List.insert(num, self.copyElse3Info)
-            if not self.decryptFile.saveElse3List(self.else3List):
-                self.decryptFile.printError()
-                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-                return
-            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.text))
-            self.reloadFunc(selectId)
+        num = selectedItems[0].row()
+        pasteElse3ListDialog = PasteElse3ListDialog(self, textSetting.textList["railEditor"]["pasteElse3InfoLabel"].format(self.title), self.decryptFile, num, self.copyElse3Info)
+        if pasteElse3ListDialog.exec() == QDialog.Accepted:
+            self.reloadFunc(num)
 
     def listModifyFunc(self):
-        selectId = self.treeviewFrame.tree.selection()[0]
-        selectItem = self.treeviewFrame.tree.set(selectId)
-        num = int(selectItem["treeNum"])
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
 
-        result = Else3ElementListWidget(self.root, textSetting.textList["railEditor"]["editElse3ElementLabel"].format(self.text), self.text, num, self.decryptFile, self.else3List, self.rootFrameAppearance)
-        if result.reloadFlag:
-            self.reloadFunc(selectId)
+        num = selectedItems[0].row()
+        item = self.else3List[num]
+        else3ElementWidget = Else3ElementWidget(self, textSetting.textList["railEditor"]["editElse3ElementLabel"].format(self.title), self.decryptFile, num, item)
+        else3ElementWidget.exec()
+        if else3ElementWidget.dirtyFlag:
+            self.reloadFunc(num)
 
     def else3ExtractCsv(self):
         filename = self.decryptFile.filename + "_else3.csv"
-        file_path = fd.asksaveasfilename(initialfile=filename, defaultextension="csv", filetypes=[("else3_csv", "*.csv")])
-        errorMsg = textSetting.textList["errorList"]["E7"]
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "",
+            filename,
+            "else3_csv (*.csv)"
+        )
         if file_path:
             try:
-                w = open(file_path, "w")
-                w.write("railNo,num,type,railPos,binIndex,anime1,anime2\n")
-                for else3Info in self.decryptFile.else3List:
-                    w.write("{0},{1},".format(else3Info[0], len(else3Info[1])))
-                    for j in range(len(else3Info[1])):
-                        if j != 0:
-                            w.write(",,")
-                        w.write(",".join([str(x) for x in else3Info[1][j]]))
-                        w.write("\n")
-                w.close()
+                else3CsvProcess.extractCsv(file_path, self.else3List)
                 mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
             except PermissionError:
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E7"])
 
     def else3LoadAndSaveCsv(self):
-        file_path = fd.askopenfilename(defaultextension="csv", filetypes=[("else3_csv", "*.csv")])
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "",
+            "",
+            "else3_csv (*.csv)"
+        )
         if not file_path:
             return
-        f = open(file_path)
-        csvLines = f.readlines()
-        f.close()
 
-        else3List = []
-        else3Info = []
-        tempList = []
-        csvLines.pop(0)
-        firstReadFlag = True
-        num = 0
-        readNum = 0
-        try:
-            for i in range(len(csvLines)):
-                csvLine = csvLines[i].strip()
-                arr = csvLine.split(",")
-                if len(arr) < 7:
-                    errorMsg = textSetting.textList["errorList"]["E15"].format(i + 2)
-                    mb.showerror(title=textSetting.textList["readError"], message=errorMsg)
-                    return
-
-                if firstReadFlag:
-                    else3Info = []
-                    if arr[0] == "" or arr[1] == "":
-                        errorMsg = textSetting.textList["errorList"]["E15"].format(i + 2)
-                        mb.showerror(title=textSetting.textList["readError"], message=errorMsg)
-                        return
-                    num = int(arr[1])
-                    else3Info.append(int(arr[0]))
-                    tempList = []
-                    firstReadFlag = False
-                else:
-                    if arr[0] != "" or arr[1] != "":
-                        errorMsg = textSetting.textList["errorList"]["E15"].format(i + 2)
-                        mb.showerror(title=textSetting.textList["readError"], message=errorMsg)
-                        return
-                tempList.append([int(x) for x in arr[2:]])
-                readNum += 1
-                if readNum == num:
-                    readNum = 0
-                    num = 0
-                    firstReadFlag = True
-                    else3Info.append(tempList)
-                    else3List.append(else3Info)
-
-            if readNum != num:
-                errorMsg = textSetting.textList["errorList"]["E92"].format(i + 2)
-                mb.showerror(title=textSetting.textList["readError"], message=errorMsg)
-                return
-
-            msg = textSetting.textList["infoList"]["I15"].format(len(csvLines) + 1)
-            result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
-
-            if result:
-                if not self.decryptFile.saveElse3List(else3List):
-                    self.decryptFile.printError()
-                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-                    return
-                mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format("else3"))
-                self.reloadFunc()
-        except Exception:
-            errorMsg = textSetting.textList["errorList"]["E14"]
-            mb.showerror(title=textSetting.textList["error"], message=errorMsg)
+        else3Obj, message = else3CsvProcess.loadCsv(file_path)
+        if message:
+            mb.showerror(title=textSetting.textList["error"], message=message)
             return
 
-
-# class EditElse3ListCntWidget(CustomSimpleDialog):
-#     def __init__(self, master, title, mode, decryptFile, selectItem, rootFrameAppearance):
-#         self.mode = mode
-#         self.decryptFile = decryptFile
-#         self.selectItem = selectItem
-#         self.varList = []
-#         self.resultValueList = []
-#         self.insert = 0
-#         self.reloadFlag = False
-#         super().__init__(master, title, rootFrameAppearance.bgColor)
-
-#     def body(self, master):
-#         self.resizable(False, False)
-
-#         else3InfoKeyList = list(self.selectItem.keys())
-#         else3InfoKeyList.pop(0)
-#         if self.decryptFile.game in ["BS", "CS", "RS"]:
-#             else3InfoLbList = textSetting.textList["railEditor"]["editElse3LabelList"]
-#             for i in range(len(else3InfoKeyList)):
-#                 else3Lb = ttkCustomWidget.CustomTtkLabel(master, text=else3InfoLbList[i], font=textSetting.textList["font2"])
-#                 else3Lb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-#                 key = else3InfoKeyList[i]
-#                 varElse3 = tkinter.IntVar()
-#                 if self.mode == "modify":
-#                     varElse3.set(self.selectItem[key])
-#                 self.varList.append(varElse3)
-#                 else3Et = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-#                 else3Et.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-#                 if i == 1:
-#                     else3Et["state"] = "disabled"
-#                     varElse3.set(1)
-#         elif self.decryptFile.game in ["LSTrial", "LS"]:
-#             else3InfoLbList = textSetting.textList["railEditor"]["editElse3LsLabelList"]
-#             for i in range(len(else3InfoKeyList)):
-#                 else3Lb = ttkCustomWidget.CustomTtkLabel(master, text=else3InfoLbList[i], font=textSetting.textList["font2"])
-#                 else3Lb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-#                 key = else3InfoKeyList[i]
-#                 if i == 3:
-#                     varElse3 = tkinter.IntVar()
-#                 else:
-#                     varElse3 = tkinter.DoubleVar()
-#                 if self.mode == "modify":
-#                     varElse3.set(self.selectItem[key])
-#                 self.varList.append(varElse3)
-#                 else3Et = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-#                 else3Et.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-#                 if i == 3:
-#                     else3Et["state"] = "disabled"
-
-#         if self.mode == "insert":
-#             self.setInsertWidget(master, len(else3InfoKeyList))
-#         super().body(master)
-
-#     def setInsertWidget(self, master, index):
-#         xLine = ttkCustomWidget.CustomTtkSeparator(master, orient=tkinter.HORIZONTAL)
-#         xLine.grid(row=index, column=0, columnspan=2, sticky=tkinter.W + tkinter.E, pady=10)
-
-#         insertLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["railEditor"]["posLabel"], font=textSetting.textList["font2"])
-#         insertLb.grid(row=index + 1, column=0, sticky=tkinter.W + tkinter.E)
-#         self.v_insert = tkinter.StringVar()
-#         self.insertCb = ttkCustomWidget.CustomTtkCombobox(master, state="readonly", font=textSetting.textList["font2"], textvariable=self.v_insert, values=textSetting.textList["railEditor"]["posValue"])
-#         self.insertCb.grid(row=index + 1, column=1, sticky=tkinter.W + tkinter.E)
-#         self.insertCb.current(0)
-
-#     def validate(self):
-#         self.resultValueList = []
-#         result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"], parent=self)
-#         if result:
-#             try:
-#                 if self.decryptFile.game in ["BS", "CS", "RS"]:
-#                     for i in range(len(self.varList)):
-#                         try:
-#                             res = int(self.varList[i].get())
-#                             if i == 0:
-#                                 if res < 0:
-#                                     errorMsg = textSetting.textList["errorList"]["E61"].format(0)
-#                                     mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-#                                     return False
-#                                 self.resultValueList.append(res)
-#                         except Exception:
-#                             errorMsg = textSetting.textList["errorList"]["E3"]
-#                             mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-#                             return False
-
-#                     if self.mode == "insert":
-#                         self.insert = self.insertCb.current()
-#                     return True
-#                 elif self.decryptFile.game in ["LSTrial", "LS"]:
-#                     for i in range(len(self.varList)):
-#                         try:
-#                             if i != 3:
-#                                 res = float(self.varList[i].get())
-#                                 self.resultValueList.append(res)
-#                         except Exception:
-#                             errorMsg = textSetting.textList["errorList"]["E3"]
-#                             mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-#                             return False
-
-#                     if self.mode == "insert":
-#                         self.insert = self.insertCb.current()
-#                     return True
-#             except Exception:
-#                 errorMsg = textSetting.textList["errorList"]["E14"]
-#                 mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-#                 return False
-
-#     def apply(self):
-#         self.reloadFlag = True
-
-
-# class Else3ElementListWidget(CustomSimpleDialog):
-#     def __init__(self, master, title, text, else3Num, decryptFile, else3List, rootFrameAppearance):
-#         self.master = master
-#         self.text = text
-#         self.else3Num = else3Num
-#         self.decryptFile = decryptFile
-#         self.else3List = else3List
-#         self.else3ListInfo = else3List[else3Num][-1]
-#         self.copyElse3List = []
-#         self.btnList = []
-#         self.varList = []
-#         self.resultValueList = []
-#         self.rootFrameAppearance = rootFrameAppearance
-#         self.reloadFlag = False
-#         super().__init__(master, title, rootFrameAppearance.bgColor)
-
-#     def body(self, master):
-#         self.resizable(False, False)
-#         mainFrame = ttkCustomWidget.CustomTtkFrame(master, width=720, height=360)
-#         mainFrame.pack()
-
-#         selectLbBtnFrame = ttkCustomWidget.CustomTtkFrame(mainFrame)
-#         selectLbBtnFrame.pack()
-
-#         selectLbFrame = ttkCustomWidget.CustomTtkFrame(selectLbBtnFrame)
-#         selectLbFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT)
-
-#         selectLb = ttkCustomWidget.CustomTtkLabel(selectLbFrame, text=textSetting.textList["railEditor"]["selectNum"], font=textSetting.textList["font2"])
-#         selectLb.pack(side=tkinter.LEFT, padx=15, pady=15)
-
-#         self.v_select = tkinter.StringVar()
-#         selectEt = ttkCustomWidget.CustomTtkEntry(selectLbFrame, textvariable=self.v_select, font=textSetting.textList["font2"], width=5, state="readonly", justify="center")
-#         selectEt.pack(side=tkinter.LEFT, padx=5, pady=15)
-
-#         btnFrame = ttkCustomWidget.CustomTtkFrame(selectLbBtnFrame)
-#         btnFrame.pack(padx=15)
-
-#         editLineBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["railEditor"]["commonEditLineLabel"], width=25, state="disabled", command=self.editLine)
-#         editLineBtn.grid(row=0, column=0, padx=10, pady=10)
-
-#         insertLineBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["railEditor"]["commonInsertLineLabel"], width=25, state="disabled", command=self.insertLine)
-#         insertLineBtn.grid(row=0, column=1, padx=10, pady=10)
-
-#         deleteLineBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["railEditor"]["commonDeleteLineLabel"], width=25, state="disabled", command=self.deleteLine)
-#         deleteLineBtn.grid(row=0, column=2, padx=10, pady=10)
-
-#         copyLineBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["railEditor"]["commonCopyLineLabel"], width=25, state="disabled", command=self.copyLine)
-#         copyLineBtn.grid(row=1, column=0, padx=10, pady=10)
-
-#         self.pasteLineBtn = ttkCustomWidget.CustomTtkButton(btnFrame, text=textSetting.textList["railEditor"]["commonPasteLineLabel"], width=25, state="disabled", command=self.pasteLine)
-#         self.pasteLineBtn.grid(row=1, column=1, padx=10, pady=10)
-
-#         self.treeFrame = ttkCustomWidget.CustomTtkFrame(mainFrame)
-#         self.treeFrame.pack(expand=True, fill=tkinter.BOTH)
-
-#         self.btnList = [
-#             editLineBtn,
-#             insertLineBtn,
-#             deleteLineBtn,
-#             copyLineBtn
-#         ]
-
-#         self.setViewData()
-#         super().body(master)
-
-#     def setViewData(self):
-#         self.treeviewFrame = ScrollbarTreeviewRailEditor(self.treeFrame, self.v_select, self.btnList)
-#         if self.decryptFile.game in ["BS", "CS", "RS"]:
-#             col_tuple = (
-#                 "treeNum",
-#                 "else3Type",
-#                 "else3RailPos",
-#                 "else3BinIndex",
-#                 "else3Anime1",
-#                 "else3Anime2"
-#             )
-
-#             self.treeviewFrame.tree["columns"] = col_tuple
-#             self.treeviewFrame.tree.column("#0", width=0, stretch=False)
-#             self.treeviewFrame.tree.column("treeNum", anchor=tkinter.CENTER, width=50, stretch=False)
-#             self.treeviewFrame.tree.column("else3Type", anchor=tkinter.CENTER, width=130)
-#             self.treeviewFrame.tree.column("else3RailPos", anchor=tkinter.CENTER, width=50)
-#             self.treeviewFrame.tree.column("else3BinIndex", anchor=tkinter.CENTER, width=50)
-#             self.treeviewFrame.tree.column("else3Anime1", anchor=tkinter.CENTER, width=50)
-#             self.treeviewFrame.tree.column("else3Anime2", anchor=tkinter.CENTER, width=50)
-
-#             else3InfoLbList = textSetting.textList["railEditor"]["editElse3ElementLabelList"]
-#             self.treeviewFrame.tree.heading("treeNum", text=textSetting.textList["railEditor"]["else3Num"], anchor=tkinter.CENTER)
-#             self.treeviewFrame.tree.heading("else3Type", text=else3InfoLbList[0], anchor=tkinter.CENTER)
-#             self.treeviewFrame.tree.heading("else3RailPos", text=else3InfoLbList[1], anchor=tkinter.CENTER)
-#             self.treeviewFrame.tree.heading("else3BinIndex", text=else3InfoLbList[2], anchor=tkinter.CENTER)
-#             self.treeviewFrame.tree.heading("else3Anime1", text=else3InfoLbList[3], anchor=tkinter.CENTER)
-#             self.treeviewFrame.tree.heading("else3Anime2", text=else3InfoLbList[4], anchor=tkinter.CENTER)
-
-#             index = 0
-#             for else3Info in self.else3ListInfo:
-#                 data = (index,)
-#                 data += (else3Info[0], else3Info[1], else3Info[2], else3Info[3], else3Info[4])
-#                 self.treeviewFrame.tree.insert(parent="", index="end", iid=index, values=data)
-#                 index += 1
-#         elif self.decryptFile.game in ["LSTrial", "LS"]:
-#             col_tuple = (
-#                 "treeNum",
-#                 "listF1",
-#                 "listF2",
-#                 "listF3",
-#                 "listTime",
-#                 "listType"
-#             )
-
-#             self.treeviewFrame.tree["columns"] = col_tuple
-#             self.treeviewFrame.tree.column("#0", width=0, stretch=False)
-#             self.treeviewFrame.tree.column("treeNum", anchor=tkinter.CENTER, width=50, stretch=False)
-#             self.treeviewFrame.tree.column("listF1", anchor=tkinter.CENTER, width=130)
-#             self.treeviewFrame.tree.column("listF2", anchor=tkinter.CENTER, width=50)
-#             self.treeviewFrame.tree.column("listF3", anchor=tkinter.CENTER, width=50)
-#             self.treeviewFrame.tree.column("listTime", anchor=tkinter.CENTER, width=50)
-#             self.treeviewFrame.tree.column("listType", anchor=tkinter.CENTER, width=50)
-
-#             else3LsInfoLbList = textSetting.textList["railEditor"]["editElse3LsElementLabelList"]
-#             self.treeviewFrame.tree.heading("treeNum", text=textSetting.textList["railEditor"]["else3Num"], anchor=tkinter.CENTER)
-#             self.treeviewFrame.tree.heading("listF1", text=else3LsInfoLbList[0], anchor=tkinter.CENTER)
-#             self.treeviewFrame.tree.heading("listF2", text=else3LsInfoLbList[1], anchor=tkinter.CENTER)
-#             self.treeviewFrame.tree.heading("listF3", text=else3LsInfoLbList[2], anchor=tkinter.CENTER)
-#             self.treeviewFrame.tree.heading("listTime", text=else3LsInfoLbList[3], anchor=tkinter.CENTER)
-#             self.treeviewFrame.tree.heading("listType", text=else3LsInfoLbList[4], anchor=tkinter.CENTER)
-
-#             index = 0
-#             for else3Info in self.else3ListInfo:
-#                 data = (index,)
-#                 data += (else3Info[0], else3Info[1], else3Info[2], else3Info[3], else3Info[4])
-#                 self.treeviewFrame.tree.insert(parent="", index="end", iid=index, values=data)
-#                 index += 1
-
-#         if len(self.else3ListInfo) == 0:
-#             self.btnList[1]["state"] = "normal"
-
-#     def editLine(self):
-#         selectId = self.treeviewFrame.tree.selection()[0]
-#         selectItem = self.treeviewFrame.tree.set(selectId)
-#         num = int(selectItem["treeNum"])
-#         result = EditElse3ListWidget(self.master, textSetting.textList["railEditor"]["editElse3ElementModifyLabel"].format(self.text), "modify", self.decryptFile, selectItem, self.rootFrameAppearance)
-#         if result.reloadFlag:
-#             self.else3List[self.else3Num][-1][num] = result.resultValueList
-
-#             if not self.decryptFile.saveElse3List(self.else3List):
-#                 self.decryptFile.printError()
-#                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-#                 return
-#             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.text))
-#             self.reloadFunc(int(selectId))
-
-#     def insertLine(self):
-#         noElse3ListInfoFlag = False
-#         if not self.treeviewFrame.tree.selection():
-#             noElse3ListInfoFlag = True
-#             selectId = None
-#             num = 0
-#             keyList = self.treeviewFrame.tree["columns"]
-#             selectItem = {}
-#             for key in keyList:
-#                 selectItem[key] = None
-#         else:
-#             selectId = self.treeviewFrame.tree.selection()[0]
-#             selectItem = self.treeviewFrame.tree.set(selectId)
-#             num = int(selectItem["treeNum"])
-#         result = EditElse3ListWidget(self.master, textSetting.textList["railEditor"]["editElse3ElementInsertLabel"].format(self.text), "insert", self.decryptFile, selectItem, self.rootFrameAppearance)
-#         if result.reloadFlag:
-#             if not noElse3ListInfoFlag:
-#                 if result.insert == 0:
-#                     num += 1
-#             self.else3List[self.else3Num][-1].insert(num, result.resultValueList)
-
-#             if not self.decryptFile.saveElse3List(self.else3List):
-#                 self.decryptFile.printError()
-#                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-#                 return
-#             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.text))
-#             if selectId is not None:
-#                 self.reloadFunc(int(selectId))
-#             else:
-#                 self.reloadFunc(None)
-
-#     def deleteLine(self):
-#         if self.decryptFile.game in ["BS", "CS", "RS"]:
-#             if len(self.else3ListInfo) == 1:
-#                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E93"].format(1))
-#                 return
-
-#         selectId = self.treeviewFrame.tree.selection()[0]
-#         selectItem = self.treeviewFrame.tree.set(selectId)
-#         num = int(selectItem["treeNum"])
-#         warnMsg = textSetting.textList["infoList"]["I9"]
-#         result = mb.askokcancel(title=textSetting.textList["warning"], message=warnMsg, icon="warning")
-#         if result:
-#             self.else3List[self.else3Num][-1].pop(num)
-#             if not self.decryptFile.saveElse3List(self.else3List):
-#                 self.decryptFile.printError()
-#                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-#                 return
-#             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.text))
-#             if len(self.else3ListInfo) > 1:
-#                 self.reloadFunc(int(selectId))
-#             else:
-#                 self.reloadFunc(None)
-
-#     def copyLine(self):
-#         selectId = self.treeviewFrame.tree.selection()[0]
-#         selectItem = self.treeviewFrame.tree.set(selectId)
-#         num = int(selectItem["treeNum"])
-
-#         copyList = self.else3List[self.else3Num][-1][num]
-
-#         self.copyElse3List = copyList
-#         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I12"])
-#         self.pasteLineBtn["state"] = "normal"
-
-#     def pasteLine(self):
-#         selectId = self.treeviewFrame.tree.selection()[0]
-#         selectItem = self.treeviewFrame.tree.set(selectId)
-#         num = int(selectItem["treeNum"])
-
-#         result = PasteElse3ListDialog(self.master, textSetting.textList["railEditor"]["pasteElse3InfoLabel"].format(self.text), self.decryptFile, self.rootFrameAppearance)
-#         if result.reloadFlag:
-#             if result.insert == 0:
-#                 num += 1
-#             self.else3List[self.else3Num][-1].insert(num, self.copyElse3List)
-#             if not self.decryptFile.saveElse3List(self.else3List):
-#                 self.decryptFile.printError()
-#                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-#                 return
-#             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.text))
-#             self.reloadFunc(int(selectId))
-
-#     def reloadFunc(self, selectId):
-#         self.decryptFile = self.decryptFile.reload()
-#         self.else3List = self.decryptFile.else3List
-#         self.else3ListInfo = self.else3List[self.else3Num][-1]
-#         self.reloadFlag = True
-#         for child in self.treeFrame.winfo_children():
-#             child.destroy()
-
-#         self.setViewData()
-
-#         if selectId is not None:
-#             if selectId >= len(self.else3ListInfo):
-#                 selectId = len(self.else3ListInfo) - 1
-#             if selectId - 3 < 0:
-#                 self.treeviewFrame.tree.see(0)
-#             else:
-#                 self.treeviewFrame.tree.see(selectId - 3)
-#             self.treeviewFrame.tree.selection_set(selectId)
-#         else:
-#             self.v_select.set("")
-#             for btn in self.btnList:
-#                 btn["state"] = "disabled"
-#             self.btnList[1]["state"] = "normal"
-
-
-# class EditElse3ListWidget(CustomSimpleDialog):
-#     def __init__(self, master, title, mode, decryptFile, selectItem, rootFrameAppearance):
-#         self.mode = mode
-#         self.decryptFile = decryptFile
-#         self.selectItem = selectItem
-#         self.varList = []
-#         self.resultValueList = []
-#         self.insert = 0
-#         self.reloadFlag = False
-#         super().__init__(master, title, rootFrameAppearance.bgColor)
-
-#     def body(self, master):
-#         self.resizable(False, False)
-
-#         else3ElementListInfoKeyList = list(self.selectItem.keys())
-#         else3ElementListInfoKeyList.pop(0)
-#         if self.decryptFile.game in ["BS", "CS", "RS"]:
-#             else3InfoLbList = textSetting.textList["railEditor"]["editElse3ElementLabelList"]
-#             for i in range(len(else3InfoLbList)):
-#                 key = else3ElementListInfoKeyList[i]
-#                 else3Lb = ttkCustomWidget.CustomTtkLabel(master, text=else3InfoLbList[i], font=textSetting.textList["font2"])
-#                 else3Lb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-#                 varElse3 = tkinter.IntVar()
-#                 self.varList.append(varElse3)
-#                 if self.mode == "modify":
-#                     varElse3.set(self.selectItem[key])
-#                 else3Et = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-#                 else3Et.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-#         elif self.decryptFile.game in ["LSTrial", "LS"]:
-#             else3LsInfoLbList = textSetting.textList["railEditor"]["editElse3LsElementLabelList"]
-#             for i in range(len(else3LsInfoLbList)):
-#                 key = else3ElementListInfoKeyList[i]
-#                 else3Lb = ttkCustomWidget.CustomTtkLabel(master, text=else3LsInfoLbList[i], font=textSetting.textList["font2"])
-#                 else3Lb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-#                 if i == 4:
-#                     varElse3 = tkinter.IntVar()
-#                 else:
-#                     varElse3 = tkinter.DoubleVar()
-#                 self.varList.append(varElse3)
-#                 if self.mode == "modify":
-#                     varElse3.set(self.selectItem[key])
-#                 else3Et = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[i], font=textSetting.textList["font2"])
-#                 else3Et.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-
-#         if self.mode == "insert":
-#             self.setInsertWidget(master, len(else3ElementListInfoKeyList))
-#         super().body(master)
-
-#     def setInsertWidget(self, master, index):
-#         xLine = ttkCustomWidget.CustomTtkSeparator(master, orient=tkinter.HORIZONTAL)
-#         xLine.grid(row=index, column=0, columnspan=2, sticky=tkinter.W + tkinter.E, pady=10)
-
-#         insertLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["railEditor"]["posLabel"], font=textSetting.textList["font2"])
-#         insertLb.grid(row=index + 1, column=0, sticky=tkinter.W + tkinter.E)
-#         self.v_insert = tkinter.StringVar()
-#         self.insertCb = ttkCustomWidget.CustomTtkCombobox(master, state="readonly", font=textSetting.textList["font2"], textvariable=self.v_insert, values=textSetting.textList["railEditor"]["posValue"])
-#         self.insertCb.grid(row=index + 1, column=1, sticky=tkinter.W + tkinter.E)
-#         self.insertCb.current(0)
-
-#     def validate(self):
-#         self.resultValueList = []
-#         result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"], parent=self)
-#         if result:
-#             try:
-#                 if self.mode == "insert":
-#                     self.insert = self.insertCb.current()
-
-#                 if self.decryptFile.game in ["BS", "CS", "RS"]:
-#                     for i in range(len(self.varList)):
-#                         try:
-#                             res = int(self.varList[i].get())
-#                         except Exception:
-#                             errorMsg = textSetting.textList["errorList"]["E3"]
-#                             mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-#                             return False
-#                         self.resultValueList.append(res)
-#                     return True
-#                 elif self.decryptFile.game in ["LSTrial", "LS"]:
-#                     for i in range(len(self.varList)):
-#                         try:
-#                             if i == 4:
-#                                 res = int(self.varList[i].get())
-#                             else:
-#                                 res = float(self.varList[i].get())
-#                         except Exception:
-#                             errorMsg = textSetting.textList["errorList"]["E3"]
-#                             mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-#                             return False
-#                         self.resultValueList.append(res)
-#                     return True
-#             except Exception:
-#                 errorMsg = textSetting.textList["errorList"]["E14"]
-#                 mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-#                 return False
-
-#     def apply(self):
-#         self.reloadFlag = True
-
-
-# class PasteElse3ListDialog(CustomSimpleDialog):
-#     def __init__(self, master, title, decryptFile, rootFrameAppearance):
-#         self.decryptFile = decryptFile
-#         self.insert = 0
-#         self.reloadFlag = False
-#         super().__init__(master, title, rootFrameAppearance.bgColor)
-
-#     def body(self, master):
-#         self.resizable(False, False)
-#         posLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["infoList"]["I4"], font=textSetting.textList["font2"])
-#         posLb.pack(padx=10, pady=10)
-#         super().body(master)
-
-#     def buttonbox(self):
-#         super().buttonbox()
-#         for idx, child in enumerate(self.buttonList):
-#             child.destroy()
-#         self.box.config(padx=5, pady=5)
-#         self.frontBtn = ttkCustomWidget.CustomTtkButton(self.box, text=textSetting.textList["railEditor"]["pasteFront"], style="custom.paste.TButton", width=10, command=self.frontInsert)
-#         self.frontBtn.grid(row=0, column=0, padx=5)
-#         self.backBtn = ttkCustomWidget.CustomTtkButton(self.box, text=textSetting.textList["railEditor"]["pasteBack"], style="custom.paste.TButton", width=10, command=self.backInsert)
-#         self.backBtn.grid(row=0, column=1, padx=5)
-#         self.cancelBtn = ttkCustomWidget.CustomTtkButton(self.box, text=textSetting.textList["railEditor"]["pasteCancel"], style="custom.paste.TButton", width=10, command=self.cancel)
-#         self.cancelBtn.grid(row=0, column=2, padx=5)
-
-#     def frontInsert(self):
-#         self.ok()
-#         self.insert = 1
-#         self.reloadFlag = True
-
-#     def backInsert(self):
-#         self.ok()
-#         self.insert = 0
-#         self.reloadFlag = True
+        msg = textSetting.textList["infoList"]["I15"].format(else3Obj["csvLines"])
+        result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
+        if result == mb.OK:
+            else3List = else3Obj["data"]
+            if not self.decryptFile.saveElse3List(else3List):
+                self.decryptFile.printError()
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                return
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format("else3"))
+            self.reloadFunc()
+
+
+class EditElse3ListWidget(QDialog):
+    def __init__(self, parent, title, decryptFile, mode, headerNameList, else3Info=None):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.decryptFile = decryptFile
+        self.mode = mode
+        self.headerNameList = headerNameList
+        self.else3Info = else3Info
+        self.railNoList = []
+        self.insertPos = None
+        self.resultValueList = []
+        numberValidator = QRegularExpressionValidator(QRegularExpression(r"^-?\d+(\.\d+)?$"), self)
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^-?\d+$"), self)
+
+        self.font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=self.font2)
+        layout.addWidget(label)
+        # layout - QGridLayout
+        self.else3InfoGridLayout = QGridLayout()
+        layout.addLayout(self.else3InfoGridLayout)
+        self.lineEditList = []
+
+        if self.decryptFile.game in ["BS", "CS", "RS"]:
+            else3InfoLabelList = copy.deepcopy(textSetting.textList["railEditor"]["editElse3LabelList"])
+            self.railNoList = [x[0] for x in self.decryptFile.else3List]
+        else:
+            else3InfoLabelList = copy.deepcopy(textSetting.textList["railEditor"]["editElse3LsLabelList"])
+        else3InfoLabelList.pop()
+
+        for i, else3InfoLabel in enumerate(else3InfoLabelList):
+            # layout - QGridLayout - label
+            else3NameLabel = QLabel(else3InfoLabel, font=self.font2)
+            self.else3InfoGridLayout.addWidget(else3NameLabel, i, 0)
+            # layout - QGridLayout - lineEdit
+            else3InfoLineEdit = QLineEdit(font=self.font2)
+            self.lineEditList.append(else3InfoLineEdit)
+            self.else3InfoGridLayout.addWidget(else3InfoLineEdit, i, 1)
+
+            if self.decryptFile.game in ["BS", "CS", "RS"]:
+                else3InfoLineEdit.setValidator(integerValidator)
+                if self.mode == "insert":
+                    else3InfoLineEdit.setText("{0}".format(0))
+
+                if self.mode == "modify":
+                    else3InfoLineEdit.setText("{0}".format(self.else3Info[i]))
+            else:
+                else3InfoLineEdit.setValidator(numberValidator)
+                if self.mode == "insert":
+                    else3InfoLineEdit.setText("{0}".format(float(0)))
+
+                if self.mode == "modify":
+                    else3InfoLineEdit.setText("{0}".format(self.else3Info[i]))
+
+        if self.mode == "insert":
+            self.setInsertWidget(len(self.headerNameList))
+
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
+
+    def setInsertWidget(self, insertRow):
+        # layout - QGridLayout - QFrame (colspan=2)
+        horizentalLine = QFrame()
+        horizentalLine.setFrameShape(QFrame.Shape.HLine)
+        horizentalLine.setFrameShadow(QFrame.Shadow.Sunken)
+        self.else3InfoGridLayout.addWidget(horizentalLine, insertRow, 0, 1, 2)
+        # layout - QGridLayout - insertLabel
+        insertLabel = QLabel(textSetting.textList["railEditor"]["posLabel"], font=self.font2)
+        self.else3InfoGridLayout.addWidget(insertLabel, insertRow + 1, 0)
+        # layout - QGridLayout - insertCombo
+        self.insertCombo = QComboBox(font=self.font2)
+        self.insertCombo.addItems(textSetting.textList["railEditor"]["posValue"])
+        self.else3InfoGridLayout.addWidget(self.insertCombo, insertRow + 1, 1)
+
+    def validate(self):
+        self.resultValueList = []
+        for i, lineEdit in enumerate(self.lineEditList):
+            if not lineEdit.hasAcceptableInput():
+                mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+                return
+
+            if self.decryptFile.game in ["BS", "CS", "RS"]:
+                if i == 0:
+                    isValidFlag = True
+                    railNo = int(lineEdit.text())
+                    if self.mode == "modify":
+                        originRailNo = self.else3Info[0]
+                        if originRailNo != railNo and railNo in self.railNoList:
+                            isValidFlag = False
+                    elif self.mode == "insert":
+                        if railNo in self.railNoList:
+                            isValidFlag = False
+
+                    if not isValidFlag:
+                        if self.decryptFile.game in ["BS", "CS"]:
+                            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E131"].format(railNo))
+                            return
+                        else:
+                            result = mb.askokcancel(title=textSetting.textList["warning"], message=textSetting.textList["errorList"]["E132"].format(railNo), icon="warning")
+                            if result != mb.OK:
+                                return
+                self.resultValueList.append(int(lineEdit.text()))
+            else:
+                self.resultValueList.append(float(lineEdit.text()))
+
+        if self.decryptFile.game in ["BS", "CS", "RS"]:
+            if self.mode == "modify":
+                originTempList = self.else3Info[1]
+                self.resultValueList.append(originTempList)
+            else:
+                self.resultValueList.append([[0, 0, 0, 0, 0]])
+        else:
+            if self.mode == "modify":
+                originTempList = self.else3Info[3]
+                self.resultValueList.append(originTempList)
+            else:
+                self.resultValueList.append([])
+
+        if self.mode == "insert":
+            self.insertPos = 0
+            if self.insertCombo.currentIndex() == 1:
+                self.insertPos = -1
+        return True
+
+    def accept(self):
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
+
+        if not self.validate():
+            return
+        super().accept()
+
+
+class PasteElse3ListDialog(QDialog):
+    def __init__(self, parent, title, decryptFile, num, copyElse3Info):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.decryptFile = decryptFile
+        self.num = num
+        self.copyElse3Info = copyElse3Info
+        self.railNoList = [x[0] for x in self.decryptFile.else3List]
+
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        pastePosLabel = QLabel(textSetting.textList["infoList"]["I4"], font=font2)
+        layout.addWidget(pastePosLabel)
+        # layout - buttonLayout
+        buttonLayout = QHBoxLayout()
+        layout.addLayout(buttonLayout)
+        # layout - buttonLayout - frontButton
+        frontButton = QPushButton(textSetting.textList["railEditor"]["pasteFront"], font=font2)
+        frontButton.clicked.connect(self.frontInsert)
+        buttonLayout.addWidget(frontButton)
+        # layout - buttonLayout - backButton
+        backButton = QPushButton(textSetting.textList["railEditor"]["pasteBack"], font=font2)
+        backButton.clicked.connect(self.backInsert)
+        buttonLayout.addWidget(backButton)
+        # layout - buttonLayout - cancelButton
+        cancelButton = QPushButton(textSetting.textList["railEditor"]["pasteCancel"], font=font2)
+        cancelButton.clicked.connect(self.reject)
+        buttonLayout.addWidget(cancelButton)
+
+    def frontInsert(self):
+        successMsg = textSetting.textList["infoList"]["I79"]
+        newRailNo = self.copyElse3Info[0]
+        if self.decryptFile.game in ["BS", "CS"]:
+            while newRailNo in self.railNoList:
+                newRailNo -= 1
+            if newRailNo < 0:
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E133"])
+                return
+            self.copyElse3Info[0] = newRailNo
+            successMsg += ("\n" + textSetting.textList["infoList"]["I140"].format(newRailNo))
+
+        super().accept()
+        self.decryptFile.else3List.insert(self.num, self.copyElse3Info)
+        if not self.decryptFile.saveElse3List(self.decryptFile.else3List):
+            self.decryptFile.printError()
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+            return
+        mb.showinfo(title=textSetting.textList["success"], message=successMsg)
+
+    def backInsert(self):
+        successMsg = textSetting.textList["infoList"]["I79"]
+        newRailNo = self.copyElse3Info[0]
+        if self.decryptFile.game in ["BS", "CS"]:
+            while newRailNo in self.railNoList:
+                newRailNo += 1
+            self.copyElse3Info[0] = newRailNo
+            successMsg += ("\n" + textSetting.textList["infoList"]["I140"].format(newRailNo))
+
+        super().accept()
+        self.decryptFile.else3List.insert(self.num + 1, self.copyElse3Info)
+        if not self.decryptFile.saveElse3List(self.decryptFile.else3List):
+            self.decryptFile.printError()
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+            return
+        mb.showinfo(title=textSetting.textList["success"], message=successMsg)
+
+
+class Else3ElementWidget(QDialog):
+    def __init__(self, parent, title, decryptFile, selectNum, item):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.decryptFile = decryptFile
+        self.selectNum = selectNum
+        self.else3ElementList = item[-1]
+        self.selectId = None
+        self.copyElse3ElementInfo = []
+        self.resultValueList = []
+        self.dirtyFlag = False
+
+        labelWidth = 66
+        labelHeight = 30
+        buttonWidth = 180
+        buttonHeight = 28
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        self.resize(720, 360)
+
+        mainLayout = QVBoxLayout(self)
+        # header
+        headerLayout = QHBoxLayout()
+        mainLayout.addLayout(headerLayout, 2)
+
+        # headerLeft
+        headerLeftLayout = QVBoxLayout()
+        headerLeftLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        headerLayout.addSpacing(15)
+        headerLayout.addLayout(headerLeftLayout)
+        # headerLeft - select
+        headerSelectLayout = QHBoxLayout()
+        headerLeftLayout.addLayout(headerSelectLayout)
+        # headerLeft - select - Label1
+        selectLabel = QLabel(textSetting.textList["railEditor"]["selectNum"], font=font2)
+        headerSelectLayout.addWidget(selectLabel)
+        # headerLeft - select - Label2
+        self.selectLineLabel = QLabel("", font=font2)
+        self.selectLineLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.selectLineLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.selectLineLabel.setFixedSize(labelWidth, labelHeight)
+        headerSelectLayout.addWidget(self.selectLineLabel)
+        headerSelectLayout.addStretch()
+
+        if self.decryptFile.game in ["BS", "CS", "RS"]:
+            self.title = textSetting.textList["railEditor"]["else3Label"]
+        else:
+            self.title = textSetting.textList["railEditor"]["camLabel"]
+
+        # space
+        headerLayout.addSpacing(15)
+        # stretch
+        headerLayout.addStretch(1)
+        # headerRight
+        headerRightLayout = QVBoxLayout()
+        headerLayout.addLayout(headerRightLayout)
+        # headerRight - buttonLayout1
+        headerRightButtonLayout1 = QHBoxLayout()
+        headerRightButtonLayout1.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        headerRightLayout.addLayout(headerRightButtonLayout1)
+        # headerRight - buttonLayout1 - editButton
+        self.editLineButton = QPushButton(textSetting.textList["railEditor"]["commonEditLineLabel"])
+        self.editLineButton.setFixedSize(buttonWidth, buttonHeight)
+        self.editLineButton.setEnabled(False)
+        self.editLineButton.clicked.connect(self.editLineFunc)
+        headerRightButtonLayout1.addWidget(self.editLineButton)
+        # space
+        headerRightButtonLayout1.addSpacing(10)
+        # headerRight - buttonLayout1 - insertButton
+        self.insertLineButton = QPushButton(textSetting.textList["railEditor"]["commonInsertLineLabel"])
+        self.insertLineButton.setFixedSize(buttonWidth, buttonHeight)
+        self.insertLineButton.setEnabled(False)
+        self.insertLineButton.clicked.connect(self.insertLineFunc)
+        headerRightButtonLayout1.addWidget(self.insertLineButton)
+        # space
+        headerRightButtonLayout1.addSpacing(10)
+        # headerRight - buttonLayout1 - deleteButton
+        self.deleteLineButton = QPushButton(textSetting.textList["railEditor"]["commonDeleteLineLabel"])
+        self.deleteLineButton.setFixedSize(buttonWidth, buttonHeight)
+        self.deleteLineButton.setEnabled(False)
+        self.deleteLineButton.clicked.connect(self.deleteLineFunc)
+        headerRightButtonLayout1.addWidget(self.deleteLineButton)
+        # space
+        headerRightLayout.addSpacing(15)
+        # headerRight - buttonLayout2
+        headerRightButtonLayout2 = QHBoxLayout()
+        headerRightButtonLayout2.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        headerRightLayout.addLayout(headerRightButtonLayout2)
+        # headerRight - buttonLayout2 - copyButton
+        self.copyLineButton = QPushButton(textSetting.textList["railEditor"]["commonCopyLineLabel"])
+        self.copyLineButton.setFixedSize(buttonWidth, buttonHeight)
+        self.copyLineButton.setEnabled(False)
+        self.copyLineButton.clicked.connect(self.copyLineFunc)
+        headerRightButtonLayout2.addWidget(self.copyLineButton)
+        # space
+        headerRightButtonLayout2.addSpacing(10)
+        # headerRight - buttonLayout2 - pasteButton
+        self.pasteLineButton = QPushButton(textSetting.textList["railEditor"]["commonPasteLineLabel"])
+        self.pasteLineButton.setFixedSize(buttonWidth, buttonHeight)
+        self.pasteLineButton.setEnabled(False)
+        self.pasteLineButton.clicked.connect(self.pasteLineFunc)
+        headerRightButtonLayout2.addWidget(self.pasteLineButton)
+        # space
+        headerLayout.addSpacing(15)
+
+        # space
+        mainLayout.addSpacing(10)
+        # contentLayout
+        contentLayout = QVBoxLayout()
+        mainLayout.addLayout(contentLayout)
+        self.contentTable = QTableWidget()
+        self.contentTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.contentTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.contentTable.setCornerButtonEnabled(False)
+        self.contentTable.itemSelectionChanged.connect(self.onSelectionChanged)
+        contentLayout.addWidget(self.contentTable)
+
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        mainLayout.addWidget(buttonBox)
+
+        self.createElse3ElementTable()
+
+    def createElse3ElementTable(self):
+        self.setElse3ElementTableHeader()
+        self.setElse3ElementTableData()
+        if len(self.else3ElementList) == 0:
+            self.insertLineButton.setEnabled(True)
+
+    def setElse3ElementTableHeader(self):
+        if self.decryptFile.game in ["BS", "CS", "RS"]:
+            headerLabelList = [
+                textSetting.textList["railEditor"]["editElse3ElementLabelList"][0],
+                textSetting.textList["railEditor"]["editElse3ElementLabelList"][1],
+                textSetting.textList["railEditor"]["editElse3ElementLabelList"][2],
+                textSetting.textList["railEditor"]["editElse3ElementLabelList"][3],
+                textSetting.textList["railEditor"]["editElse3ElementLabelList"][4]
+            ]
+        else:
+            headerLabelList = [
+                textSetting.textList["railEditor"]["editElse3LsElementLabelList"][0],
+                textSetting.textList["railEditor"]["editElse3LsElementLabelList"][1],
+                textSetting.textList["railEditor"]["editElse3LsElementLabelList"][2],
+                textSetting.textList["railEditor"]["editElse3LsElementLabelList"][3],
+                textSetting.textList["railEditor"]["editElse3LsElementLabelList"][4]
+            ]
+        self.contentTable.setColumnCount(len(headerLabelList))
+        self.contentTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.contentTable.setHorizontalHeaderLabels(headerLabelList)
+
+    def setElse3ElementTableData(self):
+        for else3ElementInfo in self.else3ElementList:
+            rowCount = self.contentTable.rowCount()
+            self.contentTable.insertRow(rowCount)
+            for j, else3ElementValue in enumerate(else3ElementInfo):
+                item = QTableWidgetItem(str(else3ElementValue))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.contentTable.setItem(rowCount, j, item)
+
+    def jumpToSelect(self, selectId):
+        if selectId is not None:
+            if selectId >= len(self.else3ElementList):
+                selectId = len(self.else3ElementList) - 1
+            self.contentTable.selectRow(selectId)
+
+    def onSelectionChanged(self):
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            self.selectLineLabel.setText("")
+            self.editLineButton.setEnabled(False)
+            self.insertLineButton.setEnabled(False)
+            self.deleteLineButton.setEnabled(False)
+            self.copyLineButton.setEnabled(False)
+            return
+
+        row = selectedItems[0].row()
+        self.selectLineLabel.setText(str(row + 1))
+        self.editLineButton.setEnabled(True)
+        self.insertLineButton.setEnabled(True)
+        self.deleteLineButton.setEnabled(True)
+        self.copyLineButton.setEnabled(True)
+
+    def clearTable(self):
+        self.contentTable.clearSelection()
+        self.contentTable.clear()
+        self.contentTable.setRowCount(0)
+        self.contentTable.setColumnCount(0)
+
+    def reloadFunc(self, selectId=None):
+        self.decryptFile = self.decryptFile.reload()
+        self.else3ElementList = self.decryptFile.else3List[self.selectNum][-1]
+        self.clearTable()
+        self.createElse3ElementTable()
+        self.jumpToSelect(selectId)
+
+    def editLineFunc(self):
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
+
+        headerNameList = [self.contentTable.horizontalHeaderItem(i).text() for i in range(self.contentTable.columnCount())]
+        num = selectedItems[0].row()
+        item = self.else3ElementList[num]
+        editElse3ElementWidget = EditElse3ElementWidget(self, textSetting.textList["railEditor"]["editElse3ElementModifyLabel"].format(self.title), self.decryptFile, "modify", headerNameList, item)
+        if editElse3ElementWidget.exec() == QDialog.Accepted:
+            else3List = self.decryptFile.else3List
+            else3List[self.selectNum][-1][num] = editElse3ElementWidget.resultValueList
+            if not self.decryptFile.saveElse3List(else3List):
+                self.decryptFile.printError()
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                return
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.title))
+            self.reloadFunc(num)
+            self.dirtyFlag = True
+
+    def insertLineFunc(self):
+        headerNameList = [self.contentTable.horizontalHeaderItem(i).text() for i in range(self.contentTable.columnCount())]
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            num = 0
+        else:
+            num = selectedItems[0].row() + 1
+
+        editElse3ElementWidget = EditElse3ElementWidget(self, textSetting.textList["railEditor"]["editElse3ElementInsertLabel"].format(self.title), self.decryptFile, "insert", headerNameList)
+        if editElse3ElementWidget.exec() == QDialog.Accepted:
+            else3List = self.decryptFile.else3List
+            else3List[self.selectNum][-1].insert(num + editElse3ElementWidget.insertPos, editElse3ElementWidget.resultValueList)
+            if not self.decryptFile.saveElse3List(else3List):
+                self.decryptFile.printError()
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                return
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.title))
+            self.reloadFunc(num)
+            self.dirtyFlag = True
+
+    def deleteLineFunc(self):
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
+
+        if self.decryptFile.game in ["BS", "CS", "RS"]:
+            if len(self.else3ElementList) == 1:
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E93"].format(1))
+                return
+
+        num = selectedItems[0].row()
+        result = mb.askokcancel(title=textSetting.textList["warning"], message=textSetting.textList["infoList"]["I9"], icon="warning")
+        if result == mb.OK:
+            else3List = self.decryptFile.else3List
+            else3List[self.selectNum][-1].pop(num)
+            if not self.decryptFile.saveElse3List(else3List):
+                self.decryptFile.printError()
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                return
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.title))
+            self.reloadFunc()
+            self.dirtyFlag = True
+
+    def copyLineFunc(self):
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
+
+        num = selectedItems[0].row()
+        self.copyElse3ElementInfo = copy.deepcopy(self.decryptFile.else3List[self.selectNum][-1][num])
+        mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I12"])
+        self.pasteLineButton.setEnabled(True)
+
+    def pasteLineFunc(self):
+        selectedItems = self.contentTable.selectedItems()
+        if not selectedItems:
+            return
+
+        num = selectedItems[0].row()
+        pasteElse3ElementDialog = PasteElse3ElementDialog(self, textSetting.textList["railEditor"]["pasteElse3InfoLabel"].format(self.title), self.decryptFile, self.selectNum, num, self.copyElse3ElementInfo)
+        if pasteElse3ElementDialog.exec() == QDialog.Accepted:
+            self.reloadFunc(num)
+            self.dirtyFlag = True
+
+
+class EditElse3ElementWidget(QDialog):
+    def __init__(self, parent, title, decryptFile, mode, headerNameList, item=None):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.decryptFile = decryptFile
+        self.mode = mode
+        self.headerNameList = headerNameList
+        self.else3Element = item
+        self.insertPos = None
+        self.resultValueList = []
+        numberValidator = QRegularExpressionValidator(QRegularExpression(r"^-?\d+(\.\d+)?$"), self)
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^-?\d+$"), self)
+
+        self.font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=self.font2)
+        layout.addWidget(label)
+        # layout - QGridLayout
+        self.else3ElementGridLayout = QGridLayout()
+        layout.addLayout(self.else3ElementGridLayout)
+        self.lineEditList = []
+
+        for i, else3ElementInfoLabel in enumerate(self.headerNameList):
+            # layout - QGridLayout - label
+            else3ElementNameLabel = QLabel(else3ElementInfoLabel, font=self.font2)
+            self.else3ElementGridLayout.addWidget(else3ElementNameLabel, i, 0)
+            # layout - QGridLayout - lineEdit
+            else3ElementInfoLineEdit = QLineEdit(font=self.font2)
+            self.lineEditList.append(else3ElementInfoLineEdit)
+            self.else3ElementGridLayout.addWidget(else3ElementInfoLineEdit, i, 1)
+
+            if self.decryptFile.game in ["BS", "CS", "RS"]:
+                else3ElementInfoLineEdit.setValidator(integerValidator)
+                if self.mode == "insert":
+                    else3ElementInfoLineEdit.setText("{0}".format(0))
+
+                if self.mode == "modify":
+                    else3ElementInfoLineEdit.setText("{0}".format(self.else3Element[i]))
+            else:
+                if i == 4:
+                    else3ElementInfoLineEdit.setValidator(integerValidator)
+                    if self.mode == "insert":
+                        else3ElementInfoLineEdit.setText("{0}".format(0))
+                else:
+                    else3ElementInfoLineEdit.setValidator(numberValidator)
+                    if self.mode == "insert":
+                        else3ElementInfoLineEdit.setText("{0}".format(float(0)))
+
+                if self.mode == "modify":
+                    else3ElementInfoLineEdit.setText("{0}".format(self.else3Element[i]))
+
+        if self.mode == "insert":
+            self.setInsertWidget(len(self.headerNameList))
+
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
+
+    def setInsertWidget(self, insertRow):
+        # layout - QGridLayout - QFrame (colspan=2)
+        horizentalLine = QFrame()
+        horizentalLine.setFrameShape(QFrame.Shape.HLine)
+        horizentalLine.setFrameShadow(QFrame.Shadow.Sunken)
+        self.else3ElementGridLayout.addWidget(horizentalLine, insertRow, 0, 1, 2)
+        # layout - QGridLayout - insertLabel
+        insertLabel = QLabel(textSetting.textList["railEditor"]["posLabel"], font=self.font2)
+        self.else3ElementGridLayout.addWidget(insertLabel, insertRow + 1, 0)
+        # layout - QGridLayout - insertCombo
+        self.insertCombo = QComboBox(font=self.font2)
+        self.insertCombo.addItems(textSetting.textList["railEditor"]["posValue"])
+        self.else3ElementGridLayout.addWidget(self.insertCombo, insertRow + 1, 1)
+
+    def validate(self):
+        self.resultValueList = []
+        for i, lineEdit in enumerate(self.lineEditList):
+            if not lineEdit.hasAcceptableInput():
+                mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+                return
+
+            if self.decryptFile.game in ["BS", "CS", "RS"]:
+                self.resultValueList.append(int(lineEdit.text()))
+            else:
+                if i == 4:
+                    self.resultValueList.append(int(lineEdit.text()))
+                else:
+                    self.resultValueList.append(float(lineEdit.text()))
+
+        if self.mode == "insert":
+            self.insertPos = 0
+            if self.insertCombo.currentIndex() == 1:
+                self.insertPos = -1
+        return True
+
+    def accept(self):
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
+
+        if not self.validate():
+            return
+        super().accept()
+
+
+class PasteElse3ElementDialog(QDialog):
+    def __init__(self, parent, title, decryptFile, selectNum, num, copyElse3ElementInfo):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.decryptFile = decryptFile
+        self.selectNum = selectNum
+        self.num = num
+        self.copyElse3ElementInfo = copyElse3ElementInfo
+
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        pastePosLabel = QLabel(textSetting.textList["infoList"]["I4"], font=font2)
+        layout.addWidget(pastePosLabel)
+        # layout - buttonLayout
+        buttonLayout = QHBoxLayout()
+        layout.addLayout(buttonLayout)
+        # layout - buttonLayout - frontButton
+        frontButton = QPushButton(textSetting.textList["railEditor"]["pasteFront"], font=font2)
+        frontButton.clicked.connect(self.frontInsert)
+        buttonLayout.addWidget(frontButton)
+        # layout - buttonLayout - backButton
+        backButton = QPushButton(textSetting.textList["railEditor"]["pasteBack"], font=font2)
+        backButton.clicked.connect(self.backInsert)
+        buttonLayout.addWidget(backButton)
+        # layout - buttonLayout - cancelButton
+        cancelButton = QPushButton(textSetting.textList["railEditor"]["pasteCancel"], font=font2)
+        cancelButton.clicked.connect(self.reject)
+        buttonLayout.addWidget(cancelButton)
+
+    def frontInsert(self):
+        super().accept()
+        else3List = self.decryptFile.else3List
+        else3List[self.selectNum][-1].insert(self.num, self.copyElse3ElementInfo)
+        if not self.decryptFile.saveElse3List(else3List):
+            self.decryptFile.printError()
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+            return
+        mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I79"])
+
+    def backInsert(self):
+        super().accept()
+        else3List = self.decryptFile.else3List
+        else3List[self.selectNum][-1].insert(self.num + 1, self.copyElse3ElementInfo)
+        if not self.decryptFile.saveElse3List(else3List):
+            self.decryptFile.printError()
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+            return
+        mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I79"])
