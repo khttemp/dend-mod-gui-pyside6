@@ -14,7 +14,6 @@ from PySide6.QtGui import QFont, QRegularExpressionValidator
 from PySide6.QtCore import Qt, QRegularExpression
 
 
-
 mb = customMessageBoxWidget.CustomMessageBox()
 
 
