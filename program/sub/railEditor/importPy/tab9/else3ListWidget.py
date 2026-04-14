@@ -562,7 +562,6 @@ class Else3ElementWidget(QDialog):
         self.decryptFile = decryptFile
         self.selectNum = selectNum
         self.else3ElementList = item[-1]
-        self.selectId = None
         self.copyElse3ElementInfo = []
         self.resultValueList = []
         self.dirtyFlag = False
