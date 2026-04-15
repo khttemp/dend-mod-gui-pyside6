@@ -21,8 +21,6 @@ class RailListWidget(QWidget):
         self.decryptFile = decryptFile
         self.smfList = [smfInfo[0] for smfInfo in decryptFile.smfList]
         self.railList = decryptFile.railList
-        self.varRailList = []
-        self.varRevRailList = []
         self.reloadFunc = reloadFunc
         self.font2 = QFont(textSetting.textList["font6"][0], textSetting.textList["font2"][1])
 
