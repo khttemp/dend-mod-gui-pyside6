@@ -374,10 +374,10 @@ class RailListWidget(QWidget):
         self.modelNameCombo.addItem("")
         self.modelNameCombo.addItems(self.smfList)
         modelKasenGridLayout.addWidget(self.modelNameCombo, 0, 1)
-        # QGroupBox - QGridLayout - prevRail2NameLabel
+        # QGroupBox - QGridLayout - prevRailNameLabel
         prevRailNameLabel = QLabel(textSetting.textList["railEditor"]["railPrevRailNo"], font=self.font2)
         modelKasenGridLayout.addWidget(prevRailNameLabel, 0, 2)
-        # QGroupBox - QGridLayout - prevRail2Label
+        # QGroupBox - QGridLayout - prevRailLabel
         self.prevRailLabel = QLabel("", font=self.font2)
         self.prevRailLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
         self.prevRailLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -557,16 +557,16 @@ class RailListWidget(QWidget):
     def setLsTrialModelInfoHorizontalLayout(self):
         # horizontalLayout
         horizontalLayout = QHBoxLayout()
+        # QGroupBox
+        modelKasenGroupBox = QGroupBox(textSetting.textList["railEditor"]["railModelKasenInfo"])
+        horizontalLayout.addWidget(modelKasenGroupBox)
+        # QGroupBox - QGridLayout
+        modelKasenGridLayout = QGridLayout()
+        modelKasenGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        modelKasenGridLayout.setVerticalSpacing(20)
+        modelKasenGroupBox.setLayout(modelKasenGridLayout)
 
         if self.decryptFile.oldFlag:
-            # QGroupBox
-            modelKasenGroupBox = QGroupBox(textSetting.textList["railEditor"]["railModelKasenInfo"])
-            horizontalLayout.addWidget(modelKasenGroupBox)
-            # QGroupBox - QGridLayout
-            modelKasenGridLayout = QGridLayout()
-            modelKasenGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
-            modelKasenGridLayout.setVerticalSpacing(20)
-            modelKasenGroupBox.setLayout(modelKasenGridLayout)
             # QGroupBox - QGridLayout - modelNameLabel
             modelNameLabel = QLabel(textSetting.textList["railEditor"]["railModelLabel"], font=self.font2)
             modelKasenGridLayout.addWidget(modelNameLabel, 0, 0)
@@ -584,14 +584,6 @@ class RailListWidget(QWidget):
             self.kasenNameCombo.addItems(self.smfList)
             modelKasenGridLayout.addWidget(self.kasenNameCombo, 0, 3)
         else:
-            # QGroupBox
-            modelKasenGroupBox = QGroupBox(textSetting.textList["railEditor"]["railModelKasenInfo"])
-            horizontalLayout.addWidget(modelKasenGroupBox)
-            # QGroupBox - QGridLayout
-            modelKasenGridLayout = QGridLayout()
-            modelKasenGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
-            modelKasenGridLayout.setVerticalSpacing(20)
-            modelKasenGroupBox.setLayout(modelKasenGridLayout)
             # QGroupBox - QGridLayout - modelNameLabel
             modelNameLabel = QLabel(textSetting.textList["railEditor"]["railModelLabel"], font=self.font2)
             modelKasenGridLayout.addWidget(modelNameLabel, 0, 0)
@@ -600,10 +592,10 @@ class RailListWidget(QWidget):
             self.modelNameCombo.addItem("")
             self.modelNameCombo.addItems(self.smfList)
             modelKasenGridLayout.addWidget(self.modelNameCombo, 0, 1)
-            # QGroupBox - QGridLayout - prevRail2NameLabel
+            # QGroupBox - QGridLayout - prevRailNameLabel
             prevRailNameLabel = QLabel(textSetting.textList["railEditor"]["railPrevRailNo"], font=self.font2)
             modelKasenGridLayout.addWidget(prevRailNameLabel, 0, 2)
-            # QGroupBox - QGridLayout - prevRail2Label
+            # QGroupBox - QGridLayout - prevRailLabel
             self.prevRailLabel = QLabel("", font=self.font2)
             self.prevRailLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
             self.prevRailLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
