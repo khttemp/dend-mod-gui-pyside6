@@ -5,10 +5,9 @@ import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from program.sub.railEditor.importPy.tkinterTab import (
     tab1AllWidget, tab2AllWidget, tab3AllWidget, tab4AllWidget,
-    tab5AllWidget, tab6AllWidget, tab7AllWidget,
+    tab5AllWidget, tab6AllWidget, tab7AllWidget, tab8AllWidget,
     tab9AllWidget, tab10AllWidget
 )
-#     tab8AllWidget,
 #     tab11AllWidget
 # )
 
@@ -195,8 +194,8 @@ class RailEditorWindow(QWidget):
             tab6AllWidget(contentFrame, self.decryptFile, self.reloadWidget, selectId)
         elif index == 6:
             tab7AllWidget(contentFrame, self.decryptFile, self.reloadWidget)
-        # elif index == 7:
-        #     tab8AllWidget(self.tabFrame, self.decryptFile, self.rootFrameAppearance, self.reloadWidget)
+        elif index == 7:
+            tab8AllWidget(contentFrame, self.decryptFile, self.reloadWidget)
         elif index == 8:
             tab9AllWidget(contentFrame, self.decryptFile, self.reloadWidget, selectId)
         elif index == 9:

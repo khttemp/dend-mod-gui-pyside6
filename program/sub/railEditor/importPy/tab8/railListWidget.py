@@ -1,1179 +1,1130 @@
-import os
 import copy
+from functools import partial
 
-import tkinter
-import traceback
-from tkinter import messagebox as mb
-from tkinter import filedialog as fd
-import program.textSetting as textSetting
-import program.appearance.ttkCustomWidget as ttkCustomWidget
-from program.errorLogClass import ErrorLogObj
+import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
+
+from PySide6.QtWidgets import (
+    QWidget, QFrame, QVBoxLayout, QHBoxLayout, QGridLayout,
+    QLabel, QLineEdit, QPushButton, QGroupBox, QButtonGroup,
+    QComboBox, QCheckBox, QSizePolicy, QFileDialog
+)
+from PySide6.QtGui import QFont, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QRegularExpression
+
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
-class RailListWidget:
-    def __init__(self, frame, decryptFile, railList, rootFrameAppearance, reloadFunc):
-        self.frame = frame
+class RailListWidget(QWidget):
+    def __init__(self, decryptFile, reloadFunc):
+        super().__init__()
         self.decryptFile = decryptFile
         self.smfList = [smfInfo[0] for smfInfo in decryptFile.smfList]
-        self.railList = railList
+        self.railList = decryptFile.railList
         self.varRailList = []
         self.varRevRailList = []
-        self.errObj = ErrorLogObj()
         self.reloadFunc = reloadFunc
+        self.font2 = QFont(textSetting.textList["font6"][0], textSetting.textList["font2"][1])
 
         if self.decryptFile.game in ["CS", "RS"]:
             self.smfList.extend(textSetting.textList["railEditor"]["smfListAddList1"])
-        elif self.decryptFile.game in ["LSTrial", "LS", "BS"]:
+        else:
             self.smfList.extend(textSetting.textList["railEditor"]["smfListAddList2"])
 
-        railNoFrame = ttkCustomWidget.CustomTtkFrame(self.frame)
-        railNoFrame.pack(anchor=tkinter.NW, padx=30, pady=30, fill=tkinter.X)
-        railNoLb = ttkCustomWidget.CustomTtkLabel(railNoFrame, text=textSetting.textList["railEditor"]["railRailNo"], font=textSetting.textList["font2"])
-        railNoLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
-        self.v_railNo = tkinter.IntVar()
-        railNoEt = ttkCustomWidget.CustomTtkEntry(railNoFrame, textvariable=self.v_railNo, font=textSetting.textList["font2"], width=7, justify="center")
-        railNoEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10)
-        searchBtn = ttkCustomWidget.CustomTtkButton(railNoFrame, text=textSetting.textList["railEditor"]["railSearchBtnLabel"], command=lambda: self.searchRail(self.v_railNo.get()))
-        searchBtn.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=30)
-
-        csvExtractBtn = ttkCustomWidget.CustomTtkButton(railNoFrame, width=25, text=textSetting.textList["railEditor"]["railCsvExtractLabel"], command=self.extractCsv)
-        csvExtractBtn.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=5)
-        csvSaveBtn = ttkCustomWidget.CustomTtkButton(railNoFrame, width=25, text=textSetting.textList["railEditor"]["railCsvSaveLabel"], command=self.saveCsv)
-        csvSaveBtn.grid(row=0, column=4, sticky=tkinter.W + tkinter.E, padx=5)
-
-        if self.decryptFile.game == "CS":
-            csToRsBtn = ttkCustomWidget.CustomTtkButton(railNoFrame, text=textSetting.textList["railEditor"]["railCsToRs"], command=self.csToRs)
-            csToRsBtn.grid(row=0, column=5, sticky=tkinter.W + tkinter.E, padx=10)
-
-        ###
-        sidePackFrame = ttkCustomWidget.CustomTtkFrame(self.frame)
-        sidePackFrame.pack(anchor=tkinter.NW, padx=20)
+        # mainLayout
+        mainLayout = QVBoxLayout(self)
+        mainLayout.addLayout(self.setFirstHorizontalLayout())
 
         if self.decryptFile.game in ["BS", "CS", "RS"]:
-            #
-            blockFrameLf = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["railBlockInfo"])
-            blockFrameLf.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-            prevRailLb = ttkCustomWidget.CustomTtkLabel(blockFrameLf, text=textSetting.textList["railEditor"]["railPrevRailNo"], font=textSetting.textList["font2"])
-            prevRailLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_prevRail = tkinter.IntVar()
-            prevRailEt = ttkCustomWidget.CustomTtkEntry(blockFrameLf, textvariable=self.v_prevRail, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            prevRailEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            blockLb = ttkCustomWidget.CustomTtkLabel(blockFrameLf, text=textSetting.textList["railEditor"]["railBlockNo"], font=textSetting.textList["font2"])
-            blockLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_block = tkinter.IntVar()
-            blockEt = ttkCustomWidget.CustomTtkEntry(blockFrameLf, textvariable=self.v_block, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            blockEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            #
-            xyzFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["railXyzInfo"])
-            xyzFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-            xLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirX"], font=textSetting.textList["font2"])
-            xLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_x = tkinter.DoubleVar()
-            xEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_x, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            xEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            yLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirY"], font=textSetting.textList["font2"])
-            yLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_y = tkinter.DoubleVar()
-            yEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_y, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            yEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            zLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirZ"], font=textSetting.textList["font2"])
-            zLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_z = tkinter.DoubleVar()
-            zEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_z, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            zEt.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            kasenFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["railModelKasenInfo"])
-            kasenFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-            mdlNoLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railModelLabel"], font=textSetting.textList["font2"])
-            mdlNoLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.mdlNoCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-            self.mdlNoCb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            mdlKasenLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railKasenLabel"], font=textSetting.textList["font2"])
-            mdlKasenLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.mdlKasenCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-            self.mdlKasenCb.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            mdlKasenchuLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railKasenchuLabel"], font=textSetting.textList["font2"])
-            mdlKasenchuLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.mdlKasenchuCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-            self.mdlKasenchuCb.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            perLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railPer"], font=textSetting.textList["font2"])
-            perLb.grid(row=3, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_per = tkinter.DoubleVar()
-            perEt = ttkCustomWidget.CustomTtkEntry(kasenFrame, textvariable=self.v_per, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            perEt.grid(row=3, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+            mainLayout.addLayout(self.setDefaultSecondHorizontalLayout())
         elif self.decryptFile.game == "LS":
-            if self.decryptFile.ver == "DEND_MAP_VER0101":
-                verLf = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["railLsVer0101"])
-                verLf.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-                prevRailLb = ttkCustomWidget.CustomTtkLabel(verLf, text=textSetting.textList["railEditor"]["railPrevRail2No"], font=textSetting.textList["font2"])
-                prevRailLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_prevRail2 = tkinter.IntVar()
-                prevRailEt = ttkCustomWidget.CustomTtkEntry(verLf, textvariable=self.v_prevRail2, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                prevRailEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            #
-            xyzFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["railPosXyzInfo"])
-            xyzFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-            xLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railPosX"], font=textSetting.textList["font2"])
-            xLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_x_pos = tkinter.DoubleVar()
-            x_posEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_x_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            x_posEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            yLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railPosY"], font=textSetting.textList["font2"])
-            yLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_y_pos = tkinter.DoubleVar()
-            y_posEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_y_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            y_posEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            zLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railPosZ"], font=textSetting.textList["font2"])
-            zLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_z_pos = tkinter.DoubleVar()
-            z_posEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_z_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            z_posEt.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            #
-            xLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirX"], font=textSetting.textList["font2"])
-            xLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_x_dir = tkinter.DoubleVar()
-            x_dirEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_x_dir, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            x_dirEt.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            yLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirY"], font=textSetting.textList["font2"])
-            yLb.grid(row=1, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_y_dir = tkinter.DoubleVar()
-            y_dirEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_y_dir, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            y_dirEt.grid(row=1, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            zLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirZ"], font=textSetting.textList["font2"])
-            zLb.grid(row=2, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_z_dir = tkinter.DoubleVar()
-            z_dirEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_z_dir, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            z_dirEt.grid(row=2, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            #
-            self.xyzRotFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["railRotXyzInfo"])
-            self.xyzRotFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-            xLb = ttkCustomWidget.CustomTtkLabel(self.xyzRotFrame, text=textSetting.textList["railEditor"]["railRotX"], font=textSetting.textList["font2"])
-            xLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_x_rot = tkinter.StringVar()
-            x_dirEt = ttkCustomWidget.CustomTtkEntry(self.xyzRotFrame, textvariable=self.v_x_rot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            x_dirEt.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            yLb = ttkCustomWidget.CustomTtkLabel(self.xyzRotFrame, text=textSetting.textList["railEditor"]["railRotY"], font=textSetting.textList["font2"])
-            yLb.grid(row=1, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_y_rot = tkinter.StringVar()
-            y_dirEt = ttkCustomWidget.CustomTtkEntry(self.xyzRotFrame, textvariable=self.v_y_rot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            y_dirEt.grid(row=1, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            zLb = ttkCustomWidget.CustomTtkLabel(self.xyzRotFrame, text=textSetting.textList["railEditor"]["railRotZ"], font=textSetting.textList["font2"])
-            zLb.grid(row=2, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_z_rot = tkinter.StringVar()
-            z_dirEt = ttkCustomWidget.CustomTtkEntry(self.xyzRotFrame, textvariable=self.v_z_rot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            z_dirEt.grid(row=2, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            ###
-            sidePackFrame2 = ttkCustomWidget.CustomTtkFrame(self.frame)
-            sidePackFrame2.pack(anchor=tkinter.NW, padx=20)
-
-            kasenFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame2, text=textSetting.textList["railEditor"]["railModelKasenInfo"])
-            kasenFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-            mdlNoLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railModelLabel"], font=textSetting.textList["font2"])
-            mdlNoLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.mdlNoCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-            self.mdlNoCb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            prevRailLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railPrevRailNo"], font=textSetting.textList["font2"])
-            prevRailLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_prevRail = tkinter.IntVar()
-            prevRailEt = ttkCustomWidget.CustomTtkEntry(kasenFrame, textvariable=self.v_prevRail, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            prevRailEt.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            mdlKasenchuLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railKasenchuLabel"], font=textSetting.textList["font2"])
-            mdlKasenchuLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.mdlKasenchuCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-            self.mdlKasenchuCb.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            mdlKasenLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railKasenLabel"], font=textSetting.textList["font2"])
-            mdlKasenLb.grid(row=1, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.mdlKasenCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-            self.mdlKasenCb.grid(row=1, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            fixAmbLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railFixAmbLabel"], font=textSetting.textList["font2"])
-            fixAmbLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.fixAmbCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-            self.fixAmbCb.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            perLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railPer"], font=textSetting.textList["font2"])
-            perLb.grid(row=2, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_per = tkinter.DoubleVar()
-            perEt = ttkCustomWidget.CustomTtkEntry(kasenFrame, textvariable=self.v_per, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            perEt.grid(row=2, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+            mainLayout.addLayout(self.setLsSecondHorizontalLayout())
+            mainLayout.addLayout(self.setLsModelInfoHorizontalLayout())
         elif self.decryptFile.game == "LSTrial":
-            if self.decryptFile.oldFlag:
-                #
-                xyzFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["railPosXyzInfo"])
-                xyzFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-                xLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railPosX"], font=textSetting.textList["font2"])
-                xLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_x_pos = tkinter.DoubleVar()
-                x_posEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_x_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                x_posEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+            mainLayout.addLayout(self.setLsTrialSecondHorizontalLayout())
+            mainLayout.addLayout(self.setLsTrialModelInfoHorizontalLayout())
 
-                yLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railPosY"], font=textSetting.textList["font2"])
-                yLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_y_pos = tkinter.DoubleVar()
-                y_posEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_y_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                y_posEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        flagInfoLayout = self.setFlagInfoLayout()
+        if flagInfoLayout is not None:
+            mainLayout.addLayout(flagInfoLayout)
+        railDataInfoLayout = self.setRailDataInfoLayout()
+        if railDataInfoLayout is not None:
+            mainLayout.addLayout(railDataInfoLayout)
+        mainLayout.addStretch(1)
 
-                zLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railPosZ"], font=textSetting.textList["font2"])
-                zLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_z_pos = tkinter.DoubleVar()
-                z_posEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_z_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                z_posEt.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+    def setFirstHorizontalLayout(self):
+        buttonWidth = 180
+        buttonHeight = 28
+        lineEditWidth = 86
+        lineEditHeight = 40
 
-                #
-                xLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirX"], font=textSetting.textList["font2"])
-                xLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_x_dir = tkinter.DoubleVar()
-                x_dirEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_x_dir, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                x_dirEt.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
+        # space
+        horizontalLayout.addSpacing(20)
+        # horizontalLayout - railNoLayout
+        railNoLayout = QHBoxLayout()
+        railNoLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        horizontalLayout.addLayout(railNoLayout)
+        # horizontalLayout - railNoLayout - railNoNameLabel
+        railNoNameLabel = QLabel(textSetting.textList["railEditor"]["railRailNo"], font=self.font2)
+        railNoLayout.addWidget(railNoNameLabel)
+        # space
+        railNoLayout.addSpacing(15)
+        # horizontalLayout - railNoLayout - railNoLabel
+        self.railNoLineEdit = QLineEdit("0", font=self.font2)
+        self.railNoLineEdit.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        self.railNoLineEdit.setFixedSize(lineEditWidth, lineEditHeight)
+        self.railNoLineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
+        self.railNoLineEdit.setValidator(integerValidator)
+        railNoLayout.addWidget(self.railNoLineEdit)
 
-                yLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirY"], font=textSetting.textList["font2"])
-                yLb.grid(row=1, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_y_dir = tkinter.DoubleVar()
-                y_dirEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_y_dir, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                y_dirEt.grid(row=1, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # space
+        railNoLayout.addSpacing(30)
+        # horizontalLayout - railNoLayout - searchRailButton
+        searchRailButton = QPushButton(textSetting.textList["railEditor"]["railSearchBtnLabel"])
+        searchRailButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        searchRailButton.clicked.connect(self.searchRail)
+        railNoLayout.addWidget(searchRailButton)
+        # space
+        horizontalLayout.addSpacing(60)
+        # horizontalLayout - csvButtonLayout
+        csvButtonLayout = QHBoxLayout()
+        horizontalLayout.addLayout(csvButtonLayout)
+        # horizontalLayout - csvButtonLayout - csvExtractButton
+        csvExtractButton = QPushButton(textSetting.textList["railEditor"]["railCsvExtractLabel"])
+        csvExtractButton.setFixedSize(buttonWidth, buttonHeight)
+        csvExtractButton.clicked.connect(self.extractCsv)
+        csvButtonLayout.addWidget(csvExtractButton)
+        # space
+        csvButtonLayout.addSpacing(20)
+        # horizontalLayout - csvButtonLayout - csvSaveButton
+        csvSaveButton = QPushButton(textSetting.textList["railEditor"]["railCsvSaveLabel"])
+        csvSaveButton.setFixedSize(buttonWidth, buttonHeight)
+        csvSaveButton.clicked.connect(self.saveCsv)
+        csvButtonLayout.addWidget(csvSaveButton)
+        if self.decryptFile.game == "CS":
+            # space
+            csvButtonLayout.addSpacing(20)
+            csToRsButton = QPushButton(textSetting.textList["railEditor"]["railCsToRs"])
+            csToRsButton.setFixedSize(buttonWidth - 50, buttonHeight)
+            csToRsButton.clicked.connect(self.csToRs)
+            csvButtonLayout.addWidget(csToRsButton)
+        # horizontalLayout - stretch
+        horizontalLayout.addStretch(1)
+        return horizontalLayout
 
-                zLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirZ"], font=textSetting.textList["font2"])
-                zLb.grid(row=2, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_z_dir = tkinter.DoubleVar()
-                z_dirEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_z_dir, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                z_dirEt.grid(row=2, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+    def setDefaultSecondHorizontalLayout(self):
+        labelWidth = 66
+        labelHeight = 30
 
-                ###
-                railFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["railRailInfo"])
-                railFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-                nextLb = ttkCustomWidget.CustomTtkLabel(railFrame, text=textSetting.textList["railEditor"]["railNextRail"], font=textSetting.textList["font2"])
-                nextLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_next = tkinter.StringVar()
-                nextEt = ttkCustomWidget.CustomTtkEntry(railFrame, textvariable=self.v_next, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                nextEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
+        # QGroupBox
+        blockGroupBox = QGroupBox(textSetting.textList["railEditor"]["railBlockInfo"])
+        horizontalLayout.addWidget(blockGroupBox)
+        # QGroupBox - QGridLayout
+        blockGridLayout = QGridLayout()
+        blockGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        blockGridLayout.setVerticalSpacing(20)
+        blockGroupBox.setLayout(blockGridLayout)
+        # QGroupBox - QGridLayout - prevRailNameLabel
+        prevRailNameLabel = QLabel(textSetting.textList["railEditor"]["railPrevRailNo"], font=self.font2)
+        blockGridLayout.addWidget(prevRailNameLabel, 0, 0)
+        # QGroupBox - QGridLayout - prevRailLabel
+        self.prevRailLabel = QLabel("", font=self.font2)
+        self.prevRailLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.prevRailLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.prevRailLabel.setFixedSize(labelWidth, labelHeight)
+        blockGridLayout.addWidget(self.prevRailLabel, 0, 1)
+        # QGroupBox - QGridLayout - blockNameLabel
+        blockNameLabel = QLabel(textSetting.textList["railEditor"]["railBlockNo"], font=self.font2)
+        blockGridLayout.addWidget(blockNameLabel, 1, 0)
+        # QGroupBox - QGridLayout - blockLabel
+        self.blockLabel = QLabel("", font=self.font2)
+        self.blockLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.blockLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.blockLabel.setFixedSize(labelWidth, labelHeight)
+        blockGridLayout.addWidget(self.blockLabel, 1, 1)
 
-                prevLb = ttkCustomWidget.CustomTtkLabel(railFrame, text=textSetting.textList["railEditor"]["railPrevRail"], font=textSetting.textList["font2"])
-                prevLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_prev = tkinter.StringVar()
-                prevEt = ttkCustomWidget.CustomTtkEntry(railFrame, textvariable=self.v_prev, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                prevEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # QGroupBox
+        railXyzGroupBox = QGroupBox(textSetting.textList["railEditor"]["railXyzInfo"])
+        horizontalLayout.addWidget(railXyzGroupBox)
+        # QGroupBox - QGridLayout
+        xyzGridLayout = QGridLayout()
+        xyzGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        xyzGridLayout.setVerticalSpacing(20)
+        railXyzGroupBox.setLayout(xyzGridLayout)
+        # QGroupBox - QGridLayout - railDirXNameLabel
+        railDirXNameLabel = QLabel(textSetting.textList["railEditor"]["railDirX"], font=self.font2)
+        xyzGridLayout.addWidget(railDirXNameLabel, 0, 0)
+        # QGroupBox - QGridLayout - railDirXLabel
+        self.railDirXLabel = QLabel("", font=self.font2)
+        self.railDirXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railDirXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railDirXLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railDirXLabel, 0, 1)
+        # QGroupBox - QGridLayout - railDirYNameLabel
+        railDirYNameLabel = QLabel(textSetting.textList["railEditor"]["railDirY"], font=self.font2)
+        xyzGridLayout.addWidget(railDirYNameLabel, 1, 0)
+        # QGroupBox - QGridLayout - railDirYLabel
+        self.railDirYLabel = QLabel("", font=self.font2)
+        self.railDirYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railDirYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railDirYLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railDirYLabel, 1, 1)
+        # QGroupBox - QGridLayout - railDirZNameLabel
+        railDirZNameLabel = QLabel(textSetting.textList["railEditor"]["railDirZ"], font=self.font2)
+        xyzGridLayout.addWidget(railDirZNameLabel, 2, 0)
+        # QGroupBox - QGridLayout - railDirZLabel
+        self.railDirZLabel = QLabel("", font=self.font2)
+        self.railDirZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railDirZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railDirZLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railDirZLabel, 2, 1)
 
-                ###
-                sidePackFrame2 = ttkCustomWidget.CustomTtkFrame(self.frame)
-                sidePackFrame2.pack(anchor=tkinter.NW, padx=20)
+        # QGroupBox
+        modelKasenGroupBox = QGroupBox(textSetting.textList["railEditor"]["railModelKasenInfo"])
+        horizontalLayout.addWidget(modelKasenGroupBox)
+        # QGroupBox - QGridLayout
+        modelKasenGridLayout = QGridLayout()
+        modelKasenGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        modelKasenGridLayout.setVerticalSpacing(20)
+        modelKasenGroupBox.setLayout(modelKasenGridLayout)
+        # QGroupBox - QGridLayout - modelNameLabel
+        modelNameLabel = QLabel(textSetting.textList["railEditor"]["railModelLabel"], font=self.font2)
+        modelKasenGridLayout.addWidget(modelNameLabel, 0, 0)
+        # QGroupBox - QGridLayout - modelNameCombo
+        self.modelNameCombo = QComboBox(font=self.font2)
+        self.modelNameCombo.addItem("")
+        self.modelNameCombo.addItems(self.smfList)
+        modelKasenGridLayout.addWidget(self.modelNameCombo, 0, 1)
+        # QGroupBox - QGridLayout - kasenNameLabel
+        kasenNameLabel = QLabel(textSetting.textList["railEditor"]["railKasenLabel"], font=self.font2)
+        modelKasenGridLayout.addWidget(kasenNameLabel, 1, 0)
+        # QGroupBox - QGridLayout - kasenNameCombo
+        self.kasenNameCombo = QComboBox(font=self.font2)
+        self.kasenNameCombo.addItem("")
+        self.kasenNameCombo.addItems(self.smfList)
+        modelKasenGridLayout.addWidget(self.kasenNameCombo, 1, 1)
+        # QGroupBox - QGridLayout - kasenchuNameLabel
+        kasenchuNameLabel = QLabel(textSetting.textList["railEditor"]["railKasenchuLabel"], font=self.font2)
+        modelKasenGridLayout.addWidget(kasenchuNameLabel, 2, 0)
+        # QGroupBox - QGridLayout - kasenchuNameCombo
+        self.kasenchuNameCombo = QComboBox(font=self.font2)
+        self.kasenchuNameCombo.addItem("")
+        self.kasenchuNameCombo.addItems(self.smfList)
+        modelKasenGridLayout.addWidget(self.kasenchuNameCombo, 2, 1)
+        # QGroupBox - QGridLayout - perNameLabel
+        perNameLabel = QLabel(textSetting.textList["railEditor"]["railPer"], font=self.font2)
+        modelKasenGridLayout.addWidget(perNameLabel, 3, 0)
+        # QGroupBox - QGridLayout - perLabel
+        self.perLabel = QLabel("", font=self.font2)
+        self.perLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.perLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        modelKasenGridLayout.addWidget(self.perLabel, 3, 1)
+        # horizontalLayout - stretch
+        horizontalLayout.addStretch(1)
+        return horizontalLayout
 
-                kasenFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame2, text=textSetting.textList["railEditor"]["railModelKasenInfo"])
-                kasenFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-                mdlNoLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railModelLabel"], font=textSetting.textList["font2"])
-                mdlNoLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.mdlNoCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-                self.mdlNoCb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+    def setLsSecondHorizontalLayout(self):
+        labelWidth = 66
+        labelHeight = 30
 
-                mdlKasenLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railKasenLabel"], font=textSetting.textList["font2"])
-                mdlKasenLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.mdlKasenCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-                self.mdlKasenCb.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            else:
-                #
-                xyzFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["railPosXyzInfo"])
-                xyzFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-                xLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railPosX"], font=textSetting.textList["font2"])
-                xLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_x_pos = tkinter.DoubleVar()
-                x_posEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_x_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                x_posEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
+        if self.decryptFile.ver == "DEND_MAP_VER0101":
+            # QGroupBox
+            verGroupBox = QGroupBox(textSetting.textList["railEditor"]["railLsVer0101"])
+            horizontalLayout.addWidget(verGroupBox)
+            # QGroupBox - QGridLayout
+            verGridLayout = QGridLayout()
+            verGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+            verGridLayout.setVerticalSpacing(20)
+            verGroupBox.setLayout(verGridLayout)
+            # QGroupBox - QGridLayout - prevRail2NameLabel
+            prevRail2NameLabel = QLabel(textSetting.textList["railEditor"]["railPrevRail2No"], font=self.font2)
+            verGridLayout.addWidget(prevRail2NameLabel, 0, 0)
+            # QGroupBox - QGridLayout - prevRail2Label
+            self.prevRail2Label = QLabel("", font=self.font2)
+            self.prevRail2Label.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            self.prevRail2Label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.prevRail2Label.setFixedSize(labelWidth, labelHeight)
+            verGridLayout.addWidget(self.prevRail2Label, 0, 1)
 
-                yLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railPosY"], font=textSetting.textList["font2"])
-                yLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_y_pos = tkinter.DoubleVar()
-                y_posEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_y_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                y_posEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # QGroupBox
+        railXyzGroupBox = QGroupBox(textSetting.textList["railEditor"]["railPosXyzInfo"])
+        horizontalLayout.addWidget(railXyzGroupBox)
+        # QGroupBox - QGridLayout
+        xyzGridLayout = QGridLayout()
+        xyzGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        xyzGridLayout.setVerticalSpacing(20)
+        railXyzGroupBox.setLayout(xyzGridLayout)
+        # QGroupBox - QGridLayout - railPosXNameLabel
+        railPosXNameLabel = QLabel(textSetting.textList["railEditor"]["railPosX"], font=self.font2)
+        xyzGridLayout.addWidget(railPosXNameLabel, 0, 0)
+        # QGroupBox - QGridLayout - railPosXLabel
+        self.railPosXLabel = QLabel("", font=self.font2)
+        self.railPosXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railPosXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railPosXLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railPosXLabel, 0, 1)
+        # QGroupBox - QGridLayout - railDirYNameLabel
+        railPosYNameLabel = QLabel(textSetting.textList["railEditor"]["railPosY"], font=self.font2)
+        xyzGridLayout.addWidget(railPosYNameLabel, 1, 0)
+        # QGroupBox - QGridLayout - railPosYLabel
+        self.railPosYLabel = QLabel("", font=self.font2)
+        self.railPosYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railPosYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railPosYLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railPosYLabel, 1, 1)
+        # QGroupBox - QGridLayout - railPosZNameLabel
+        railPosZNameLabel = QLabel(textSetting.textList["railEditor"]["railPosZ"], font=self.font2)
+        xyzGridLayout.addWidget(railPosZNameLabel, 2, 0)
+        # QGroupBox - QGridLayout - railPosZLabel
+        self.railPosZLabel = QLabel("", font=self.font2)
+        self.railPosZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railPosZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railPosZLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railPosZLabel, 2, 1)
 
-                zLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railPosZ"], font=textSetting.textList["font2"])
-                zLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_z_pos = tkinter.DoubleVar()
-                z_posEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_z_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                z_posEt.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # QGroupBox - QGridLayout - railDirXNameLabel
+        railDirXNameLabel = QLabel(textSetting.textList["railEditor"]["railDirX"], font=self.font2)
+        xyzGridLayout.addWidget(railDirXNameLabel, 0, 2)
+        # QGroupBox - QGridLayout - railDirXLabel
+        self.railDirXLabel = QLabel("", font=self.font2)
+        self.railDirXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railDirXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railDirXLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railDirXLabel, 0, 3)
+        # QGroupBox - QGridLayout - railDirYNameLabel
+        railDirYNameLabel = QLabel(textSetting.textList["railEditor"]["railDirY"], font=self.font2)
+        xyzGridLayout.addWidget(railDirYNameLabel, 1, 2)
+        # QGroupBox - QGridLayout - railDirYLabel
+        self.railDirYLabel = QLabel("", font=self.font2)
+        self.railDirYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railDirYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railDirYLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railDirYLabel, 1, 3)
+        # QGroupBox - QGridLayout - railDirZNameLabel
+        railDirZNameLabel = QLabel(textSetting.textList["railEditor"]["railDirZ"], font=self.font2)
+        xyzGridLayout.addWidget(railDirZNameLabel, 2, 2)
+        # QGroupBox - QGridLayout - railDirZLabel
+        self.railDirZLabel = QLabel("", font=self.font2)
+        self.railDirZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railDirZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railDirZLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railDirZLabel, 2, 3)
 
-                #
-                xLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirX"], font=textSetting.textList["font2"])
-                xLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_x_dir = tkinter.DoubleVar()
-                x_dirEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_x_dir, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                x_dirEt.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # QGroupBox
+        railXyzRotGroupBox = QGroupBox(textSetting.textList["railEditor"]["railRotXyzInfo"])
+        horizontalLayout.addWidget(railXyzRotGroupBox)
+        # QGroupBox - QGridLayout
+        xyzRotGridLayout = QGridLayout()
+        xyzRotGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        xyzRotGridLayout.setVerticalSpacing(20)
+        railXyzRotGroupBox.setLayout(xyzRotGridLayout)
+        # QGroupBox - QGridLayout - railRotXNameLabel
+        railRotXNameLabel = QLabel(textSetting.textList["railEditor"]["railRotX"], font=self.font2)
+        xyzRotGridLayout.addWidget(railRotXNameLabel, 0, 0)
+        # QGroupBox - QGridLayout - railRotXLabel
+        self.railRotXLabel = QLabel("", font=self.font2)
+        self.railRotXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railRotXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railRotXLabel.setFixedSize(labelWidth, labelHeight)
+        xyzRotGridLayout.addWidget(self.railRotXLabel, 0, 1)
+        # QGroupBox - QGridLayout - railRotYNameLabel
+        railRotYNameLabel = QLabel(textSetting.textList["railEditor"]["railRotY"], font=self.font2)
+        xyzRotGridLayout.addWidget(railRotYNameLabel, 1, 0)
+        # QGroupBox - QGridLayout - railRotYLabel
+        self.railRotYLabel = QLabel("", font=self.font2)
+        self.railRotYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railRotYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railRotYLabel.setFixedSize(labelWidth, labelHeight)
+        xyzRotGridLayout.addWidget(self.railRotYLabel, 1, 1)
+        # QGroupBox - QGridLayout - railRotZNameLabel
+        railRotZNameLabel = QLabel(textSetting.textList["railEditor"]["railRotZ"], font=self.font2)
+        xyzRotGridLayout.addWidget(railRotZNameLabel, 2, 0)
+        # QGroupBox - QGridLayout - railRotZLabel
+        self.railRotZLabel = QLabel("", font=self.font2)
+        self.railRotZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railRotZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railRotZLabel.setFixedSize(labelWidth, labelHeight)
+        xyzRotGridLayout.addWidget(self.railRotZLabel, 2, 1)
+        # horizontalLayout - stretch
+        horizontalLayout.addStretch(1)
+        return horizontalLayout
 
-                yLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirY"], font=textSetting.textList["font2"])
-                yLb.grid(row=1, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_y_dir = tkinter.DoubleVar()
-                y_dirEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_y_dir, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                y_dirEt.grid(row=1, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+    def setLsModelInfoHorizontalLayout(self):
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
 
-                zLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirZ"], font=textSetting.textList["font2"])
-                zLb.grid(row=2, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_z_dir = tkinter.DoubleVar()
-                z_dirEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_z_dir, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                z_dirEt.grid(row=2, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # QGroupBox
+        modelKasenGroupBox = QGroupBox(textSetting.textList["railEditor"]["railModelKasenInfo"])
+        horizontalLayout.addWidget(modelKasenGroupBox)
+        # QGroupBox - QGridLayout
+        modelKasenGridLayout = QGridLayout()
+        modelKasenGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        modelKasenGridLayout.setVerticalSpacing(20)
+        modelKasenGroupBox.setLayout(modelKasenGridLayout)
+        # QGroupBox - QGridLayout - modelNameLabel
+        modelNameLabel = QLabel(textSetting.textList["railEditor"]["railModelLabel"], font=self.font2)
+        modelKasenGridLayout.addWidget(modelNameLabel, 0, 0)
+        # QGroupBox - QGridLayout - modelNameCombo
+        self.modelNameCombo = QComboBox(font=self.font2)
+        self.modelNameCombo.addItem("")
+        self.modelNameCombo.addItems(self.smfList)
+        modelKasenGridLayout.addWidget(self.modelNameCombo, 0, 1)
+        # QGroupBox - QGridLayout - prevRail2NameLabel
+        prevRailNameLabel = QLabel(textSetting.textList["railEditor"]["railPrevRailNo"], font=self.font2)
+        modelKasenGridLayout.addWidget(prevRailNameLabel, 0, 2)
+        # QGroupBox - QGridLayout - prevRail2Label
+        self.prevRailLabel = QLabel("", font=self.font2)
+        self.prevRailLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.prevRailLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        modelKasenGridLayout.addWidget(self.prevRailLabel, 0, 3)
+        # QGroupBox - QGridLayout - kasenchuNameLabel
+        kasenchuNameLabel = QLabel(textSetting.textList["railEditor"]["railKasenchuLabel"], font=self.font2)
+        modelKasenGridLayout.addWidget(kasenchuNameLabel, 1, 0)
+        # QGroupBox - QGridLayout - kasenchuNameCombo
+        self.kasenchuNameCombo = QComboBox(font=self.font2)
+        self.kasenchuNameCombo.addItem("")
+        self.kasenchuNameCombo.addItems(self.smfList)
+        modelKasenGridLayout.addWidget(self.kasenchuNameCombo, 1, 1)
+        # QGroupBox - QGridLayout - kasenNameLabel
+        kasenNameLabel = QLabel(textSetting.textList["railEditor"]["railKasenLabel"], font=self.font2)
+        modelKasenGridLayout.addWidget(kasenNameLabel, 1, 2)
+        # QGroupBox - QGridLayout - kasenNameCombo
+        self.kasenNameCombo = QComboBox(font=self.font2)
+        self.kasenNameCombo.addItem("")
+        self.kasenNameCombo.addItems(self.smfList)
+        modelKasenGridLayout.addWidget(self.kasenNameCombo, 1, 3)
+        # QGroupBox - QGridLayout - fixAmbNameLabel
+        fixAmbNameLabel = QLabel(textSetting.textList["railEditor"]["railFixAmbLabel"], font=self.font2)
+        modelKasenGridLayout.addWidget(fixAmbNameLabel, 2, 0)
+        # QGroupBox - QGridLayout - fixAmbNameCombo
+        self.fixAmbNameCombo = QComboBox(font=self.font2)
+        self.fixAmbNameCombo.addItem("")
+        self.fixAmbNameCombo.addItems(self.smfList)
+        modelKasenGridLayout.addWidget(self.fixAmbNameCombo, 2, 1)
+        # QGroupBox - QGridLayout - perNameLabel
+        perNameLabel = QLabel(textSetting.textList["railEditor"]["railPer"], font=self.font2)
+        modelKasenGridLayout.addWidget(perNameLabel, 2, 2)
+        # QGroupBox - QGridLayout - perLabel
+        self.perLabel = QLabel("", font=self.font2)
+        self.perLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.perLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        modelKasenGridLayout.addWidget(self.perLabel, 2, 3)
+        return horizontalLayout
 
-                if self.decryptFile.readFlag or self.decryptFile.filenameNum == 7:
-                    self.xyzRotFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["railRotXyzInfo"])
-                    self.xyzRotFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-                    xLb = ttkCustomWidget.CustomTtkLabel(self.xyzRotFrame, text=textSetting.textList["railEditor"]["railRotX"], font=textSetting.textList["font2"])
-                    xLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                    self.v_x_rot = tkinter.StringVar()
-                    x_dirEt = ttkCustomWidget.CustomTtkEntry(self.xyzRotFrame, textvariable=self.v_x_rot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                    x_dirEt.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+    def setLsTrialSecondHorizontalLayout(self):
+        labelWidth = 66
+        labelHeight = 30
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
 
-                    yLb = ttkCustomWidget.CustomTtkLabel(self.xyzRotFrame, text=textSetting.textList["railEditor"]["railRotY"], font=textSetting.textList["font2"])
-                    yLb.grid(row=1, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                    self.v_y_rot = tkinter.StringVar()
-                    y_dirEt = ttkCustomWidget.CustomTtkEntry(self.xyzRotFrame, textvariable=self.v_y_rot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                    y_dirEt.grid(row=1, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # QGroupBox
+        railXyzGroupBox = QGroupBox(textSetting.textList["railEditor"]["railPosXyzInfo"])
+        horizontalLayout.addWidget(railXyzGroupBox)
+        # QGroupBox - QGridLayout
+        xyzGridLayout = QGridLayout()
+        xyzGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        xyzGridLayout.setVerticalSpacing(20)
+        railXyzGroupBox.setLayout(xyzGridLayout)
+        # QGroupBox - QGridLayout - railPosXNameLabel
+        railPosXNameLabel = QLabel(textSetting.textList["railEditor"]["railPosX"], font=self.font2)
+        xyzGridLayout.addWidget(railPosXNameLabel, 0, 0)
+        # QGroupBox - QGridLayout - railPosXLabel
+        self.railPosXLabel = QLabel("", font=self.font2)
+        self.railPosXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railPosXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railPosXLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railPosXLabel, 0, 1)
+        # QGroupBox - QGridLayout - railDirYNameLabel
+        railPosYNameLabel = QLabel(textSetting.textList["railEditor"]["railPosY"], font=self.font2)
+        xyzGridLayout.addWidget(railPosYNameLabel, 1, 0)
+        # QGroupBox - QGridLayout - railPosYLabel
+        self.railPosYLabel = QLabel("", font=self.font2)
+        self.railPosYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railPosYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railPosYLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railPosYLabel, 1, 1)
+        # QGroupBox - QGridLayout - railPosZNameLabel
+        railPosZNameLabel = QLabel(textSetting.textList["railEditor"]["railPosZ"], font=self.font2)
+        xyzGridLayout.addWidget(railPosZNameLabel, 2, 0)
+        # QGroupBox - QGridLayout - railPosZLabel
+        self.railPosZLabel = QLabel("", font=self.font2)
+        self.railPosZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railPosZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railPosZLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railPosZLabel, 2, 1)
 
-                    zLb = ttkCustomWidget.CustomTtkLabel(self.xyzRotFrame, text=textSetting.textList["railEditor"]["railRotZ"], font=textSetting.textList["font2"])
-                    zLb.grid(row=2, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                    self.v_z_rot = tkinter.StringVar()
-                    z_dirEt = ttkCustomWidget.CustomTtkEntry(self.xyzRotFrame, textvariable=self.v_z_rot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                    z_dirEt.grid(row=2, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # QGroupBox - QGridLayout - railDirXNameLabel
+        railDirXNameLabel = QLabel(textSetting.textList["railEditor"]["railDirX"], font=self.font2)
+        xyzGridLayout.addWidget(railDirXNameLabel, 0, 2)
+        # QGroupBox - QGridLayout - railDirXLabel
+        self.railDirXLabel = QLabel("", font=self.font2)
+        self.railDirXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railDirXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railDirXLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railDirXLabel, 0, 3)
+        # QGroupBox - QGridLayout - railDirYNameLabel
+        railDirYNameLabel = QLabel(textSetting.textList["railEditor"]["railDirY"], font=self.font2)
+        xyzGridLayout.addWidget(railDirYNameLabel, 1, 2)
+        # QGroupBox - QGridLayout - railDirYLabel
+        self.railDirYLabel = QLabel("", font=self.font2)
+        self.railDirYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railDirYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railDirYLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railDirYLabel, 1, 3)
+        # QGroupBox - QGridLayout - railDirZNameLabel
+        railDirZNameLabel = QLabel(textSetting.textList["railEditor"]["railDirZ"], font=self.font2)
+        xyzGridLayout.addWidget(railDirZNameLabel, 2, 2)
+        # QGroupBox - QGridLayout - railDirZLabel
+        self.railDirZLabel = QLabel("", font=self.font2)
+        self.railDirZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railDirZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railDirZLabel.setFixedSize(labelWidth, labelHeight)
+        xyzGridLayout.addWidget(self.railDirZLabel, 2, 3)
 
-                ###
-                sidePackFrame2 = ttkCustomWidget.CustomTtkFrame(self.frame)
-                sidePackFrame2.pack(anchor=tkinter.NW, padx=20)
-
-                kasenFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame2, text=textSetting.textList["railEditor"]["railModelKasenInfo"])
-                kasenFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-                mdlNoLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railModelLabel"], font=textSetting.textList["font2"])
-                mdlNoLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.mdlNoCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-                self.mdlNoCb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-                prevRailLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railPrevRailNo"], font=textSetting.textList["font2"])
-                prevRailLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_prevRail = tkinter.IntVar()
-                prevRailEt = ttkCustomWidget.CustomTtkEntry(kasenFrame, textvariable=self.v_prevRail, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                prevRailEt.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-                mdlKasenchuLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railKasenchuLabel"], font=textSetting.textList["font2"])
-                mdlKasenchuLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.mdlKasenchuCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-                self.mdlKasenchuCb.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-                mdlKasenLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railKasenLabel"], font=textSetting.textList["font2"])
-                mdlKasenLb.grid(row=1, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.mdlKasenCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-                self.mdlKasenCb.grid(row=1, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-                fixAmbLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railFixAmbLabel"], font=textSetting.textList["font2"])
-                fixAmbLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.fixAmbCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-                self.fixAmbCb.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-                perLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railPer"], font=textSetting.textList["font2"])
-                perLb.grid(row=2, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-                self.v_per = tkinter.DoubleVar()
-                perEt = ttkCustomWidget.CustomTtkEntry(kasenFrame, textvariable=self.v_per, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                perEt.grid(row=2, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-        ###
-        if self.decryptFile.game == "LSTrial" and self.decryptFile.oldFlag:
-            pass
+        if self.decryptFile.oldFlag:
+            # QGroupBox
+            railInfoGroupBox = QGroupBox(textSetting.textList["railEditor"]["railRailInfo"])
+            horizontalLayout.addWidget(railInfoGroupBox)
+            # QGroupBox - QGridLayout
+            railInfoGridLayout = QGridLayout()
+            railInfoGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+            railInfoGridLayout.setVerticalSpacing(20)
+            railInfoGroupBox.setLayout(railInfoGridLayout)
+            # QGroupBox - QGridLayout - nextRailNameLabel
+            nextRailNameLabel = QLabel(textSetting.textList["railEditor"]["railNextRail"], font=self.font2)
+            railInfoGridLayout.addWidget(nextRailNameLabel, 0, 0)
+            # QGroupBox - QGridLayout - nextRailLabel
+            self.nextRailLabel = QLabel("", font=self.font2)
+            self.nextRailLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            self.nextRailLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.nextRailLabel.setFixedSize(labelWidth, labelHeight)
+            railInfoGridLayout.addWidget(self.nextRailLabel, 0, 1)
+            # QGroupBox - QGridLayout - prevRailNameLabel
+            prevRailNameLabel = QLabel(textSetting.textList["railEditor"]["railPrevRail"], font=self.font2)
+            railInfoGridLayout.addWidget(prevRailNameLabel, 1, 0)
+            # QGroupBox - QGridLayout - prevRailLabel
+            self.prevRailLabel = QLabel("", font=self.font2)
+            self.prevRailLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            self.prevRailLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.prevRailLabel.setFixedSize(labelWidth, labelHeight)
+            railInfoGridLayout.addWidget(self.prevRailLabel, 1, 1)
         else:
-            flagFrameLf = ttkCustomWidget.CustomTtkLabelFrame(self.frame, text=textSetting.textList["railEditor"]["railFlagInfo"])
-            flagFrameLf.pack(padx=25, pady=15, fill=tkinter.X)
+            if self.decryptFile.readFlag or self.decryptFile.filenameNum == 7:
+                # QGroupBox
+                railXyzRotGroupBox = QGroupBox(textSetting.textList["railEditor"]["railRotXyzInfo"])
+                horizontalLayout.addWidget(railXyzRotGroupBox)
+                # QGroupBox - QGridLayout
+                xyzRotGridLayout = QGridLayout()
+                xyzRotGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+                xyzRotGridLayout.setVerticalSpacing(20)
+                railXyzRotGroupBox.setLayout(xyzRotGridLayout)
+                # QGroupBox - QGridLayout - railRotXNameLabel
+                railRotXNameLabel = QLabel(textSetting.textList["railEditor"]["railRotX"], font=self.font2)
+                xyzRotGridLayout.addWidget(railRotXNameLabel, 0, 0)
+                # QGroupBox - QGridLayout - railRotXLabel
+                self.railRotXLabel = QLabel("", font=self.font2)
+                self.railRotXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+                self.railRotXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.railRotXLabel.setFixedSize(labelWidth, labelHeight)
+                xyzRotGridLayout.addWidget(self.railRotXLabel, 0, 1)
+                # QGroupBox - QGridLayout - railRotYNameLabel
+                railRotYNameLabel = QLabel(textSetting.textList["railEditor"]["railRotY"], font=self.font2)
+                xyzRotGridLayout.addWidget(railRotYNameLabel, 1, 0)
+                # QGroupBox - QGridLayout - railRotYLabel
+                self.railRotYLabel = QLabel("", font=self.font2)
+                self.railRotYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+                self.railRotYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.railRotYLabel.setFixedSize(labelWidth, labelHeight)
+                xyzRotGridLayout.addWidget(self.railRotYLabel, 1, 1)
+                # QGroupBox - QGridLayout - railRotZNameLabel
+                railRotZNameLabel = QLabel(textSetting.textList["railEditor"]["railRotZ"], font=self.font2)
+                xyzRotGridLayout.addWidget(railRotZNameLabel, 2, 0)
+                # QGroupBox - QGridLayout - railRotZLabel
+                self.railRotZLabel = QLabel("", font=self.font2)
+                self.railRotZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+                self.railRotZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.railRotZLabel.setFixedSize(labelWidth, labelHeight)
+                xyzRotGridLayout.addWidget(self.railRotZLabel, 2, 1)
+        # horizontalLayout - stretch
+        horizontalLayout.addStretch(1)
+        return horizontalLayout
 
-            flagInfoList = copy.deepcopy(textSetting.textList["railEditor"]["railFlagInfoList"])
+    def setLsTrialModelInfoHorizontalLayout(self):
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
 
+        if self.decryptFile.oldFlag:
+            # QGroupBox
+            modelKasenGroupBox = QGroupBox(textSetting.textList["railEditor"]["railModelKasenInfo"])
+            horizontalLayout.addWidget(modelKasenGroupBox)
+            # QGroupBox - QGridLayout
+            modelKasenGridLayout = QGridLayout()
+            modelKasenGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+            modelKasenGridLayout.setVerticalSpacing(20)
+            modelKasenGroupBox.setLayout(modelKasenGridLayout)
+            # QGroupBox - QGridLayout - modelNameLabel
+            modelNameLabel = QLabel(textSetting.textList["railEditor"]["railModelLabel"], font=self.font2)
+            modelKasenGridLayout.addWidget(modelNameLabel, 0, 0)
+            # QGroupBox - QGridLayout - modelNameCombo
+            self.modelNameCombo = QComboBox(font=self.font2)
+            self.modelNameCombo.addItem("")
+            self.modelNameCombo.addItems(self.smfList)
+            modelKasenGridLayout.addWidget(self.modelNameCombo, 0, 1)
+            # QGroupBox - QGridLayout - kasenNameLabel
+            kasenNameLabel = QLabel(textSetting.textList["railEditor"]["railKasenLabel"], font=self.font2)
+            modelKasenGridLayout.addWidget(kasenNameLabel, 0, 2)
+            # QGroupBox - QGridLayout - kasenNameCombo
+            self.kasenNameCombo = QComboBox(font=self.font2)
+            self.kasenNameCombo.addItem("")
+            self.kasenNameCombo.addItems(self.smfList)
+            modelKasenGridLayout.addWidget(self.kasenNameCombo, 0, 3)
+        else:
+            # QGroupBox
+            modelKasenGroupBox = QGroupBox(textSetting.textList["railEditor"]["railModelKasenInfo"])
+            horizontalLayout.addWidget(modelKasenGroupBox)
+            # QGroupBox - QGridLayout
+            modelKasenGridLayout = QGridLayout()
+            modelKasenGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+            modelKasenGridLayout.setVerticalSpacing(20)
+            modelKasenGroupBox.setLayout(modelKasenGridLayout)
+            # QGroupBox - QGridLayout - modelNameLabel
+            modelNameLabel = QLabel(textSetting.textList["railEditor"]["railModelLabel"], font=self.font2)
+            modelKasenGridLayout.addWidget(modelNameLabel, 0, 0)
+            # QGroupBox - QGridLayout - modelNameCombo
+            self.modelNameCombo = QComboBox(font=self.font2)
+            self.modelNameCombo.addItem("")
+            self.modelNameCombo.addItems(self.smfList)
+            modelKasenGridLayout.addWidget(self.modelNameCombo, 0, 1)
+            # QGroupBox - QGridLayout - prevRail2NameLabel
+            prevRailNameLabel = QLabel(textSetting.textList["railEditor"]["railPrevRailNo"], font=self.font2)
+            modelKasenGridLayout.addWidget(prevRailNameLabel, 0, 2)
+            # QGroupBox - QGridLayout - prevRail2Label
+            self.prevRailLabel = QLabel("", font=self.font2)
+            self.prevRailLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            self.prevRailLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            modelKasenGridLayout.addWidget(self.prevRailLabel, 0, 3)
+            # QGroupBox - QGridLayout - kasenchuNameLabel
+            kasenchuNameLabel = QLabel(textSetting.textList["railEditor"]["railKasenchuLabel"], font=self.font2)
+            modelKasenGridLayout.addWidget(kasenchuNameLabel, 1, 0)
+            # QGroupBox - QGridLayout - kasenchuNameCombo
+            self.kasenchuNameCombo = QComboBox(font=self.font2)
+            self.kasenchuNameCombo.addItem("")
+            self.kasenchuNameCombo.addItems(self.smfList)
+            modelKasenGridLayout.addWidget(self.kasenchuNameCombo, 1, 1)
+            # QGroupBox - QGridLayout - kasenNameLabel
+            kasenNameLabel = QLabel(textSetting.textList["railEditor"]["railKasenLabel"], font=self.font2)
+            modelKasenGridLayout.addWidget(kasenNameLabel, 1, 2)
+            # QGroupBox - QGridLayout - kasenNameCombo
+            self.kasenNameCombo = QComboBox(font=self.font2)
+            self.kasenNameCombo.addItem("")
+            self.kasenNameCombo.addItems(self.smfList)
+            modelKasenGridLayout.addWidget(self.kasenNameCombo, 1, 3)
+            # QGroupBox - QGridLayout - fixAmbNameLabel
+            fixAmbNameLabel = QLabel(textSetting.textList["railEditor"]["railFixAmbLabel"], font=self.font2)
+            modelKasenGridLayout.addWidget(fixAmbNameLabel, 2, 0)
+            # QGroupBox - QGridLayout - fixAmbNameCombo
+            self.fixAmbNameCombo = QComboBox(font=self.font2)
+            self.fixAmbNameCombo.addItem("")
+            self.fixAmbNameCombo.addItems(self.smfList)
+            modelKasenGridLayout.addWidget(self.fixAmbNameCombo, 2, 1)
+            # QGroupBox - QGridLayout - perNameLabel
+            perNameLabel = QLabel(textSetting.textList["railEditor"]["railPer"], font=self.font2)
+            modelKasenGridLayout.addWidget(perNameLabel, 2, 2)
+            # QGroupBox - QGridLayout - perLabel
+            self.perLabel = QLabel("", font=self.font2)
+            self.perLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            self.perLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            modelKasenGridLayout.addWidget(self.perLabel, 2, 3)
+        return horizontalLayout
+
+    def setFlagInfoLayout(self):
+        # flagInfoLayout
+        flagInfoLayout = QVBoxLayout()
+
+        flagInfoList = copy.deepcopy(textSetting.textList["railEditor"]["railFlagInfoList"])
+        if self.decryptFile.game == "LSTrial":
+            if self.decryptFile.oldFlag:
+                return None
+            flagInfoList = [flagInfoList.pop(0)]
+        else:
             if self.decryptFile.game != "RS":
                 flagInfoList[1][4] = textSetting.textList["railEditor"]["railOldFlag1"]
                 flagInfoList[1][5] = textSetting.textList["railEditor"]["railOldFlag2"]
                 flagInfoList[1][6] = textSetting.textList["railEditor"]["railOldFlag3"]
                 flagInfoList[1][7] = textSetting.textList["railEditor"]["railOldFlag4"]
-            if self.decryptFile.game == "LSTrial":
-                flagInfoList = [flagInfoList.pop(0)]
 
-            self.v_flagHexList = []
-            self.v_flagInfoList = []
-            self.chkInfoList = []
+        # flagInfoLayout - QGroupBox
+        flagGroupBox = QGroupBox(textSetting.textList["railEditor"]["railFlagInfo"])
+        flagInfoLayout.addWidget(flagGroupBox)
+        # flagInfoLayout - QGroupBox - flagInfoInLayout
+        flagInfoInLayout = QVBoxLayout()
+        flagGroupBox.setLayout(flagInfoInLayout)
+        self.flagButtonGroupList = []
+        for flagInfo in flagInfoList:
+            # flagInfoInLayout - flagHorizontalLayout
+            flagHorizontalLayout = QHBoxLayout()
+            flagInfoInLayout.addLayout(flagHorizontalLayout)
+            # flagInfoInLayout - flagHorizontalLayout - flagHexLabel
+            flagHexLabel = QLabel("0x00 (= 0)", font=self.font2)
+            flagHorizontalLayout.addWidget(flagHexLabel)
+            # stretch
+            flagHorizontalLayout.addStretch(1)
+            # flagInfoInLayout - flagHexGridLayout
+            flagHexGridLayout = QGridLayout()
+            flagInfoInLayout.addLayout(flagHexGridLayout)
+            flagButtonGroup = QButtonGroup()
+            flagButtonGroup.setExclusive(False)
+            for j, flagInfoValue in enumerate(flagInfo):
+                flagCheckBox = QCheckBox(flagInfoValue)
+                flagCheckBox.toggled.connect(partial(self.changeFlag, flagButtonGroup, flagHexLabel))
+                flagHexGridLayout.addWidget(flagCheckBox, 0, j)
+                flagButtonGroup.addButton(flagCheckBox, j)
+            self.flagButtonGroupList.append(flagButtonGroup)
+            # spacing
+            flagInfoInLayout.addSpacing(30)
+        return flagInfoLayout
 
-            for i in range(len(flagInfoList)):
-                v_flagInfo = []
-                chkInfo = []
-                flagFrame = ttkCustomWidget.CustomTtkFrame(flagFrameLf)
-                flagFrame.pack(anchor=tkinter.NW, pady=3)
+    def setRailDataInfoLayout(self):
+        if self.decryptFile.game == "LSTrial" and self.decryptFile.oldFlag:
+            return None
 
-                self.v_flagHex = tkinter.StringVar()
-                self.v_flagHex.set("0x00")
-                self.v_flagHexList.append(self.v_flagHex)
-                flagHexLb = ttkCustomWidget.CustomTtkLabel(flagFrame, textvariable=self.v_flagHex, font=textSetting.textList["font2"])
-                flagHexLb.grid(row=0, column=0, columnspan=8, sticky=tkinter.W + tkinter.E, padx=3, pady=3)
-                for j in range(len(flagInfoList[i])):
-                    self.v_flag = tkinter.IntVar()
-                    self.v_flag.set(0)
-                    v_flagInfo.append(self.v_flag)
-                    flagChk = ttkCustomWidget.CustomTtkCheckbutton(flagFrame, text=flagInfoList[i][j], style="custom.railFlag.TCheckbutton", width=12, variable=self.v_flag, command=self.changeFlag)
-                    flagChk.grid(row=1, column=j, sticky=tkinter.W + tkinter.E, padx=6, ipadx=6, pady=3)
-                    chkInfo.append(flagChk)
-                self.v_flagInfoList.append(v_flagInfo)
-                self.chkInfoList.append(chkInfo)
+        labelWidth = 66
+        labelHeight = 30
+        # railDataInfoLayout
+        railDataInfoLayout = QVBoxLayout()
+        # railDataInfoLayout - QGroupBox
+        railDataGroupBox = QGroupBox(textSetting.textList["railEditor"]["railRailInfo"])
+        railDataGroupBox.setFixedWidth(600)
+        railDataInfoLayout.addWidget(railDataGroupBox)
+        # railDataInfoLayout - QGroupBox - railDataInfoInLayout
+        railDataInfoInLayout = QVBoxLayout()
+        railDataGroupBox.setLayout(railDataInfoInLayout)
 
-            ###
-            railFrameLf = ttkCustomWidget.CustomTtkLabelFrame(self.frame, text=textSetting.textList["railEditor"]["railRailInfo"])
-            railFrameLf.pack(anchor=tkinter.NW, padx=25, pady=15)
+        # railDataCountLayout
+        railDataCountLayout = QHBoxLayout()
+        railDataInfoInLayout.addLayout(railDataCountLayout)
+        # railDataCountLayout - railDataCountNameLabel
+        railDataCountNameLabel = QLabel(textSetting.textList["railEditor"]["railRailDataCnt"], font=self.font2)
+        railDataCountLayout.addWidget(railDataCountNameLabel)
+        # spacing
+        railDataCountLayout.addSpacing(30)
+        # railDataCountLayout - railDataCountLabel
+        self.railDataCountLabel = QLabel("", font=self.font2)
+        self.railDataCountLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railDataCountLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railDataCountLabel.setFixedSize(labelWidth, labelHeight)
+        railDataCountLayout.addWidget(self.railDataCountLabel)
 
-            railFrameCntFrame = ttkCustomWidget.CustomTtkFrame(railFrameLf)
-            railFrameCntFrame.pack(anchor=tkinter.NW, padx=10, pady=10)
-            railDataCntLb = ttkCustomWidget.CustomTtkLabel(railFrameCntFrame, text=textSetting.textList["railEditor"]["railRailDataCnt"], font=textSetting.textList["font2"])
-            railDataCntLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_railDataCnt = tkinter.IntVar()
-            railDataCntEt = ttkCustomWidget.CustomTtkEntry(railFrameCntFrame, textvariable=self.v_railDataCnt, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            railDataCntEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        if self.decryptFile.ver == "DEND_MAP_VER0300":
+            # spacing
+            railDataCountLayout.addSpacing(30)
+            # railDataCountLayout - csvRevRailSaveButton
+            csvRevRailSaveButton = QPushButton(textSetting.textList["railEditor"]["railCreateRevRail"])
+            csvRevRailSaveButton.clicked.connect(self.saveRevRailCsv)
+            railDataCountLayout.addWidget(csvRevRailSaveButton)
+        # stretch
+        railDataCountLayout.addStretch()
 
-            if self.decryptFile.ver == "DEND_MAP_VER0300":
-                csvRevRailSaveBtn = ttkCustomWidget.CustomTtkButton(railFrameCntFrame, text=textSetting.textList["railEditor"]["railCreateRevRail"], command=self.saveRevRailCsv)
-                csvRevRailSaveBtn.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=30)
+        # spacing
+        railDataInfoInLayout.addSpacing(30)
 
-            self.railFrame = ttkCustomWidget.CustomTtkFrame(railFrameLf)
-            self.railFrame.pack(anchor=tkinter.NW, padx=10, pady=10)
+        # nextPrevRailGridLayout
+        self.nextPrevRailGridLayout = QGridLayout()
+        railDataInfoInLayout.addLayout(self.nextPrevRailGridLayout)
 
-            self.revRailFrame = ttkCustomWidget.CustomTtkFrame(railFrameLf)
-            self.revRailFrame.pack(anchor=tkinter.NW, padx=10, pady=10)
+        if self.decryptFile.ver == "DEND_MAP_VER0400":
+            # spacing
+            railDataInfoInLayout.addSpacing(30)
 
-        self.searchRail(self.v_railNo.get())
+            # revNextPrevRailGridLayout
+            self.revNextPrevRailGridLayout = QGridLayout()
+            railDataInfoInLayout.addLayout(self.revNextPrevRailGridLayout)
 
-    def changeFlag(self):
-        for i in range(len(self.v_flagInfoList)):
-            res = 0
-            v_flagInfo = self.v_flagInfoList[i]
-            for j in range(len(v_flagInfo)):
-                if v_flagInfo[j].get() == 1:
-                    res += 2**(7 - j)
-            strFlagHex = "0x{0:02x}".format(res)
-            self.v_flagHexList[i].set(strFlagHex)
+        return railDataInfoLayout
 
-    def setRailInfo(self, cnt):
-        self.varRailList = []
-        self.varRailCnt = 0
-        children = self.railFrame.winfo_children()
-        for child in children:
-            child.destroy()
+    def changeFlag(self, flagButtonGroup, flagHexLabel, isChecked):
+        res = 0
+        for i, flagCheckBox in enumerate(flagButtonGroup.buttons()):
+            if flagCheckBox.isChecked():
+                res += 2**(7 - i)
+        flagHexLabel.setText("0x{0:02x} (= {1})".format(res, res))
 
-        for i in range(cnt):
-            nextRailLb = ttkCustomWidget.CustomTtkLabel(self.railFrame, text=textSetting.textList["railEditor"]["railNextRail"], width=10, font=textSetting.textList["font2"])
-            nextRailLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=5)
-            self.varRailList.append(tkinter.IntVar())
-            nextRailNoEt = ttkCustomWidget.CustomTtkEntry(self.railFrame, textvariable=self.varRailList[self.varRailCnt], font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            nextRailNoEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E, pady=5)
-            self.varRailCnt += 1
-            self.varRailList.append(tkinter.IntVar())
-            nextRailPosEt = ttkCustomWidget.CustomTtkEntry(self.railFrame, textvariable=self.varRailList[self.varRailCnt], font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            nextRailPosEt.grid(row=i, column=2, sticky=tkinter.W + tkinter.E, pady=5)
-            self.varRailCnt += 1
+    def setRailInfo(self, gridLayout, count, railDataInfo, revFlag=False):
+        while gridLayout.count():
+            child = gridLayout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
 
-            prevRailLb = ttkCustomWidget.CustomTtkLabel(self.railFrame, text=textSetting.textList["railEditor"]["railPrevRail"], width=10, font=textSetting.textList["font2"])
-            prevRailLb.grid(row=i, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=5)
-            self.varRailList.append(tkinter.IntVar())
-            prevRailNoEt = ttkCustomWidget.CustomTtkEntry(self.railFrame, textvariable=self.varRailList[self.varRailCnt], font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            prevRailNoEt.grid(row=i, column=4, sticky=tkinter.W + tkinter.E, pady=5)
-            self.varRailCnt += 1
-            self.varRailList.append(tkinter.IntVar())
-            prevRailPosEt = ttkCustomWidget.CustomTtkEntry(self.railFrame, textvariable=self.varRailList[self.varRailCnt], font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            prevRailPosEt.grid(row=i, column=5, sticky=tkinter.W + tkinter.E, pady=5)
-            self.varRailCnt += 1
+        labelWidth = 66
+        labelHeight = 30
+        nextRailName = textSetting.textList["railEditor"]["railNextRail"]
+        prevRailName = textSetting.textList["railEditor"]["railPrevRail"]
+        if revFlag:
+            nextRailName = textSetting.textList["railEditor"]["railRevNextRail"]
+            prevRailName = textSetting.textList["railEditor"]["railRevPrevRail"]
 
-    def setRevRailInfo(self, cnt):
-        self.varRevRailList = []
-        self.varRevRailCnt = 0
-        children = self.revRailFrame.winfo_children()
-        for child in children:
-            child.destroy()
+        idx = 0
+        for i in range(count):
+            # nextRailNameLabel
+            nextRailNameLabel = QLabel(nextRailName, font=self.font2)
+            gridLayout.addWidget(nextRailNameLabel, i, 0)
+            # nextRailNoLabel
+            nextRailNoLabel = QLabel("{0}".format(railDataInfo[idx]), font=self.font2)
+            nextRailNoLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            nextRailNoLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            nextRailNoLabel.setFixedSize(labelWidth, labelHeight)
+            gridLayout.addWidget(nextRailNoLabel, i, 1)
+            idx += 1
+            # nextRailPosLabel
+            nextRailPosLabel = QLabel("{0}".format(railDataInfo[idx]), font=self.font2)
+            nextRailPosLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            nextRailPosLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            nextRailPosLabel.setFixedSize(labelWidth, labelHeight)
+            gridLayout.addWidget(nextRailPosLabel, i, 2)
+            idx += 1
+            # spacing
+            gridLayout.setColumnMinimumWidth(3, 40)
 
-        for i in range(cnt):
-            revNextRailLb = ttkCustomWidget.CustomTtkLabel(self.revRailFrame, text=textSetting.textList["railEditor"]["railRevNextRail"], font=textSetting.textList["font2"])
-            revNextRailLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=5)
-            self.varRevRailList.append(tkinter.IntVar())
-            revNextRailNoEt = ttkCustomWidget.CustomTtkEntry(self.revRailFrame, textvariable=self.varRevRailList[self.varRevRailCnt], font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            revNextRailNoEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E, pady=5)
-            self.varRevRailCnt += 1
-            self.varRevRailList.append(tkinter.IntVar())
-            revNextRailPosEt = ttkCustomWidget.CustomTtkEntry(self.revRailFrame, textvariable=self.varRevRailList[self.varRevRailCnt], font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            revNextRailPosEt.grid(row=i, column=2, sticky=tkinter.W + tkinter.E, pady=5)
-            self.varRevRailCnt += 1
+            # prevRailNameLabel
+            prevRailNameLabel = QLabel(prevRailName, font=self.font2)
+            gridLayout.addWidget(prevRailNameLabel, i, 4)
+            # prevRailNoLabel
+            prevRailNoLabel = QLabel("{0}".format(railDataInfo[idx]), font=self.font2)
+            prevRailNoLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            prevRailNoLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            prevRailNoLabel.setFixedSize(labelWidth, labelHeight)
+            gridLayout.addWidget(prevRailNoLabel, i, 5)
+            idx += 1
+            # prevRailPosLabel
+            prevRailPosLabel = QLabel("{0}".format(railDataInfo[idx]), font=self.font2)
+            prevRailPosLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            prevRailPosLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            prevRailPosLabel.setFixedSize(labelWidth, labelHeight)
+            gridLayout.addWidget(prevRailPosLabel, i, 6)
+            idx += 1
 
-            revPrevRailLb = ttkCustomWidget.CustomTtkLabel(self.revRailFrame, text=textSetting.textList["railEditor"]["railRevPrevRail"], font=textSetting.textList["font2"])
-            revPrevRailLb.grid(row=i, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=5)
-            self.varRevRailList.append(tkinter.IntVar())
-            revPrevRailNoEt = ttkCustomWidget.CustomTtkEntry(self.revRailFrame, textvariable=self.varRevRailList[self.varRevRailCnt], font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            revPrevRailNoEt.grid(row=i, column=4, sticky=tkinter.W + tkinter.E, pady=5)
-            self.varRevRailCnt += 1
-            self.varRevRailList.append(tkinter.IntVar())
-            revPrevRailPosEt = ttkCustomWidget.CustomTtkEntry(self.revRailFrame, textvariable=self.varRevRailList[self.varRevRailCnt], font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            revPrevRailPosEt.grid(row=i, column=5, sticky=tkinter.W + tkinter.E, pady=5)
-            self.varRevRailCnt += 1
-
-    def searchRail(self, railNo):
-        if railNo < 0 or railNo >= len(self.railList):
-            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E70"])
+    def searchRail(self):
+        if not self.railNoLineEdit.hasAcceptableInput():
             return
+
+        if len(self.railList) == 0:
+            return
+
+        railNo = int(self.railNoLineEdit.text())
+        if railNo >= len(self.railList):
+            railNo = len(self.railList) - 1
+            self.railNoLineEdit.setText("{0}".format(railNo))
         railInfo = self.railList[railNo]
 
         if self.decryptFile.game in ["BS", "CS", "RS"]:
-            self.v_prevRail.set(railInfo[1])
-            self.v_block.set(railInfo[2])
-            self.v_x.set(railInfo[3])
-            self.v_y.set(railInfo[4])
-            self.v_z.set(railInfo[5])
-            self.mdlNoCb.current(railInfo[6])
+            self.prevRailLabel.setText("{0}".format(railInfo[1]))
+            self.blockLabel.setText("{0}".format(railInfo[2]))
+            self.railDirXLabel.setText("{0}".format(railInfo[3]))
+            self.railDirYLabel.setText("{0}".format(railInfo[4]))
+            self.railDirZLabel.setText("{0}".format(railInfo[5]))
+
+            self.modelNameCombo.setCurrentIndex(railInfo[6] + 1)
             kasenNo = railInfo[7]
             if kasenNo == -1 or kasenNo == -2:
                 kasenNo = len(self.smfList) + kasenNo
-            self.mdlKasenCb.current(kasenNo)
-
+            kasenNo += 1
+            self.kasenNameCombo.setCurrentIndex(kasenNo)
             kasenchuNo = railInfo[8]
             if kasenchuNo == -1 or kasenchuNo == -2:
                 kasenchuNo = len(self.smfList) + kasenchuNo
-            self.mdlKasenchuCb.current(kasenchuNo)
-            self.v_per.set(railInfo[9])
+            kasenchuNo += 1
+            self.kasenchuNameCombo.setCurrentIndex(kasenchuNo)
+            self.perLabel.setText("{0}".format(railInfo[9]))
 
-            for i in range(4):
-                strFlagHex = "0x{0:02x}".format(railInfo[10 + i])
-                self.v_flagHexList[i].set(strFlagHex)
-                for j in range(8):
-                    if railInfo[10 + i] & (2**(7 - j)) == 0:
-                        self.v_flagInfoList[i][j].set(0)
+            for i, flagButtonGroup in enumerate(self.flagButtonGroupList):
+                railFlag = railInfo[10 + i]
+                for j, flagCheckBox in enumerate(flagButtonGroup.buttons()):
+                    if railFlag & (2**(7 - j)) == 0:
+                        flagCheckBox.setChecked(False)
                     else:
-                        self.v_flagInfoList[i][j].set(1)
+                        flagCheckBox.setChecked(True)
 
-            self.v_railDataCnt.set(railInfo[14])
-            self.setRailInfo(railInfo[14])
-            for i in range(len(self.varRailList)):
-                self.varRailList[i].set(railInfo[15 + i])
+            railDataCount = railInfo[14]
+            self.railDataCountLabel.setText("{0}".format(railDataCount))
+            railDataInfo = railInfo[15:15 + railDataCount*4]
+            self.setRailInfo(self.nextPrevRailGridLayout, railDataCount, railDataInfo)
 
             if self.decryptFile.ver == "DEND_MAP_VER0400":
-                railCount = railInfo[14]
-                self.setRevRailInfo(railCount)
-                for i in range(len(self.varRevRailList)):
-                    self.varRevRailList[i].set(railInfo[15 + railCount * 4 + i])
+                revRailDataInfo = railInfo[15 + railDataCount*4:15 + railDataCount*4*2]
+                self.setRailInfo(self.revNextPrevRailGridLayout, railDataCount, revRailDataInfo, True)
         elif self.decryptFile.game == "LS":
             railIdx = 1
             if self.decryptFile.ver == "DEND_MAP_VER0101":
-                self.v_prevRail2.set(railInfo[railIdx])
+                self.prevRail2Label.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 2
-            #
-            self.v_x_pos.set(railInfo[railIdx])
+
+            self.railPosXLabel.setText("{0}".format(railInfo[railIdx]))
             railIdx += 1
-            self.v_y_pos.set(railInfo[railIdx])
+            self.railPosYLabel.setText("{0}".format(railInfo[railIdx]))
             railIdx += 1
-            self.v_z_pos.set(railInfo[railIdx])
+            self.railPosZLabel.setText("{0}".format(railInfo[railIdx]))
             railIdx += 1
-            self.v_x_dir.set(railInfo[railIdx])
+            self.railDirXLabel.setText("{0}".format(railInfo[railIdx]))
             railIdx += 1
-            self.v_y_dir.set(railInfo[railIdx])
+            self.railDirYLabel.setText("{0}".format(railInfo[railIdx]))
             railIdx += 1
-            self.v_z_dir.set(railInfo[railIdx])
+            self.railDirZLabel.setText("{0}".format(railInfo[railIdx]))
             railIdx += 1
 
-            self.mdlNoCb.current(railInfo[railIdx])
+            self.modelNameCombo.setCurrentIndex(railInfo[railIdx] + 1)
             railIdx += 1
-            self.v_prevRail.set(railInfo[railIdx])
+            prevRail = railInfo[railIdx]
+            self.prevRailLabel.setText("{0}".format(prevRail))
             railIdx += 1
 
-            if railInfo[railIdx - 1] == -1:
-                self.v_x_rot.set(str(railInfo[railIdx]))
+            if prevRail == -1:
+                self.railRotXLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
-                self.v_y_rot.set(str(railInfo[railIdx]))
+                self.railRotYLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
-                self.v_z_rot.set(str(railInfo[railIdx]))
+                self.railRotZLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
             else:
-                self.v_x_rot.set("-")
-                self.v_y_rot.set("-")
-                self.v_z_rot.set("-")
+                self.railRotXLabel.setText("-")
+                self.railRotYLabel.setText("-")
+                self.railRotZLabel.setText("-")
 
             kasenchuNo = railInfo[railIdx]
             if kasenchuNo == -1:
                 kasenchuNo = len(self.smfList) + kasenchuNo
-            self.mdlKasenchuCb.current(kasenchuNo)
+            kasenchuNo += 1
+            self.kasenchuNameCombo.setCurrentIndex(kasenchuNo)
             railIdx += 1
 
             kasenNo = railInfo[railIdx]
             if kasenNo == -1:
                 kasenNo = len(self.smfList) + kasenNo
-            self.mdlKasenCb.current(kasenNo)
+            kasenNo += 1
+            self.kasenNameCombo.setCurrentIndex(kasenNo)
             railIdx += 1
 
             fixAmbNo = railInfo[railIdx]
             if fixAmbNo == -1:
                 fixAmbNo = len(self.smfList) + fixAmbNo
-            self.fixAmbCb.current(fixAmbNo)
+            fixAmbNo += 1
+            self.fixAmbNameCombo.setCurrentIndex(fixAmbNo)
             railIdx += 1
 
-            self.v_per.set(railInfo[railIdx])
+            self.perLabel.setText("{0}".format(railInfo[railIdx]))
             railIdx += 1
 
-            for i in range(4):
-                strFlagHex = "0x{0:02x}".format(railInfo[railIdx])
-                self.v_flagHexList[i].set(strFlagHex)
-                for j in range(8):
-                    if railInfo[railIdx] & (2**(7 - j)) == 0:
-                        self.v_flagInfoList[i][j].set(0)
+            for i, flagButtonGroup in enumerate(self.flagButtonGroupList):
+                railFlag = railInfo[railIdx]
+                for j, flagCheckBox in enumerate(flagButtonGroup.buttons()):
+                    if railFlag & (2**(7 - j)) == 0:
+                        flagCheckBox.setChecked(False)
                     else:
-                        self.v_flagInfoList[i][j].set(1)
+                        flagCheckBox.setChecked(True)
                 railIdx += 1
 
-            self.v_railDataCnt.set(railInfo[railIdx])
-            self.setRailInfo(railInfo[railIdx])
+            railDataCount = railInfo[railIdx]
+            self.railDataCountLabel.setText("{0}".format(railDataCount))
             railIdx += 1
-            for i in range(len(self.varRailList)):
-                self.varRailList[i].set(railInfo[railIdx])
-                railIdx += 1
+            railDataInfo = railInfo[railIdx:railIdx + railDataCount*4]
+            self.setRailInfo(self.nextPrevRailGridLayout, railDataCount, railDataInfo)
         elif self.decryptFile.game == "LSTrial":
             if self.decryptFile.oldFlag:
                 railIdx = 1
                 #
-                self.v_x_pos.set(railInfo[railIdx])
+                self.railPosXLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
-                self.v_y_pos.set(railInfo[railIdx])
+                self.railPosYLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
-                self.v_z_pos.set(railInfo[railIdx])
-                railIdx += 1
-
-                self.v_next.set(railInfo[railIdx])
-                railIdx += 1
-                self.v_prev.set(railInfo[railIdx])
+                self.railPosZLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
 
-                self.v_x_dir.set(railInfo[railIdx])
+                self.nextRailLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
-                self.v_y_dir.set(railInfo[railIdx])
-                railIdx += 1
-                self.v_z_dir.set(railInfo[railIdx])
+                self.prevRailLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
 
-                self.mdlNoCb.current(railInfo[railIdx])
+                self.railDirXLabel.setText("{0}".format(railInfo[railIdx]))
+                railIdx += 1
+                self.railDirYLabel.setText("{0}".format(railInfo[railIdx]))
+                railIdx += 1
+                self.railDirZLabel.setText("{0}".format(railInfo[railIdx]))
+                railIdx += 1
+
+                self.modelNameCombo.setCurrentIndex(railInfo[railIdx] + 1)
                 railIdx += 1
 
                 kasenNo = railInfo[railIdx]
                 if kasenNo == -1:
                     kasenNo = len(self.smfList) + kasenNo
-                self.mdlKasenCb.current(kasenNo)
+                kasenNo += 1
+                self.kasenNameCombo.setCurrentIndex(kasenNo)
                 railIdx += 1
             else:
                 railIdx = 1
                 #
-                self.v_x_pos.set(railInfo[railIdx])
+                self.railPosXLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
-                self.v_y_pos.set(railInfo[railIdx])
+                self.railPosYLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
-                self.v_z_pos.set(railInfo[railIdx])
+                self.railPosZLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
-                self.v_x_dir.set(railInfo[railIdx])
+                self.railDirXLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
-                self.v_y_dir.set(railInfo[railIdx])
+                self.railDirYLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
-                self.v_z_dir.set(railInfo[railIdx])
+                self.railDirZLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
 
-                self.mdlNoCb.current(railInfo[railIdx])
+                self.modelNameCombo.setCurrentIndex(railInfo[railIdx] + 1)
                 railIdx += 1
-                self.v_prevRail.set(railInfo[railIdx])
+                prevRail = railInfo[railIdx]
+                self.prevRailLabel.setText("{0}".format(prevRail))
                 railIdx += 1
 
                 if self.decryptFile.readFlag or self.decryptFile.filenameNum == 7:
-                    if railInfo[railIdx - 1] == -1:
-                        self.v_x_rot.set(str(railInfo[railIdx]))
+                    if prevRail == -1:
+                        self.railRotXLabel.setText("{0}".format(railInfo[railIdx]))
                         railIdx += 1
-                        self.v_y_rot.set(str(railInfo[railIdx]))
+                        self.railRotYLabel.setText("{0}".format(railInfo[railIdx]))
                         railIdx += 1
-                        self.v_z_rot.set(str(railInfo[railIdx]))
+                        self.railRotZLabel.setText("{0}".format(railInfo[railIdx]))
                         railIdx += 1
                     else:
-                        self.v_x_rot.set("-")
-                        self.v_y_rot.set("-")
-                        self.v_z_rot.set("-")
+                        self.railRotXLabel.setText("-")
+                        self.railRotYLabel.setText("-")
+                        self.railRotZLabel.setText("-")
 
                 kasenchuNo = railInfo[railIdx]
                 if kasenchuNo == -1:
                     kasenchuNo = len(self.smfList) + kasenchuNo
-                self.mdlKasenchuCb.current(kasenchuNo)
+                kasenchuNo += 1
+                self.kasenchuNameCombo.setCurrentIndex(kasenchuNo)
                 railIdx += 1
 
                 kasenNo = railInfo[railIdx]
                 if kasenNo == -1:
                     kasenNo = len(self.smfList) + kasenNo
-                self.mdlKasenCb.current(kasenNo)
+                kasenNo += 1
+                self.kasenNameCombo.setCurrentIndex(kasenNo)
                 railIdx += 1
 
                 fixAmbNo = railInfo[railIdx]
                 if fixAmbNo == -1:
                     fixAmbNo = len(self.smfList) + fixAmbNo
-                self.fixAmbCb.current(fixAmbNo)
+                fixAmbNo += 1
+                self.fixAmbNameCombo.setCurrentIndex(fixAmbNo)
                 railIdx += 1
 
-                self.v_per.set(railInfo[railIdx])
+                self.perLabel.setText("{0}".format(railInfo[railIdx]))
                 railIdx += 1
 
-                strFlagHex = "0x{0:02x}".format(railInfo[railIdx])
-                self.v_flagHexList[0].set(strFlagHex)
-                for j in range(8):
-                    if railInfo[railIdx] & (2**(7 - j)) == 0:
-                        self.v_flagInfoList[0][j].set(0)
-                    else:
-                        self.v_flagInfoList[0][j].set(1)
-                railIdx += 1
-
-                self.v_railDataCnt.set(railInfo[railIdx])
-                self.setRailInfo(railInfo[railIdx])
-                railIdx += 1
-                for i in range(len(self.varRailList)):
-                    self.varRailList[i].set(railInfo[railIdx])
+                for i, flagButtonGroup in enumerate(self.flagButtonGroupList):
+                    railFlag = railInfo[railIdx]
+                    for j, flagCheckBox in enumerate(flagButtonGroup.buttons()):
+                        if railFlag & (2**(7 - j)) == 0:
+                            flagCheckBox.setChecked(False)
+                        else:
+                            flagCheckBox.setChecked(True)
                     railIdx += 1
+
+                railDataCount = railInfo[railIdx]
+                self.railDataCountLabel.setText("{0}".format(railDataCount))
+                railIdx += 1
+                railDataInfo = railInfo[railIdx:railIdx + railDataCount*4]
+                self.setRailInfo(self.nextPrevRailGridLayout, railDataCount, railDataInfo)
 
     def extractCsv(self):
         filename = self.decryptFile.filename + ".csv"
-        file_path = fd.asksaveasfilename(initialfile=filename, defaultextension="csv", filetypes=[(textSetting.textList["railEditor"]["railCsvFileType"], "*.csv")])
-        errorMsg = textSetting.textList["errorList"]["E7"]
-        if file_path:
-            if not self.decryptFile.extractRailCsv(file_path):
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return
-            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
-
-    def saveCsv(self):
-        errorMsg = textSetting.textList["errorList"]["E71"]
-        file_path = fd.askopenfilename(defaultextension="csv", filetypes=[(textSetting.textList["railEditor"]["railCsvFileType"], "*.csv")])
+        fileTypes = "{0} ({1})".format(textSetting.textList["railEditor"]["railCsvFileType"], "*.csv")
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "",
+            filename,
+            fileTypes
+        )
         if not file_path:
             return
-        try:
-            f = open(file_path)
-            csvLines = f.readlines()
-            f.close()
-        except Exception:
-            errorMsg = textSetting.textList["errorList"]["E74"]
-            mb.showerror(title=textSetting.textList["readError"], message=errorMsg)
-            return
 
         try:
-            csvLines.pop(0)
-            railList = []
-            count = 0
-            if self.decryptFile.game in ["BS", "CS", "RS"]:
-                for csv in csvLines:
-                    railInfo = []
-                    csv = csv.strip()
-                    arr = csv.split(",")
-                    if len(arr) < 15:
-                        raise Exception
+            self.decryptFile.extractRailCsv(file_path)
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
+        except PermissionError:
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E7"])
 
-                    prev_rail = int(arr[1])
-                    railInfo.append(prev_rail)
-
-                    block = int(arr[2])
-                    railInfo.append(block)
-
-                    for i in range(3):
-                        dirF = float(arr[3 + i])
-                        railInfo.append(dirF)
-
-                    mdl_no = int(arr[6])
-                    railInfo.append(mdl_no)
-
-                    kasen = int(arr[7])
-                    railInfo.append(kasen)
-
-                    kasenchu = int(arr[8])
-                    railInfo.append(kasenchu)
-
-                    per = float(arr[9])
-                    railInfo.append(per)
-
-                    for i in range(4):
-                        flag = int(arr[10 + i], 16)
-                        railInfo.append(flag)
-
-                    rail_data = int(arr[14])
-                    railInfo.append(rail_data)
-
-                    readCount = 4
-                    if self.decryptFile.ver == "DEND_MAP_VER0400":
-                        readCount = 8
-
-                    for i in range(rail_data * readCount):
-                        rail = int(arr[15 + i])
-                        railInfo.append(rail)
-
-                    if self.decryptFile.game in ["BS", "CS"]:
-                        copyElse3List = []
-                        if int(arr[0]) < len(self.decryptFile.railList):
-                            originRailInfo = self.decryptFile.railList[int(arr[0])]
-                            originRailData = originRailInfo[14]
-                            originEndcntIndex = 15 + originRailData * readCount
-                            originElse3List = originRailInfo[originEndcntIndex]
-                            copyElse3List = copy.deepcopy(originElse3List)
-                        railInfo.append(copyElse3List)
-
-                        else4Info = []
-                        if prev_rail == -1:
-                            originRailInfo = self.decryptFile.railList[int(arr[0])]
-                            originPrevRail = originRailInfo[1]
-                            if originPrevRail == -1:
-                                originRailData = originRailInfo[14]
-                                originElse4Index = 16 + originRailData * readCount
-                                else4Info = originRailInfo[originElse4Index]
-                            else:
-                                else4Info.append(-1)
-                                for i in range(6):
-                                    else4Info.append(0)
-                        railInfo.append(else4Info)
-
-                        if self.decryptFile.game == "BS":
-                            originRailInfo = self.decryptFile.railList[int(arr[0])]
-                            originRailData = originRailInfo[14]
-                            ambListIndex = 17 + originRailData * readCount
-                            ambList = originRailInfo[ambListIndex]
-                            railInfo.append(ambList)
-                    railList.append(railInfo)
-                    count += 1
-            elif self.decryptFile.game == "LS":
-                for csv in csvLines:
-                    railInfo = []
-                    csv = csv.strip()
-                    arr = csv.split(",")
-                    if len(arr) < 21:
-                        raise Exception
-
-                    if self.decryptFile.ver == "DEND_MAP_VER0101":
-                        originRailInfo = self.decryptFile.railList[int(arr[0])]
-                        prev_rail2 = originRailInfo[1]
-                        railInfo.append(prev_rail2)
-
-                        if prev_rail2 != -1:
-                            if int(arr[0]) < len(self.decryptFile.railList):
-                                originElse4Info = originRailInfo[2]
-                                if len(originElse4Info) > 0:
-                                    railInfo.append(originRailInfo[2])
-                                else:
-                                    else4Info = []
-                                    for i in range(6):
-                                        else4Info.append(0.0)
-                                    railInfo.append(else4Info)
-                            else:
-                                else4Info = []
-                                for i in range(6):
-                                    else4Info.append(0.0)
-                                railInfo.append(else4Info)
-                        else:
-                            railInfo.append([])
-
-                    csvIdx = 2
-                    for i in range(6):
-                        tempF = float(arr[csvIdx])
-                        railInfo.append(tempF)
-                        csvIdx += 1
-
-                    mdl_no = int(arr[csvIdx])
-                    railInfo.append(mdl_no)
-                    csvIdx += 1
-
-                    kasen = int(arr[csvIdx])
-                    csvIdx += 1
-
-                    kasenchu = int(arr[csvIdx])
-                    csvIdx += 1
-
-                    prev_rail = int(arr[1])
-                    railInfo.append(prev_rail)
-
-                    for i in range(3):
-                        if prev_rail == -1:
-                            tempF = float(arr[csvIdx])
-                            railInfo.append(tempF)
-                        csvIdx += 1
-
-                    railInfo.append(kasenchu)
-                    railInfo.append(kasen)
-
-                    fixAmbNo = int(arr[csvIdx])
-                    railInfo.append(fixAmbNo)
-                    csvIdx += 1
-
-                    per = float(arr[csvIdx])
-                    railInfo.append(per)
-                    csvIdx += 1
-
-                    for i in range(4):
-                        flag = int(arr[csvIdx], 16)
-                        railInfo.append(flag)
-                        csvIdx += 1
-
-                    rail_data = int(arr[csvIdx])
-                    railInfo.append(rail_data)
-                    csvIdx += 1
-
-                    for i in range(rail_data * 4):
-                        rail = int(arr[csvIdx])
-                        railInfo.append(rail)
-                        csvIdx += 1
-
-                    if int(arr[0]) < len(self.decryptFile.railList):
-                        originRailInfo = self.decryptFile.railList[int(arr[0])]
-                        originAmbList = originRailInfo[-1]
-                        railInfo.append(originAmbList)
-                    else:
-                        railInfo.append([])
-
-                    railList.append(railInfo)
-                    count += 1
-            elif self.decryptFile.game == "LSTrial":
-                if self.decryptFile.oldFlag:
-                    for csv in csvLines:
-                        railInfo = []
-                        csv = csv.strip()
-                        arr = csv.split(",")
-                        if len(arr) < 11:
-                            raise Exception
-
-                        csvIdx = 1
-                        for i in range(3):
-                            tempF = float(arr[csvIdx])
-                            railInfo.append(tempF)
-                            csvIdx += 1
-
-                        next_rail = int(arr[csvIdx])
-                        railInfo.append(next_rail)
-                        csvIdx += 1
-
-                        prev_rail = int(arr[csvIdx])
-                        railInfo.append(prev_rail)
-                        csvIdx += 1
-
-                        for i in range(3):
-                            tempF = float(arr[csvIdx])
-                            railInfo.append(tempF)
-                            csvIdx += 1
-
-                        mdl_no = int(arr[csvIdx])
-                        railInfo.append(mdl_no)
-                        csvIdx += 1
-
-                        kasen = int(arr[csvIdx])
-                        railInfo.append(kasen)
-                        csvIdx += 1
-
-                        railList.append(railInfo)
-                        count += 1
-                else:
-                    for csv in csvLines:
-                        railInfo = []
-                        csv = csv.strip()
-                        arr = csv.split(",")
-                        if self.decryptFile.readFlag or self.decryptFile.filenameNum == 7:
-                            if len(arr) < 18:
-                                raise Exception
-                        else:
-                            if len(arr) < 15:
-                                raise Exception
-
-                        csvIdx = 2
-                        for i in range(6):
-                            tempF = float(arr[csvIdx])
-                            railInfo.append(tempF)
-                            csvIdx += 1
-
-                        mdl_no = int(arr[csvIdx])
-                        railInfo.append(mdl_no)
-                        csvIdx += 1
-
-                        kasen = int(arr[csvIdx])
-                        csvIdx += 1
-
-                        kasenchu = int(arr[csvIdx])
-                        csvIdx += 1
-
-                        prev_rail = int(arr[1])
-                        railInfo.append(prev_rail)
-
-                        if self.decryptFile.readFlag or self.decryptFile.filenameNum == 7:
-                            for i in range(3):
-                                if prev_rail == -1:
-                                    tempF = float(arr[csvIdx])
-                                    railInfo.append(tempF)
-                                csvIdx += 1
-
-                        railInfo.append(kasenchu)
-                        railInfo.append(kasen)
-
-                        fixAmbNo = int(arr[csvIdx])
-                        railInfo.append(fixAmbNo)
-                        csvIdx += 1
-
-                        per = float(arr[csvIdx])
-                        railInfo.append(per)
-                        csvIdx += 1
-
-                        flag = int(arr[csvIdx], 16)
-                        railInfo.append(flag)
-                        csvIdx += 1
-
-                        rail_data = int(arr[csvIdx])
-                        railInfo.append(rail_data)
-                        csvIdx += 1
-
-                        for i in range(rail_data * 4):
-                            rail = int(arr[csvIdx])
-                            railInfo.append(rail)
-                            csvIdx += 1
-
-                        if int(arr[0]) < len(self.decryptFile.railList):
-                            originRailInfo = self.decryptFile.railList[int(arr[0])]
-                            originAmbList = originRailInfo[-1]
-                            railInfo.append(originAmbList)
-                        else:
-                            railInfo.append([])
-
-                        railList.append(railInfo)
-                        count += 1
-
-            msg = textSetting.textList["infoList"]["I15"].format(count)
-            result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
-
-            if result:
-                if not self.decryptFile.saveRailCsv(railList):
-                    self.decryptFile.printError()
-                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-                    return
-                mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I88"])
-                self.reloadFunc()
-
-        except Exception:
-            errorMsg = textSetting.textList["errorList"]["E15"].format(count + 1)
-            mb.showerror(title=textSetting.textList["readError"], message=errorMsg)
+    def saveCsv(self):
+        fileTypes = "{0} ({1})".format(textSetting.textList["railEditor"]["railCsvFileType"], "*.csv")
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "",
+            "",
+            fileTypes
+        )
+        if not file_path:
             return
+
+        railObj, message = self.decryptFile.loadRailCsv(file_path)
+        if message:
+            mb.showerror(title=textSetting.textList["error"], message=message)
+            return
+
+        msg = textSetting.textList["infoList"]["I15"].format(railObj["csvLines"])
+        result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
+        if result == mb.OK:
+            railList = railObj["data"]
+            if not self.decryptFile.saveRailCsv(railList):
+                self.decryptFile.printError()
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                return
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I88"])
+            self.reloadFunc()
 
     def saveRevRailCsv(self):
-        allModelRailCount = {railInfo[0]: railInfo[14] for railInfo in self.railList}
-        allModelRailLen = {i: self.decryptFile.smfList[i][3] for i in range(len(self.decryptFile.smfList))}
+        filename = self.decryptFile.filename + "_rev.BIN"
+        fileTypes = "{0} ({1})".format(textSetting.textList["railEditor"]["fileType"], "*.bin")
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "",
+            filename,
+            fileTypes
+        )
+        if not file_path:
+            return
 
-        filename = self.decryptFile.filename + "_rev.csv"
-        file_path = fd.asksaveasfilename(initialfile=filename, defaultextension="csv", filetypes=[(textSetting.textList["railEditor"]["railCsvFileType"], "*.csv")])
-        newRailList = []
-        errorMsg = textSetting.textList["errorList"]["E7"]
-        currentRailNo = -1
-        if file_path:
-            try:
-                directory = os.path.dirname(file_path)
-                name = os.path.splitext(os.path.basename(file_path))[0]
-                path = os.path.join(directory, name + ".csv")
-                w = open(path, "w")
-                w.write("index,prev_rail,block,")
-                w.write("dir_x,dir_y,dir_z,")
-                w.write("mdl_no,mdl_kasen,mdl_kasenchu,per,")
-                w.write("flg,flg,flg,flg,")
-                w.write("rail_data,")
-                w.write("next_rail,next_no,prev_rail,prev_no,\n")
-                for railInfo in self.railList:
-                    currentRailNo = railInfo[0]
-                    newRailInfo = railInfo[1:]
-                    w.write("{0},{1},{2},".format(railInfo[0], railInfo[1], railInfo[2]))
-                    for i in range(3):
-                        w.write("{0},".format(railInfo[3 + i]))
-                    w.write("{0},".format(railInfo[6]))
-                    w.write("{0},".format(railInfo[7]))
-                    w.write("{0},".format(railInfo[8]))
-                    w.write("{0},".format(railInfo[9]))
-                    for i in range(4):
-                        w.write("0x{:02x},".format(railInfo[10 + i]))
-                    rail_data = railInfo[14]
-                    w.write("{0},".format(rail_data))
-                    originRailList = []
-                    for i in range(rail_data):
-                        originRailInfo = []
-                        for j in range(4):
-                            # next_rail, prev_rail
-                            if j % 2 == 0:
-                                if railInfo[15 + 4 * i + j + 1] == -1:
-                                    originRailInfo.append([-1, -1])
-                                else:
-                                    originRailInfo.append([railInfo[15 + 4 * i + j], railInfo[15 + 4 * i + j + 1]])
-                            w.write("{0},".format(railInfo[15 + 4 * i + j]))
-                        originRailList.append(originRailInfo)
-
-                    originRailList.reverse()
-                    for originRailNextPrevInfo in originRailList:
-                        originRailNextPrevInfo.reverse()
-                        for i in range(len(originRailNextPrevInfo)):
-                            originRailNoInfo = originRailNextPrevInfo[i]
-                            w.write("{0},".format(originRailNoInfo[0]))
-                            newRailInfo.append(originRailNoInfo[0])
-                            if originRailNoInfo[0] == -1:
-                                w.write("{0},".format(-1))
-                                newRailInfo.append(-1)
-                                continue
-                            # next_no rev (origin_prev_no)
-                            if i == 0:
-                                prevRailMaxHorizonNum = (allModelRailCount[originRailNoInfo[0]] - 1) * 100
-                                prevRailHorizonNum = (originRailNoInfo[1] // 100) * 100
-                                nextRevRailHorizonNum = prevRailMaxHorizonNum - prevRailHorizonNum
-                                w.write("{0},".format(nextRevRailHorizonNum))
-                                newRailInfo.append(nextRevRailHorizonNum)
-                            # prev_no rev (origin_next_no)
-                            else:
-                                nextRailMaxHorizonNum = (allModelRailCount[originRailNoInfo[0]] - 1) * 100
-                                nextRailHorizonNum = (originRailNoInfo[1] // 100) * 100
-                                prevRevRailHorizonNum = nextRailMaxHorizonNum - nextRailHorizonNum
-                                mdlNo = self.railList[originRailNoInfo[0]][6]
-                                railLen = allModelRailLen[mdlNo]
-                                prevRevRailHorizonNum += (railLen - 1)
-                                w.write("{0},".format(prevRevRailHorizonNum))
-                                newRailInfo.append(prevRevRailHorizonNum)
-                    newRailList.append(newRailInfo)
-                    w.write("\n")
-                w.close()
-
-                self.decryptFile.ver = "DEND_MAP_VER0400"
-                self.decryptFile.byteArr[13] = 0x34
-                path = os.path.join(directory, name + ".BIN")
-                self.decryptFile.filePath = path
-                if not self.decryptFile.saveRailCsv(newRailList):
-                    self.decryptFile.printError()
-                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-                    return
-                mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I89"])
-                self.reloadFunc()
-
-            except Exception:
-                error = traceback.format_exc()
-                error += "\n"
-                error += textSetting.textList["errorList"]["E128"].format(currentRailNo)
-                error += "{0}".format(self.railList[currentRailNo][15:])
-                self.errObj.write(error)
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
+        revRailList = self.decryptFile.createRevRailList()
+        if revRailList is None:
+            self.decryptFile.printError()
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+            return
+        if not self.decryptFile.createRevRailFile(revRailList, file_path):
+            self.decryptFile.printError()
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E134"])
+            return
+        mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I89"])
+        self.reloadFunc()
 
     def csToRs(self):
-        filename = self.decryptFile.filename + "_RS.bin"
-        file_path = fd.asksaveasfilename(initialfile=filename, defaultextension="bin", filetypes=[(textSetting.textList["railEditor"]["railCsToRsBinType"], "*.bin")])
-        if file_path:
-            newByteArr = self.decryptFile.csToRs()
-            if newByteArr is None:
-                self.decryptFile.printError()
-                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E72"])
-                return
+        filename = self.decryptFile.filename + "_RS.BIN"
+        fileTypes = "{0} ({1})".format(textSetting.textList["railEditor"]["railCsToRsBinType"], "*.bin")
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "",
+            filename,
+            fileTypes
+        )
+        if not file_path:
+            return
 
-            w = open(file_path, "wb")
-            w.write(newByteArr)
-            w.close()
-
-            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I90"])
+        newByteArr = self.decryptFile.csToRs()
+        if newByteArr is None:
+            self.decryptFile.printError()
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E72"])
+            return
+        self.decryptFile.createCsToRsRailFile(newByteArr, file_path)
+        mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I90"])

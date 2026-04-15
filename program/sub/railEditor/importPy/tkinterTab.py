@@ -22,7 +22,7 @@ from program.sub.railEditor.importPy.tab6.cpuWidget import CpuWidget
 from program.sub.railEditor.importPy.tab7.comicScriptWidget import ComicScriptWidget
 from program.sub.railEditor.importPy.tab7.dosansenListWidget import DosansenListWidget
 
-# from program.railEditor.importPy.tab8.railListWidget import RailListWidget
+from program.sub.railEditor.importPy.tab8.railListWidget import RailListWidget
 
 from program.sub.railEditor.importPy.tab9.else3ListWidget import Else3ListWidget
 
@@ -149,10 +149,13 @@ def tab7AllWidget(contentFrame, decryptFile, reloadFunc):
         tab7Layout.addWidget(dosansenListWidget, stretch=7)
 
 
-def tab8AllWidget(tabFrame, decryptFile, rootFrameAppearance, reloadFunc):
-    frame = ScrollbarFrame(tabFrame, True, bgColor=rootFrameAppearance.bgColor)
-    frame.pack(expand=True, fill=tkinter.BOTH)
-    RailListWidget(frame.interior, decryptFile, decryptFile.railList, rootFrameAppearance, reloadFunc)
+def tab8AllWidget(contentFrame, decryptFile, reloadFunc):
+    tab8Layout = QHBoxLayout()
+    tab8Layout.setContentsMargins(0, 0, 0, 0)
+    contentFrame.setLayout(tab8Layout)
+
+    railListWidget = RailListWidget(decryptFile, reloadFunc)
+    tab8Layout.addWidget(railListWidget)
 
 
 def tab9AllWidget(contentFrame, decryptFile, reloadFunc, selectId):
