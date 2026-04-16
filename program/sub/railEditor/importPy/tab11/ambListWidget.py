@@ -1,755 +1,1070 @@
-import tkinter
-from tkinter import messagebox as mb
-from tkinter import filedialog as fd
-import program.textSetting as textSetting
-import program.appearance.ttkCustomWidget as ttkCustomWidget
-from program.appearance.customSimpleDialog import CustomSimpleDialog
+import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
+
+from PySide6.QtWidgets import (
+    QWidget, QFrame, QVBoxLayout, QHBoxLayout, QGridLayout,
+    QLabel, QLineEdit, QPushButton, QGroupBox,
+    QComboBox, QSizePolicy, QFileDialog
+)
+from PySide6.QtGui import QFont, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QRegularExpression
+
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
-class AmbListWidget:
-    def __init__(self, frame, decryptFile, ambList, rootFrameAppearance, reloadFunc):
-        self.frame = frame
+class AmbListWidget(QWidget):
+    def __init__(self, decryptFile, reloadFunc):
+        super().__init__()
         self.decryptFile = decryptFile
         self.smfList = [smfInfo[0] for smfInfo in decryptFile.smfList]
-        self.ambList = ambList
-        self.varList = []
-        self.varChildList = []
+        self.smfList.append("なし")
+        self.ambList = decryptFile.ambList
         self.reloadFunc = reloadFunc
+        self.font2 = QFont(textSetting.textList["font6"][0], textSetting.textList["font2"][1])
 
-        #
-        ambNoFrame = ttkCustomWidget.CustomTtkFrame(self.frame)
-        ambNoFrame.pack(anchor=tkinter.NW, padx=30, pady=30)
-        ambNoLb = ttkCustomWidget.CustomTtkLabel(ambNoFrame, text=textSetting.textList["railEditor"]["ambAmbNo"], font=textSetting.textList["font2"])
-        ambNoLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
-        self.v_ambNo = tkinter.IntVar()
-        ambNoEt = ttkCustomWidget.CustomTtkEntry(ambNoFrame, textvariable=self.v_ambNo, font=textSetting.textList["font2"], width=7, justify="center")
-        ambNoEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10)
-        searchBtn = ttkCustomWidget.CustomTtkButton(ambNoFrame, text=textSetting.textList["railEditor"]["ambSearchBtnLabel"], command=lambda: self.searchAmb(self.v_ambNo.get()))
-        searchBtn.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=30)
+        # mainLayout
+        mainLayout = QVBoxLayout(self)
+        mainLayout.addLayout(self.setFirstHorizontalLayout())
 
-        csvExtractBtn = ttkCustomWidget.CustomTtkButton(ambNoFrame, width=25, text=textSetting.textList["railEditor"]["ambCsvExtractLabel"], command=self.extractCsv)
-        csvExtractBtn.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=5)
-        csvSaveBtn = ttkCustomWidget.CustomTtkButton(ambNoFrame, width=25, text=textSetting.textList["railEditor"]["ambCsvSaveLabel"], command=self.saveCsv)
-        csvSaveBtn.grid(row=0, column=4, sticky=tkinter.W + tkinter.E, padx=5)
-
-        ###
-        sidePackFrame = ttkCustomWidget.CustomTtkFrame(self.frame)
-        sidePackFrame.pack(anchor=tkinter.NW)
-
-        #
         if self.decryptFile.game in ["CS", "RS"]:
-            ambInfoLf = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["ambInfoLabel"])
-            ambInfoLf.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=30, pady=15)
-
-            typeLb = ttkCustomWidget.CustomTtkLabel(ambInfoLf, text=textSetting.textList["railEditor"]["ambType"], font=textSetting.textList["font2"])
-            typeLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_type = tkinter.IntVar()
-            typeEt = ttkCustomWidget.CustomTtkEntry(ambInfoLf, textvariable=self.v_type, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            typeEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            lengthLb = ttkCustomWidget.CustomTtkLabel(ambInfoLf, text=textSetting.textList["railEditor"]["ambLength"], font=textSetting.textList["font2"])
-            lengthLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_length = tkinter.IntVar()
-            lengthEt = ttkCustomWidget.CustomTtkEntry(ambInfoLf, textvariable=self.v_length, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            lengthEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            railNoLb = ttkCustomWidget.CustomTtkLabel(ambInfoLf, text=textSetting.textList["railEditor"]["ambRailNo"], font=textSetting.textList["font2"])
-            railNoLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_railNo = tkinter.IntVar()
-            railNoEt = ttkCustomWidget.CustomTtkEntry(ambInfoLf, textvariable=self.v_railNo, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            railNoEt.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            railPosLb = ttkCustomWidget.CustomTtkLabel(ambInfoLf, text=textSetting.textList["railEditor"]["ambRailPos"], font=textSetting.textList["font2"])
-            railPosLb.grid(row=3, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_railPos = tkinter.IntVar()
-            railPosEt = ttkCustomWidget.CustomTtkEntry(ambInfoLf, textvariable=self.v_railPos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            railPosEt.grid(row=3, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            #
-            xyzFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["ambPosDirInfo"])
-            xyzFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, pady=15)
-            xPosLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambBasePosX"], font=textSetting.textList["font2"])
-            xPosLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_xPos = tkinter.DoubleVar()
-            xPosEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_xPos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            xPosEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            yPosLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambBasePosY"], font=textSetting.textList["font2"])
-            yPosLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_yPos = tkinter.DoubleVar()
-            yPosEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_yPos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            yPosEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            zPosLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambBasePosZ"], font=textSetting.textList["font2"])
-            zPosLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_zPos = tkinter.DoubleVar()
-            zPosEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_zPos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            zPosEt.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            xRotLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambBaseDirX"], font=textSetting.textList["font2"])
-            xRotLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_xRot = tkinter.DoubleVar()
-            xRotEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_xRot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            xRotEt.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            yRotLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambBaseDirY"], font=textSetting.textList["font2"])
-            yRotLb.grid(row=1, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_yRot = tkinter.DoubleVar()
-            yRotEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_yRot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            yRotEt.grid(row=1, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            zRotLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambBaseDirZ"], font=textSetting.textList["font2"])
-            zRotLb.grid(row=2, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_zRot = tkinter.DoubleVar()
-            zRotEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_zRot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            zRotEt.grid(row=2, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            #
-            ambInfo2Frame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["ambInfo2Label"])
-            ambInfo2Frame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=30, pady=15)
-
-            priorityLb = ttkCustomWidget.CustomTtkLabel(ambInfo2Frame, text=textSetting.textList["railEditor"]["ambPriority"], font=textSetting.textList["font2"])
-            priorityLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_priority = tkinter.IntVar()
-            priorityEt = ttkCustomWidget.CustomTtkEntry(ambInfo2Frame, textvariable=self.v_priority, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            priorityEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            fogLb = ttkCustomWidget.CustomTtkLabel(ambInfo2Frame, text=textSetting.textList["railEditor"]["ambFog"], font=textSetting.textList["font2"])
-            fogLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_fog = tkinter.IntVar()
-            fogEt = ttkCustomWidget.CustomTtkEntry(ambInfo2Frame, textvariable=self.v_fog, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            fogEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+            mainLayout.addLayout(self.setDefaultSecondHorizontalLayout())
+            mainLayout.addLayout(self.setDefaultAmbModelInfoLayout())
+            # ambChildInfoLayout
+            self.ambChildInfoLayout = QHBoxLayout()
+            self.ambChildInfoLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+            mainLayout.addLayout(self.ambChildInfoLayout)
         elif self.decryptFile.game == "BS":
-            ambInfo2Frame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["ambInfoLabel"])
-            ambInfo2Frame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=30, pady=15)
-
-            railNoLb = ttkCustomWidget.CustomTtkLabel(ambInfo2Frame, text=textSetting.textList["railEditor"]["ambRailNo"], font=textSetting.textList["font2"])
-            railNoLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_railNo = tkinter.IntVar()
-            railNoEt = ttkCustomWidget.CustomTtkEntry(ambInfo2Frame, textvariable=self.v_railNo, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            railNoEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            priorityLb = ttkCustomWidget.CustomTtkLabel(ambInfo2Frame, text=textSetting.textList["railEditor"]["ambPriority"], font=textSetting.textList["font2"])
-            priorityLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_priority = tkinter.IntVar()
-            priorityEt = ttkCustomWidget.CustomTtkEntry(ambInfo2Frame, textvariable=self.v_priority, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            priorityEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            fogLb = ttkCustomWidget.CustomTtkLabel(ambInfo2Frame, text=textSetting.textList["railEditor"]["ambFog"], font=textSetting.textList["font2"])
-            fogLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_fog = tkinter.IntVar()
-            fogEt = ttkCustomWidget.CustomTtkEntry(ambInfo2Frame, textvariable=self.v_fog, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            fogEt.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-        elif self.decryptFile.game == "LS" or (self.decryptFile.game == "LSTrial" and not self.decryptFile.oldFlag):
-            ambInfo2Frame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["ambInfoLabel"])
-            ambInfo2Frame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=30, pady=15)
-
-            railNoLb = ttkCustomWidget.CustomTtkLabel(ambInfo2Frame, text=textSetting.textList["railEditor"]["ambRailNo"], font=textSetting.textList["font2"])
-            railNoLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_railNo = tkinter.IntVar()
-            railNoEt = ttkCustomWidget.CustomTtkEntry(ambInfo2Frame, textvariable=self.v_railNo, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            railNoEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            posLb = ttkCustomWidget.CustomTtkLabel(ambInfo2Frame, text=textSetting.textList["railEditor"]["ambLsPos"], font=textSetting.textList["font2"])
-            posLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_pos = tkinter.IntVar()
-            posEt = ttkCustomWidget.CustomTtkEntry(ambInfo2Frame, textvariable=self.v_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            posEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            railPosLb = ttkCustomWidget.CustomTtkLabel(ambInfo2Frame, text=textSetting.textList["railEditor"]["ambRailPos"], font=textSetting.textList["font2"])
-            railPosLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_railPos = tkinter.IntVar()
-            railPosEt = ttkCustomWidget.CustomTtkEntry(ambInfo2Frame, textvariable=self.v_railPos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            railPosEt.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            mdlNoLb = ttkCustomWidget.CustomTtkLabel(ambInfo2Frame, text=textSetting.textList["railEditor"]["ambLsModel"], font=textSetting.textList["font2"])
-            mdlNoLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.mdlNoCb = ttkCustomWidget.CustomTtkCombobox(ambInfo2Frame, width=40, values=self.smfList, state="disabled")
-            self.mdlNoCb.grid(row=2, column=1, columnspan=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            animeNoLb = ttkCustomWidget.CustomTtkLabel(ambInfo2Frame, text=textSetting.textList["railEditor"]["ambLsAnime"], font=textSetting.textList["font2"])
-            animeNoLb.grid(row=1, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_animeNo = tkinter.IntVar()
-            animeNoEt = ttkCustomWidget.CustomTtkEntry(ambInfo2Frame, textvariable=self.v_animeNo, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            animeNoEt.grid(row=1, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-        elif self.decryptFile.game == "LSTrial" and self.decryptFile.oldFlag:
-            #
-            xyzFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["railPosXyzInfo"])
-            xyzFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=25, pady=15)
-            xLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railPosX"], font=textSetting.textList["font2"])
-            xLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_x_pos = tkinter.DoubleVar()
-            x_posEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_x_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            x_posEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            yLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railPosY"], font=textSetting.textList["font2"])
-            yLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_y_pos = tkinter.DoubleVar()
-            y_posEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_y_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            y_posEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            zLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railPosZ"], font=textSetting.textList["font2"])
-            zLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_z_pos = tkinter.DoubleVar()
-            z_posEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_z_pos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            z_posEt.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            #
-            xLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirX"], font=textSetting.textList["font2"])
-            xLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_x_dir = tkinter.DoubleVar()
-            x_dirEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_x_dir, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            x_dirEt.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            yLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirY"], font=textSetting.textList["font2"])
-            yLb.grid(row=1, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_y_dir = tkinter.DoubleVar()
-            y_dirEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_y_dir, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            y_dirEt.grid(row=1, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            zLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["railDirZ"], font=textSetting.textList["font2"])
-            zLb.grid(row=2, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_z_dir = tkinter.DoubleVar()
-            z_dirEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_z_dir, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            z_dirEt.grid(row=2, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            ###
-            railFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["railEditor"]["railRailInfo"])
-            railFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-            nextLb = ttkCustomWidget.CustomTtkLabel(railFrame, text=textSetting.textList["railEditor"]["railNextRail"], font=textSetting.textList["font2"])
-            nextLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_next = tkinter.StringVar()
-            nextEt = ttkCustomWidget.CustomTtkEntry(railFrame, textvariable=self.v_next, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            nextEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            prevLb = ttkCustomWidget.CustomTtkLabel(railFrame, text=textSetting.textList["railEditor"]["railPrevRail"], font=textSetting.textList["font2"])
-            prevLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_prev = tkinter.StringVar()
-            prevEt = ttkCustomWidget.CustomTtkEntry(railFrame, textvariable=self.v_prev, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            prevEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            ###
-            sidePackFrame2 = ttkCustomWidget.CustomTtkFrame(self.frame)
-            sidePackFrame2.pack(anchor=tkinter.NW, padx=20)
-
-            kasenFrame = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame2, text=textSetting.textList["railEditor"]["railModelKasenInfo"])
-            kasenFrame.pack(anchor=tkinter.NW, side=tkinter.LEFT, padx=5, pady=15)
-            leftMdlNoLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railModelLabel"], font=textSetting.textList["font2"])
-            leftMdlNoLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.leftMdlNoCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-            self.leftMdlNoCb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            rightMdlNoLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railModelLabel"], font=textSetting.textList["font2"])
-            rightMdlNoLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.rightMdlNoCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-            self.rightMdlNoCb.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            mdlKasenchuLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railKasenchuLabel"], font=textSetting.textList["font2"])
-            mdlKasenchuLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.mdlKasenchuCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-            self.mdlKasenchuCb.grid(row=0, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            fixAmbLb = ttkCustomWidget.CustomTtkLabel(kasenFrame, text=textSetting.textList["railEditor"]["railFixAmbLabel"], font=textSetting.textList["font2"])
-            fixAmbLb.grid(row=1, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.fixAmbCb = ttkCustomWidget.CustomTtkCombobox(kasenFrame, width=25, font=textSetting.textList["font2"], values=self.smfList, state="disabled")
-            self.fixAmbCb.grid(row=1, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-
-            self.ambChildModelLf = ttkCustomWidget.CustomTtkLabelFrame(self.frame, text=textSetting.textList["railEditor"]["ambInfo2Label"])
-            self.ambChildModelLf.pack(anchor=tkinter.NW, padx=25, pady=15)
-
-        #
-        if self.decryptFile.game in ["BS", "CS", "RS"]:
-            ambModelLf = ttkCustomWidget.CustomTtkLabelFrame(self.frame, text=textSetting.textList["railEditor"]["ambModelInfo"])
-            ambModelLf.pack(anchor=tkinter.NW, padx=30, pady=15)
-            self.setAmbInfo(ambModelLf, True)
-
-        #
-        if self.decryptFile.game in ["CS", "RS"]:
-            self.ambChildModelLf = ttkCustomWidget.CustomTtkLabelFrame(self.frame, text=textSetting.textList["railEditor"]["ambChildModelInfo"])
-            self.ambChildModelLf.pack(anchor=tkinter.NW, padx=30, pady=15)
-
-        self.searchAmb(self.v_ambNo.get())
-
-    def setAmbInfo(self, frame, flag):
-        mdlNoFrame = ttkCustomWidget.CustomTtkFrame(frame)
-        mdlNoFrame.pack(anchor=tkinter.NW)
-        if self.decryptFile.game in ["CS", "RS"]:
-            mdlNoLb = ttkCustomWidget.CustomTtkLabel(mdlNoFrame, text=textSetting.textList["railEditor"]["ambModelSmf"], font=textSetting.textList["font2"])
-            mdlNoLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            mdlNoCb = ttkCustomWidget.CustomTtkCombobox(mdlNoFrame, width=40, values=self.smfList, state="disabled")
-            mdlNoCb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            if flag:
-                self.varList.append(mdlNoCb)
+            mainLayout.addLayout(self.setBsSecondHorizontalLayout())
+            mainLayout.addLayout(self.setBsAmbModelInfoLayout())
+        elif self.decryptFile.game == "LS":
+            mainLayout.addLayout(self.setLsSecondHorizontalLayout())
+        elif self.decryptFile.game == "LSTrial":
+            if not self.decryptFile.oldFlag:
+                mainLayout.addLayout(self.setLsSecondHorizontalLayout())
             else:
-                self.varChildList.append(mdlNoCb)
+                mainLayout.addLayout(self.setLsTrialOldSecondHorizontalLayout())
+                mainLayout.addLayout(self.setLsTrialOldModelInfoLayout())
+                # ambAddInfoLayout
+                self.ambAddInfoLayout = QHBoxLayout()
+                self.ambAddInfoLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+                mainLayout.addLayout(self.ambAddInfoLayout)
 
-            xyzFrame = ttkCustomWidget.CustomTtkFrame(frame)
-            xyzFrame.pack(anchor=tkinter.NW)
-            xMdlPosLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelPosX"], font=textSetting.textList["font2"])
-            xMdlPosLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_xMdlPos = tkinter.DoubleVar()
-            if flag:
-                self.varList.append(self.v_xMdlPos)
-            else:
-                self.varChildList.append(self.v_xMdlPos)
-            xMdlPosEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_xMdlPos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            xMdlPosEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        mainLayout.addStretch(1)
 
-            yMdlPosLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelPosY"], font=textSetting.textList["font2"])
-            yMdlPosLb.grid(row=1, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_yMdlPos = tkinter.DoubleVar()
-            if flag:
-                self.varList.append(self.v_yMdlPos)
-            else:
-                self.varChildList.append(self.v_yMdlPos)
-            yMdlPosEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_yMdlPos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            yMdlPosEt.grid(row=1, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+    def setFirstHorizontalLayout(self):
+        buttonWidth = 180
+        buttonHeight = 28
+        lineEditWidth = 86
+        lineEditHeight = 40
 
-            zMdlPosLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelPosZ"], font=textSetting.textList["font2"])
-            zMdlPosLb.grid(row=1, column=4, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_zMdlPos = tkinter.DoubleVar()
-            if flag:
-                self.varList.append(self.v_zMdlPos)
-            else:
-                self.varChildList.append(self.v_zMdlPos)
-            zMdlPosEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_zMdlPos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            zMdlPosEt.grid(row=1, column=5, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
+        # space
+        horizontalLayout.addSpacing(20)
+        # horizontalLayout - ambNoLayout
+        ambNoLayout = QHBoxLayout()
+        ambNoLayout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        horizontalLayout.addLayout(ambNoLayout)
+        # horizontalLayout - ambNoLayout - ambNoNameLabel
+        ambNoNameLabel = QLabel(textSetting.textList["railEditor"]["ambAmbNo"], font=self.font2)
+        ambNoLayout.addWidget(ambNoNameLabel)
+        # space
+        ambNoLayout.addSpacing(15)
+        # horizontalLayout - ambNoLayout - ambNo
+        self.ambNoLineEdit = QLineEdit("0", font=self.font2)
+        self.ambNoLineEdit.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        self.ambNoLineEdit.setFixedSize(lineEditWidth, lineEditHeight)
+        self.ambNoLineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
+        self.ambNoLineEdit.setValidator(integerValidator)
+        ambNoLayout.addWidget(self.ambNoLineEdit)
+        # space
+        ambNoLayout.addSpacing(30)
+        # horizontalLayout - ambNoLayout - searchAmbButton
+        searchAmbButton = QPushButton(textSetting.textList["railEditor"]["ambSearchBtnLabel"])
+        searchAmbButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        searchAmbButton.clicked.connect(self.searchAmb)
+        ambNoLayout.addWidget(searchAmbButton)
 
-            xMdlRotLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelDirX"], font=textSetting.textList["font2"])
-            xMdlRotLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_xMdlRot = tkinter.DoubleVar()
-            if flag:
-                self.varList.append(self.v_xMdlRot)
-            else:
-                self.varChildList.append(self.v_xMdlRot)
-            xMdlRotEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_xMdlRot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            xMdlRotEt.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # space
+        horizontalLayout.addSpacing(60)
+        # horizontalLayout - csvButtonLayout
+        csvButtonLayout = QHBoxLayout()
+        horizontalLayout.addLayout(csvButtonLayout)
+        # horizontalLayout - csvButtonLayout - csvExtractButton
+        csvExtractButton = QPushButton(textSetting.textList["railEditor"]["ambCsvExtractLabel"])
+        csvExtractButton.setFixedSize(buttonWidth, buttonHeight)
+        csvExtractButton.clicked.connect(self.extractCsv)
+        csvButtonLayout.addWidget(csvExtractButton)
+        # space
+        csvButtonLayout.addSpacing(20)
+        # horizontalLayout - csvButtonLayout - csvSaveButton
+        csvSaveButton = QPushButton(textSetting.textList["railEditor"]["ambCsvSaveLabel"])
+        csvSaveButton.setFixedSize(buttonWidth, buttonHeight)
+        csvSaveButton.clicked.connect(self.saveCsv)
+        csvButtonLayout.addWidget(csvSaveButton)
+        # horizontalLayout - stretch
+        horizontalLayout.addStretch(1)
+        return horizontalLayout
 
-            yMdlRotLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelDirY"], font=textSetting.textList["font2"])
-            yMdlRotLb.grid(row=2, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_yMdlRot = tkinter.DoubleVar()
-            if flag:
-                self.varList.append(self.v_yMdlRot)
-            else:
-                self.varChildList.append(self.v_yMdlRot)
-            yMdlRotEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_yMdlRot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            yMdlRotEt.grid(row=2, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+    def setDefaultSecondHorizontalLayout(self):
+        labelWidth = 66
+        labelHeight = 30
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
 
-            zMdlRotLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelDirZ"], font=textSetting.textList["font2"])
-            zMdlRotLb.grid(row=2, column=4, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_zMdlRot = tkinter.DoubleVar()
-            if flag:
-                self.varList.append(self.v_zMdlRot)
-            else:
-                self.varChildList.append(self.v_zMdlRot)
-            zMdlRotEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_zMdlRot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            zMdlRotEt.grid(row=2, column=5, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # QGroupBox
+        ambInfoGroupBox = QGroupBox(textSetting.textList["railEditor"]["ambInfoLabel"])
+        horizontalLayout.addWidget(ambInfoGroupBox)
+        # QGroupBox - QGridLayout
+        ambInfoGridLayout = QGridLayout()
+        ambInfoGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        ambInfoGridLayout.setVerticalSpacing(20)
+        ambInfoGroupBox.setLayout(ambInfoGridLayout)
+        # typeNameLabel
+        typeNameLabel = QLabel(textSetting.textList["railEditor"]["ambType"], font=self.font2)
+        ambInfoGridLayout.addWidget(typeNameLabel, 0, 0)
+        # typeLabel
+        self.typeLabel = QLabel("", font=self.font2)
+        self.typeLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.typeLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.typeLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfoGridLayout.addWidget(self.typeLabel, 0, 1)
+        # lengthNameLabel
+        lengthNameLabel = QLabel(textSetting.textList["railEditor"]["ambLength"], font=self.font2)
+        ambInfoGridLayout.addWidget(lengthNameLabel, 1, 0)
+        # lengthLabel
+        self.lengthLabel = QLabel("", font=self.font2)
+        self.lengthLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.lengthLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lengthLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfoGridLayout.addWidget(self.lengthLabel, 1, 1)
+        # railNoNameLabel
+        railNoNameLabel = QLabel(textSetting.textList["railEditor"]["ambRailNo"], font=self.font2)
+        ambInfoGridLayout.addWidget(railNoNameLabel, 2, 0)
+        # railNoLabel
+        self.railNoLabel = QLabel("", font=self.font2)
+        self.railNoLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railNoLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railNoLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfoGridLayout.addWidget(self.railNoLabel, 2, 1)
+        # railPosNameLabel
+        railPosNameLabel = QLabel(textSetting.textList["railEditor"]["ambRailPos"], font=self.font2)
+        ambInfoGridLayout.addWidget(railPosNameLabel, 3, 0)
+        # railPosLabel
+        self.railPosLabel = QLabel("", font=self.font2)
+        self.railPosLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railPosLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railPosLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfoGridLayout.addWidget(self.railPosLabel, 3, 1)
 
-            xMdlRot2Lb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelRotX"], font=textSetting.textList["font2"])
-            xMdlRot2Lb.grid(row=3, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_xMdlRot2 = tkinter.DoubleVar()
-            if flag:
-                self.varList.append(self.v_xMdlRot2)
-            else:
-                self.varChildList.append(self.v_xMdlRot2)
-            xMdlRot2Et = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_xMdlRot2, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            xMdlRot2Et.grid(row=3, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # QGroupBox
+        ambXyzGroupBox = QGroupBox(textSetting.textList["railEditor"]["ambPosDirInfo"])
+        horizontalLayout.addWidget(ambXyzGroupBox)
+        # QGroupBox - QGridLayout
+        ambXyzGridLayout = QGridLayout()
+        ambXyzGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        ambXyzGridLayout.setVerticalSpacing(20)
+        ambXyzGroupBox.setLayout(ambXyzGridLayout)
+        # ambBasePosXNameLabel
+        ambBasePosXNameLabel = QLabel(textSetting.textList["railEditor"]["ambBasePosX"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambBasePosXNameLabel, 0, 0)
+        # ambBasePosXLabel
+        self.ambBasePosXLabel = QLabel("", font=self.font2)
+        self.ambBasePosXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambBasePosXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambBasePosXLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambBasePosXLabel, 0, 1)
+        # ambBasePosYNameLabel
+        ambBasePosYNameLabel = QLabel(textSetting.textList["railEditor"]["ambBasePosY"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambBasePosYNameLabel, 1, 0)
+        # ambBasePosYLabel
+        self.ambBasePosYLabel = QLabel("", font=self.font2)
+        self.ambBasePosYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambBasePosYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambBasePosYLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambBasePosYLabel, 1, 1)
+        # ambBasePosZNameLabel
+        ambBasePosZNameLabel = QLabel(textSetting.textList["railEditor"]["ambBasePosZ"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambBasePosZNameLabel, 2, 0)
+        # ambBasePosZLabel
+        self.ambBasePosZLabel = QLabel("", font=self.font2)
+        self.ambBasePosZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambBasePosZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambBasePosZLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambBasePosZLabel, 2, 1)
+        # ambBaseRotXNameLabel
+        ambBaseRotXNameLabel = QLabel(textSetting.textList["railEditor"]["ambBaseDirX"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambBaseRotXNameLabel, 0, 2)
+        # ambBaseRotXLabel
+        self.ambBaseRotXLabel = QLabel("", font=self.font2)
+        self.ambBaseRotXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambBaseRotXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambBaseRotXLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambBaseRotXLabel, 0, 3)
+        # ambBaseRotYNameLabel
+        ambBaseRotYNameLabel = QLabel(textSetting.textList["railEditor"]["ambBaseDirY"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambBaseRotYNameLabel, 1, 2)
+        # ambBaseRotYLabel
+        self.ambBaseRotYLabel = QLabel("", font=self.font2)
+        self.ambBaseRotYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambBaseRotYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambBaseRotYLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambBaseRotYLabel, 1, 3)
+        # ambBaseRotZNameLabel
+        ambBaseRotZNameLabel = QLabel(textSetting.textList["railEditor"]["ambBaseDirZ"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambBaseRotZNameLabel, 2, 2)
+        # ambBaseRotZLabel
+        self.ambBaseRotZLabel = QLabel("", font=self.font2)
+        self.ambBaseRotZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambBaseRotZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambBaseRotZLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambBaseRotZLabel, 2, 3)
 
-            yMdlRot2Lb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelRotY"], font=textSetting.textList["font2"])
-            yMdlRot2Lb.grid(row=3, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_yMdlRot2 = tkinter.DoubleVar()
-            if flag:
-                self.varList.append(self.v_yMdlRot2)
-            else:
-                self.varChildList.append(self.v_yMdlRot2)
-            yMdlRot2Et = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_yMdlRot2, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            yMdlRot2Et.grid(row=3, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # QGroupBox
+        ambInfo2GroupBox = QGroupBox(textSetting.textList["railEditor"]["ambInfo2Label"])
+        horizontalLayout.addWidget(ambInfo2GroupBox)
+        # QGroupBox - QGridLayout
+        ambInfo2GridLayout = QGridLayout()
+        ambInfo2GridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        ambInfo2GridLayout.setVerticalSpacing(20)
+        ambInfo2GroupBox.setLayout(ambInfo2GridLayout)
+        # priorityNameLabel
+        priorityNameLabel = QLabel(textSetting.textList["railEditor"]["ambPriority"], font=self.font2)
+        ambInfo2GridLayout.addWidget(priorityNameLabel, 0, 0)
+        # priorityLabel
+        self.priorityLabel = QLabel("", font=self.font2)
+        self.priorityLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.priorityLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.priorityLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfo2GridLayout.addWidget(self.priorityLabel, 0, 1)
+        # fogNameLabel
+        fogNameLabel = QLabel(textSetting.textList["railEditor"]["ambFog"], font=self.font2)
+        ambInfo2GridLayout.addWidget(fogNameLabel, 1, 0)
+        # fogLabel
+        self.fogLabel = QLabel("", font=self.font2)
+        self.fogLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.fogLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.fogLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfo2GridLayout.addWidget(self.fogLabel, 1, 1)
+        # horizontalLayout - stretch
+        horizontalLayout.addStretch(1)
+        return horizontalLayout
 
-            zMdlRot2Lb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelRotZ"], font=textSetting.textList["font2"])
-            zMdlRot2Lb.grid(row=3, column=4, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_zMdlRot2 = tkinter.DoubleVar()
-            if flag:
-                self.varList.append(self.v_zMdlRot2)
-            else:
-                self.varChildList.append(self.v_zMdlRot2)
-            zMdlRot2Et = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_zMdlRot2, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            zMdlRot2Et.grid(row=3, column=5, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+    def setDefaultAmbModelInfoLayout(self):
+        labelWidth = 66
+        labelHeight = 30
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
 
-            perLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelPer"], font=textSetting.textList["font2"])
-            perLb.grid(row=4, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_per = tkinter.DoubleVar()
-            if flag:
-                self.varList.append(self.v_per)
-            else:
-                self.varChildList.append(self.v_per)
-            perEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_per, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            perEt.grid(row=4, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-        elif self.decryptFile.game == "BS":
-            mdlNoLb = ttkCustomWidget.CustomTtkLabel(mdlNoFrame, text=textSetting.textList["railEditor"]["ambModelBsSmf"], font=textSetting.textList["font2"])
-            mdlNoLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            mdlNoCb = ttkCustomWidget.CustomTtkCombobox(mdlNoFrame, width=40, values=self.smfList, state="disabled")
-            mdlNoCb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.varList.append(mdlNoCb)
+        # QGroupBox
+        ambModelInfoGroupBox = QGroupBox(textSetting.textList["railEditor"]["ambModelInfo"])
+        horizontalLayout.addWidget(ambModelInfoGroupBox)
+        # QGroupBox - ambModelInfoInLayout
+        ambModelInfoInLayout = QVBoxLayout()
+        ambModelInfoGroupBox.setLayout(ambModelInfoInLayout)
 
-            mdlDetailNoLb = ttkCustomWidget.CustomTtkLabel(mdlNoFrame, text=textSetting.textList["railEditor"]["ambModelBsDetail"], font=textSetting.textList["font2"])
-            mdlDetailNoLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_mdlDetailNo = tkinter.IntVar()
-            self.varList.append(self.v_mdlDetailNo)
-            mdlDetailNoEt = ttkCustomWidget.CustomTtkEntry(mdlNoFrame, textvariable=self.v_mdlDetailNo, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            mdlDetailNoEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # QGroupBox - ambModelInfoInLayout - QGridLayout
+        ambModelInfoGridLayout = QGridLayout()
+        ambModelInfoGridLayout.setVerticalSpacing(20)
+        ambModelInfoInLayout.addLayout(ambModelInfoGridLayout)
+        # QGroupBox - ambModelInfoInLayout - QGridLayout - modelNameLabel
+        modelNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelSmf"], font=self.font2)
+        ambModelInfoGridLayout.addWidget(modelNameLabel, 0, 0)
+        # QGroupBox - ambModelInfoInLayout - QGridLayout - modelNameCombo
+        self.modelNameCombo = QComboBox(font=self.font2)
+        self.modelNameCombo.addItem("")
+        self.modelNameCombo.addItems(self.smfList)
+        ambModelInfoGridLayout.addWidget(self.modelNameCombo, 0, 1)
 
-            xyzFrame = ttkCustomWidget.CustomTtkFrame(frame)
-            xyzFrame.pack(anchor=tkinter.NW)
-            xMdlPosLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelPosX"], font=textSetting.textList["font2"])
-            xMdlPosLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_xMdlPos = tkinter.DoubleVar()
-            self.varList.append(self.v_xMdlPos)
-            xMdlPosEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_xMdlPos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            xMdlPosEt.grid(row=2, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # spacing
+        ambModelInfoInLayout.addSpacing(20)
 
-            yMdlPosLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelPosY"], font=textSetting.textList["font2"])
-            yMdlPosLb.grid(row=2, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_yMdlPos = tkinter.DoubleVar()
-            self.varList.append(self.v_yMdlPos)
-            yMdlPosEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_yMdlPos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            yMdlPosEt.grid(row=2, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # QGroupBox - ambModelInfoInLayout - QGridLayout
+        ambXyzGridLayout = QGridLayout()
+        ambXyzGridLayout.setVerticalSpacing(20)
+        ambModelInfoInLayout.addLayout(ambXyzGridLayout)
+        # ambPosXNameLabel
+        ambPosXNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelPosX"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambPosXNameLabel, 0, 0)
+        # ambPosXLabel
+        self.ambPosXLabel = QLabel("", font=self.font2)
+        self.ambPosXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambPosXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambPosXLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambPosXLabel, 0, 1)
+        # ambPosYNameLabel
+        ambPosYNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelPosY"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambPosYNameLabel, 0, 2)
+        # ambPosYLabel
+        self.ambPosYLabel = QLabel("", font=self.font2)
+        self.ambPosYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambPosYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambPosYLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambPosYLabel, 0, 3)
+        # ambPosZNameLabel
+        ambPosZNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelPosZ"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambPosZNameLabel, 0, 4)
+        # ambPosZLabel
+        self.ambPosZLabel = QLabel("", font=self.font2)
+        self.ambPosZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambPosZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambPosZLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambPosZLabel, 0, 5)
 
-            zMdlPosLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelPosZ"], font=textSetting.textList["font2"])
-            zMdlPosLb.grid(row=2, column=4, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_zMdlPos = tkinter.DoubleVar()
-            self.varList.append(self.v_zMdlPos)
-            zMdlPosEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_zMdlPos, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            zMdlPosEt.grid(row=2, column=5, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # ambDirXNameLabel
+        ambDirXNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelDirX"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambDirXNameLabel, 1, 0)
+        # ambDirXLabel
+        self.ambDirXLabel = QLabel("", font=self.font2)
+        self.ambDirXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambDirXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambDirXLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambDirXLabel, 1, 1)
+        # ambDirYNameLabel
+        ambDirYNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelDirY"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambDirYNameLabel, 1, 2)
+        # ambDirYLabel
+        self.ambDirYLabel = QLabel("", font=self.font2)
+        self.ambDirYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambDirYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambDirYLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambDirYLabel, 1, 3)
+        # ambDirZNameLabel
+        ambDirZNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelDirZ"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambDirZNameLabel, 1, 4)
+        # ambDirZLabel
+        self.ambDirZLabel = QLabel("", font=self.font2)
+        self.ambDirZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambDirZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambDirZLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambDirZLabel, 1, 5)
 
-            xMdlRotLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelDirX"], font=textSetting.textList["font2"])
-            xMdlRotLb.grid(row=3, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_xMdlRot = tkinter.DoubleVar()
-            self.varList.append(self.v_xMdlRot)
-            xMdlRotEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_xMdlRot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            xMdlRotEt.grid(row=3, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # ambRotXNameLabel
+        ambRotXNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelRotX"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambRotXNameLabel, 2, 0)
+        # ambRotXLabel
+        self.ambRotXLabel = QLabel("", font=self.font2)
+        self.ambRotXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambRotXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambRotXLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambRotXLabel, 2, 1)
+        # ambRotYNameLabel
+        ambRotYNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelRotY"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambRotYNameLabel, 2, 2)
+        # ambRotYLabel
+        self.ambRotYLabel = QLabel("", font=self.font2)
+        self.ambRotYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambRotYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambRotYLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambRotYLabel, 2, 3)
+        # ambRotZNameLabel
+        ambRotZNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelRotZ"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambRotZNameLabel, 2, 4)
+        # ambRotZLabel
+        self.ambRotZLabel = QLabel("", font=self.font2)
+        self.ambRotZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambRotZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambRotZLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambRotZLabel, 2, 5)
 
-            yMdlRotLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelDirY"], font=textSetting.textList["font2"])
-            yMdlRotLb.grid(row=3, column=2, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_yMdlRot = tkinter.DoubleVar()
-            self.varList.append(self.v_yMdlRot)
-            yMdlRotEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_yMdlRot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            yMdlRotEt.grid(row=3, column=3, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # perNameLabel
+        perNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelPer"], font=self.font2)
+        ambXyzGridLayout.addWidget(perNameLabel, 3, 0)
+        # perLabel
+        self.perLabel = QLabel("", font=self.font2)
+        self.perLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.perLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambXyzGridLayout.addWidget(self.perLabel, 3, 1)
 
-            zMdlRotLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelDirZ"], font=textSetting.textList["font2"])
-            zMdlRotLb.grid(row=3, column=4, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_zMdlRot = tkinter.DoubleVar()
-            self.varList.append(self.v_zMdlRot)
-            zMdlRotEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_zMdlRot, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            zMdlRotEt.grid(row=3, column=5, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+        # horizontalLayout - stretch
+        horizontalLayout.addStretch(1)
+        return horizontalLayout
 
-            perLb = ttkCustomWidget.CustomTtkLabel(xyzFrame, text=textSetting.textList["railEditor"]["ambModelPer"], font=textSetting.textList["font2"])
-            perLb.grid(row=4, column=0, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
-            self.v_per = tkinter.DoubleVar()
-            self.varList.append(self.v_per)
-            perEt = ttkCustomWidget.CustomTtkEntry(xyzFrame, textvariable=self.v_per, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-            perEt.grid(row=4, column=1, sticky=tkinter.W + tkinter.E, padx=10, pady=10)
+    def setDefaultAmbChildModelInfoLayout(self, childCount, ambChildInfo):
+        item = self.ambChildInfoLayout.takeAt(0)
+        if item is not None and item.widget():
+            item.widget().deleteLater()
 
-    def setAmbChildInfo(self, ambInfo):
-        children = self.ambChildModelLf.winfo_children()
-        for child in children:
-            child.destroy()
-
-        self.varChildList = []
-        if self.decryptFile.game in ["CS", "RS"]:
-            childCount = ambInfo[23]
-            for i in range(childCount):
-                ambChildFrame = ttkCustomWidget.CustomTtkFrame(self.ambChildModelLf)
-                ambChildFrame.pack(anchor=tkinter.NW)
-                self.setAmbInfo(ambChildFrame, False)
-                separate = ttkCustomWidget.CustomTtkSeparator(self.ambChildModelLf, orient="horizontal")
-                separate.pack(fill=tkinter.X)
-        elif self.decryptFile.game == "LSTrial" and self.decryptFile.oldFlag:
-            ambList = ambInfo[-1]
-            for i in range(len(ambList)):
-                ambCntInfo = ambList[i]
-                bFrame = ttkCustomWidget.CustomTtkFrame(self.ambChildModelLf)
-                bFrame.pack(anchor=tkinter.NW)
-                for j in range(4):
-                    v_b = tkinter.IntVar()
-                    v_b.set(ambCntInfo[j])
-                    self.varChildList.append(v_b)
-                    bEt = ttkCustomWidget.CustomTtkEntry(bFrame, textvariable=v_b, font=textSetting.textList["font2"], width=7, justify="center", state="readonly")
-                    bEt.pack(side=tkinter.LEFT)
-
-
-    def searchAmb(self, ambNo):
-        if ambNo < 0 or ambNo >= len(self.ambList):
-            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E73"])
+        if childCount == 0:
             return
+
+        newGroupBox = QGroupBox(textSetting.textList["railEditor"]["ambChildModelInfo"])
+        newGroupBox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.ambChildInfoLayout.addWidget(newGroupBox)
+        ambChildInfoInLayout = QVBoxLayout()
+        newGroupBox.setLayout(ambChildInfoInLayout)
+        ambSize = 11
+        ambChunkList = [ambChildInfo[i:i + ambSize] for i in range(0, len(ambChildInfo), ambSize)]
+        for i, ambChunkInfo in enumerate(ambChunkList):
+            self.setDefaultAmbChildModel(ambChildInfoInLayout, i, ambChunkInfo)
+            if i != len(ambChunkList) - 1:
+                horizentalLine = QFrame()
+                horizentalLine.setFrameShape(QFrame.Shape.HLine)
+                horizentalLine.setFrameShadow(QFrame.Shadow.Sunken)
+                ambChildInfoInLayout.addWidget(horizentalLine)
+
+    def setDefaultAmbChildModel(self, layout, index, ambInfo):
+        labelWidth = 66
+        labelHeight = 30
+
+        ambModelInfoInLayout = QVBoxLayout()
+        layout.addLayout(ambModelInfoInLayout)
+
+        # QGroupBox - ambModelInfoInLayout - QGridLayout
+        ambModelInfoGridLayout = QGridLayout()
+        ambModelInfoGridLayout.setVerticalSpacing(20)
+        ambModelInfoInLayout.addLayout(ambModelInfoGridLayout)
+        # QGroupBox - ambModelInfoInLayout - QGridLayout - modelNameLabel
+        modelNameLabel = QLabel(textSetting.textList["railEditor"]["ambChildModelSmf"].format(index), font=self.font2)
+        ambModelInfoGridLayout.addWidget(modelNameLabel, 0, 0)
+        # QGroupBox - ambModelInfoInLayout - QGridLayout - modelNameCombo
+        modelNameCombo = QComboBox(font=self.font2)
+        modelNameCombo.addItem("")
+        modelNameCombo.addItems(self.smfList)
+        modelNameCombo.setCurrentIndex(ambInfo[0] + 1)
+        ambModelInfoGridLayout.addWidget(modelNameCombo, 0, 1)
+
+        # spacing
+        ambModelInfoInLayout.addSpacing(20)
+
+        # QGroupBox - ambModelInfoInLayout - QGridLayout
+        ambXyzGridLayout = QGridLayout()
+        ambXyzGridLayout.setVerticalSpacing(20)
+        ambModelInfoInLayout.addLayout(ambXyzGridLayout)
+        # ambPosXNameLabel
+        ambPosXNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelPosX"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambPosXNameLabel, 0, 0)
+        # ambPosXLabel
+        ambPosXLabel = QLabel("{0}".format(ambInfo[1]), font=self.font2)
+        ambPosXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        ambPosXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambPosXLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(ambPosXLabel, 0, 1)
+        # ambPosYNameLabel
+        ambPosYNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelPosY"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambPosYNameLabel, 0, 2)
+        # ambPosYLabel
+        ambPosYLabel = QLabel("{0}".format(ambInfo[2]), font=self.font2)
+        ambPosYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        ambPosYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambPosYLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(ambPosYLabel, 0, 3)
+        # ambPosZNameLabel
+        ambPosZNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelPosZ"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambPosZNameLabel, 0, 4)
+        # ambPosZLabel
+        ambPosZLabel = QLabel("{0}".format(ambInfo[3]), font=self.font2)
+        ambPosZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        ambPosZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambPosZLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(ambPosZLabel, 0, 5)
+
+        # ambDirXNameLabel
+        ambDirXNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelDirX"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambDirXNameLabel, 1, 0)
+        # ambDirXLabel
+        ambDirXLabel = QLabel("{0}".format(ambInfo[4]), font=self.font2)
+        ambDirXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        ambDirXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambDirXLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(ambDirXLabel, 1, 1)
+        # ambDirYNameLabel
+        ambDirYNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelDirY"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambDirYNameLabel, 1, 2)
+        # ambDirYLabel
+        ambDirYLabel = QLabel("{0}".format(ambInfo[5]), font=self.font2)
+        ambDirYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        ambDirYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambDirYLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(ambDirYLabel, 1, 3)
+        # ambDirZNameLabel
+        ambDirZNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelDirZ"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambDirZNameLabel, 1, 4)
+        # ambDirZLabel
+        ambDirZLabel = QLabel("{0}".format(ambInfo[6]), font=self.font2)
+        ambDirZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        ambDirZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambDirZLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(ambDirZLabel, 1, 5)
+
+        # ambRotXNameLabel
+        ambRotXNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelRotX"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambRotXNameLabel, 2, 0)
+        # ambRotXLabel
+        ambRotXLabel = QLabel("{0}".format(ambInfo[7]), font=self.font2)
+        ambRotXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        ambRotXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambRotXLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(ambRotXLabel, 2, 1)
+        # ambRotYNameLabel
+        ambRotYNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelRotY"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambRotYNameLabel, 2, 2)
+        # ambRotYLabel
+        ambRotYLabel = QLabel("{0}".format(ambInfo[8]), font=self.font2)
+        ambRotYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        ambRotYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambRotYLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(ambRotYLabel, 2, 3)
+        # ambRotZNameLabel
+        ambRotZNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelRotZ"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambRotZNameLabel, 2, 4)
+        # ambRotZLabel
+        ambRotZLabel = QLabel("{0}".format(ambInfo[9]), font=self.font2)
+        ambRotZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        ambRotZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambRotZLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(ambRotZLabel, 2, 5)
+
+        # perNameLabel
+        perNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelPer"], font=self.font2)
+        ambXyzGridLayout.addWidget(perNameLabel, 3, 0)
+        # perLabel
+        perLabel = QLabel("{0}".format(ambInfo[10]), font=self.font2)
+        perLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        perLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambXyzGridLayout.addWidget(perLabel, 3, 1)
+
+    def setBsSecondHorizontalLayout(self):
+        labelWidth = 66
+        labelHeight = 30
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
+
+        # QGroupBox
+        ambInfoGroupBox = QGroupBox(textSetting.textList["railEditor"]["ambInfoLabel"])
+        horizontalLayout.addWidget(ambInfoGroupBox)
+        # QGroupBox - QGridLayout
+        ambInfoGridLayout = QGridLayout()
+        ambInfoGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        ambInfoGridLayout.setVerticalSpacing(20)
+        ambInfoGroupBox.setLayout(ambInfoGridLayout)
+        # railNoNameLabel
+        railNoNameLabel = QLabel(textSetting.textList["railEditor"]["ambRailNo"], font=self.font2)
+        ambInfoGridLayout.addWidget(railNoNameLabel, 0, 0)
+        # railNoLabel
+        self.railNoLabel = QLabel("", font=self.font2)
+        self.railNoLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railNoLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railNoLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfoGridLayout.addWidget(self.railNoLabel, 0, 1)
+        # priorityNameLabel
+        priorityNameLabel = QLabel(textSetting.textList["railEditor"]["ambPriority"], font=self.font2)
+        ambInfoGridLayout.addWidget(priorityNameLabel, 1, 0)
+        # priorityLabel
+        self.priorityLabel = QLabel("", font=self.font2)
+        self.priorityLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.priorityLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.priorityLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfoGridLayout.addWidget(self.priorityLabel, 1, 1)
+        # fogNameLabel
+        fogNameLabel = QLabel(textSetting.textList["railEditor"]["ambFog"], font=self.font2)
+        ambInfoGridLayout.addWidget(fogNameLabel, 2, 0)
+        # fogLabel
+        self.fogLabel = QLabel("", font=self.font2)
+        self.fogLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.fogLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.fogLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfoGridLayout.addWidget(self.fogLabel, 2, 1)
+        # horizontalLayout - stretch
+        horizontalLayout.addStretch(1)
+        return horizontalLayout
+
+    def setBsAmbModelInfoLayout(self):
+        labelWidth = 66
+        labelHeight = 30
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
+
+        # QGroupBox
+        ambModelInfoGroupBox = QGroupBox(textSetting.textList["railEditor"]["ambModelInfo"])
+        horizontalLayout.addWidget(ambModelInfoGroupBox)
+        # QGroupBox - ambModelInfoInLayout
+        ambModelInfoInLayout = QVBoxLayout()
+        ambModelInfoGroupBox.setLayout(ambModelInfoInLayout)
+
+        # QGroupBox - ambModelInfoInLayout - QGridLayout
+        ambModelInfoGridLayout = QGridLayout()
+        ambModelInfoGridLayout.setVerticalSpacing(20)
+        ambModelInfoInLayout.addLayout(ambModelInfoGridLayout)
+        # QGroupBox - ambModelInfoInLayout - QGridLayout - modelNameLabel
+        modelNameLabel = QLabel(textSetting.textList["railEditor"]["railModelLabel"], font=self.font2)
+        ambModelInfoGridLayout.addWidget(modelNameLabel, 0, 0)
+        # QGroupBox - ambModelInfoInLayout - QGridLayout - modelNameCombo
+        self.modelNameCombo = QComboBox(font=self.font2)
+        self.modelNameCombo.addItem("")
+        self.modelNameCombo.addItems(self.smfList)
+        ambModelInfoGridLayout.addWidget(self.modelNameCombo, 0, 1)
+        # QGroupBox - ambModelInfoInLayout - QGridLayout - modelDetailNoNameLabel
+        modelDetailNoNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelBsDetail"], font=self.font2)
+        ambModelInfoGridLayout.addWidget(modelDetailNoNameLabel, 1, 0)
+        # QGroupBox - ambModelInfoInLayout - QGridLayout - modelDetailNoLabel
+        self.modelDetailNoLabel = QLabel("", font=self.font2)
+        self.modelDetailNoLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.modelDetailNoLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambModelInfoGridLayout.addWidget(self.modelDetailNoLabel, 1, 1)
+
+        # spacing
+        ambModelInfoInLayout.addSpacing(20)
+
+        # QGroupBox - ambModelInfoInLayout - QGridLayout
+        ambXyzGridLayout = QGridLayout()
+        ambXyzGridLayout.setVerticalSpacing(20)
+        ambModelInfoInLayout.addLayout(ambXyzGridLayout)
+        # ambPosXNameLabel
+        ambPosXNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelPosX"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambPosXNameLabel, 0, 0)
+        # ambPosXLabel
+        self.ambPosXLabel = QLabel("", font=self.font2)
+        self.ambPosXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambPosXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambPosXLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambPosXLabel, 0, 1)
+        # ambPosYNameLabel
+        ambPosYNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelPosY"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambPosYNameLabel, 0, 2)
+        # ambPosYLabel
+        self.ambPosYLabel = QLabel("", font=self.font2)
+        self.ambPosYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambPosYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambPosYLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambPosYLabel, 0, 3)
+        # ambPosZNameLabel
+        ambPosZNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelPosZ"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambPosZNameLabel, 0, 4)
+        # ambPosZLabel
+        self.ambPosZLabel = QLabel("", font=self.font2)
+        self.ambPosZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambPosZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambPosZLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambPosZLabel, 0, 5)
+
+        # ambRotXNameLabel
+        ambRotXNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelRotX"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambRotXNameLabel, 1, 0)
+        # ambRotXLabel
+        self.ambRotXLabel = QLabel("", font=self.font2)
+        self.ambRotXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambRotXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambRotXLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambRotXLabel, 1, 1)
+        # ambRotYNameLabel
+        ambRotYNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelRotY"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambRotYNameLabel, 1, 2)
+        # ambRotYLabel
+        self.ambRotYLabel = QLabel("", font=self.font2)
+        self.ambRotYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambRotYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambRotYLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambRotYLabel, 1, 3)
+        # ambRotZNameLabel
+        ambRotZNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelRotZ"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambRotZNameLabel, 1, 4)
+        # ambRotZLabel
+        self.ambRotZLabel = QLabel("", font=self.font2)
+        self.ambRotZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambRotZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambRotZLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambRotZLabel, 1, 5)
+
+        # perNameLabel
+        perNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelPer"], font=self.font2)
+        ambXyzGridLayout.addWidget(perNameLabel, 2, 0)
+        # perLabel
+        self.perLabel = QLabel("", font=self.font2)
+        self.perLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.perLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ambXyzGridLayout.addWidget(self.perLabel, 2, 1)
+
+        # horizontalLayout - stretch
+        horizontalLayout.addStretch(1)
+        return horizontalLayout
+
+    def setLsSecondHorizontalLayout(self):
+        labelWidth = 66
+        labelHeight = 30
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
+
+        # QGroupBox
+        ambInfoGroupBox = QGroupBox(textSetting.textList["railEditor"]["ambInfoLabel"])
+        horizontalLayout.addWidget(ambInfoGroupBox)
+        # QGroupBox - QGridLayout
+        ambInfoGridLayout = QGridLayout()
+        ambInfoGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        ambInfoGridLayout.setVerticalSpacing(20)
+        ambInfoGroupBox.setLayout(ambInfoGridLayout)
+        # railNoNameLabel
+        railNoNameLabel = QLabel(textSetting.textList["railEditor"]["ambRailNo"], font=self.font2)
+        ambInfoGridLayout.addWidget(railNoNameLabel, 0, 0)
+        # railNoLabel
+        self.railNoLabel = QLabel("", font=self.font2)
+        self.railNoLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railNoLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railNoLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfoGridLayout.addWidget(self.railNoLabel, 0, 1)
+        # posNameLabel
+        posNameLabel = QLabel(textSetting.textList["railEditor"]["ambLsPos"], font=self.font2)
+        ambInfoGridLayout.addWidget(posNameLabel, 1, 0)
+        # posLabel
+        self.posLabel = QLabel("", font=self.font2)
+        self.posLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.posLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.posLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfoGridLayout.addWidget(self.posLabel, 1, 1)
+        # railPosNameLabel
+        railPosNameLabel = QLabel(textSetting.textList["railEditor"]["ambRailPos"], font=self.font2)
+        ambInfoGridLayout.addWidget(railPosNameLabel, 0, 2)
+        # railPosLabel
+        self.railPosLabel = QLabel("", font=self.font2)
+        self.railPosLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.railPosLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.railPosLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfoGridLayout.addWidget(self.railPosLabel, 0, 3)
+        # modelNameLabel
+        modelNameLabel = QLabel(textSetting.textList["railEditor"]["ambLsModel"], font=self.font2)
+        ambInfoGridLayout.addWidget(modelNameLabel, 2, 0)
+        # modelNameCombo
+        self.modelNameCombo = QComboBox(font=self.font2)
+        self.modelNameCombo.addItem("-")
+        self.modelNameCombo.addItems(self.smfList)
+        ambInfoGridLayout.addWidget(self.modelNameCombo, 2, 1, 1, 3)
+        # animeNoNameLabel
+        animeNoNameLabel = QLabel(textSetting.textList["railEditor"]["ambLsAnime"], font=self.font2)
+        ambInfoGridLayout.addWidget(animeNoNameLabel, 1, 2)
+        # animeNoLabel
+        self.animeNoLabel = QLabel("", font=self.font2)
+        self.animeNoLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.animeNoLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.animeNoLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfoGridLayout.addWidget(self.animeNoLabel, 1, 3)
+        # horizontalLayout - stretch
+        horizontalLayout.addStretch(1)
+        return horizontalLayout
+
+    def setLsTrialOldSecondHorizontalLayout(self):
+        labelWidth = 66
+        labelHeight = 30
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
+
+        # QGroupBox
+        ambXyzGroupBox = QGroupBox(textSetting.textList["railEditor"]["railPosXyzInfo"])
+        horizontalLayout.addWidget(ambXyzGroupBox)
+        # QGroupBox - QGridLayout
+        ambXyzGridLayout = QGridLayout()
+        ambXyzGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        ambXyzGridLayout.setVerticalSpacing(20)
+        ambXyzGroupBox.setLayout(ambXyzGridLayout)
+        # ambPosXNameLabel
+        ambPosXNameLabel = QLabel(textSetting.textList["railEditor"]["railPosX"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambPosXNameLabel, 0, 0)
+        # ambPosXLabel
+        self.ambPosXLabel = QLabel("", font=self.font2)
+        self.ambPosXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambPosXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambPosXLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambPosXLabel, 0, 1)
+        # ambPosYNameLabel
+        ambPosYNameLabel = QLabel(textSetting.textList["railEditor"]["railPosY"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambPosYNameLabel, 1, 0)
+        # ambPosYLabel
+        self.ambPosYLabel = QLabel("", font=self.font2)
+        self.ambPosYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambPosYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambPosYLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambPosYLabel, 1, 1)
+        # ambPosZNameLabel
+        ambPosZNameLabel = QLabel(textSetting.textList["railEditor"]["railPosZ"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambPosZNameLabel, 2, 0)
+        # ambPosZLabel
+        self.ambPosZLabel = QLabel("", font=self.font2)
+        self.ambPosZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambPosZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambPosZLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambPosZLabel, 2, 1)
+        # ambDirXNameLabel
+        ambDirXNameLabel = QLabel(textSetting.textList["railEditor"]["railDirX"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambDirXNameLabel, 0, 2)
+        # ambDirXLabel
+        self.ambDirXLabel = QLabel("", font=self.font2)
+        self.ambDirXLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambDirXLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambDirXLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambDirXLabel, 0, 3)
+        # ambDirYNameLabel
+        ambDirYNameLabel = QLabel(textSetting.textList["railEditor"]["railDirY"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambDirYNameLabel, 1, 2)
+        # ambDirYLabel
+        self.ambDirYLabel = QLabel("", font=self.font2)
+        self.ambDirYLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambDirYLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambDirYLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambDirYLabel, 1, 3)
+        # ambDirZNameLabel
+        ambDirZNameLabel = QLabel(textSetting.textList["railEditor"]["railDirZ"], font=self.font2)
+        ambXyzGridLayout.addWidget(ambDirZNameLabel, 2, 2)
+        # ambDirZLabel
+        self.ambDirZLabel = QLabel("", font=self.font2)
+        self.ambDirZLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambDirZLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambDirZLabel.setFixedSize(labelWidth, labelHeight)
+        ambXyzGridLayout.addWidget(self.ambDirZLabel, 2, 3)
+
+        # QGroupBox
+        ambInfo2GroupBox = QGroupBox(textSetting.textList["railEditor"]["railRailInfo"])
+        horizontalLayout.addWidget(ambInfo2GroupBox)
+        # QGroupBox - QGridLayout
+        ambInfo2GridLayout = QGridLayout()
+        ambInfo2GridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        ambInfo2GridLayout.setVerticalSpacing(20)
+        ambInfo2GroupBox.setLayout(ambInfo2GridLayout)
+        # QGroupBox - QGridLayout - ambNextNameLabel
+        ambNextNameLabel = QLabel(textSetting.textList["railEditor"]["railNextRail"], font=self.font2)
+        ambInfo2GridLayout.addWidget(ambNextNameLabel, 0, 0)
+        # QGroupBox - QGridLayout - ambNextLabel
+        self.ambNextLabel = QLabel("", font=self.font2)
+        self.ambNextLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambNextLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambNextLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfo2GridLayout.addWidget(self.ambNextLabel, 0, 1)
+        # QGroupBox - QGridLayout - ambPrevNameLabel
+        ambPrevNameLabel = QLabel(textSetting.textList["railEditor"]["railPrevRail"], font=self.font2)
+        ambInfo2GridLayout.addWidget(ambPrevNameLabel, 1, 0)
+        # QGroupBox - QGridLayout - ambPrevLabel
+        self.ambPrevLabel = QLabel("", font=self.font2)
+        self.ambPrevLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.ambPrevLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ambPrevLabel.setFixedSize(labelWidth, labelHeight)
+        ambInfo2GridLayout.addWidget(self.ambPrevLabel, 1, 1)
+        # horizontalLayout - stretch
+        horizontalLayout.addStretch(1)
+        return horizontalLayout
+
+    def setLsTrialOldModelInfoLayout(self):
+        # horizontalLayout
+        horizontalLayout = QHBoxLayout()
+
+        # QGroupBox
+        ambModelInfoGroupBox = QGroupBox(textSetting.textList["railEditor"]["railModelKasenInfo"])
+        horizontalLayout.addWidget(ambModelInfoGroupBox)
+        # QGroupBox - QGridLayout
+        ambModelInfoGridLayout = QGridLayout()
+        ambModelInfoGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        ambModelInfoGridLayout.setVerticalSpacing(20)
+        ambModelInfoGroupBox.setLayout(ambModelInfoGridLayout)
+        # leftAmbModelNameLabel
+        leftAmbModelNameLabel = QLabel(textSetting.textList["railEditor"]["railModelLabel"], font=self.font2)
+        ambModelInfoGridLayout.addWidget(leftAmbModelNameLabel, 0, 0)
+        # leftAmbModelNameCombo
+        self.leftAmbModelNameCombo = QComboBox(font=self.font2)
+        self.leftAmbModelNameCombo.addItem("")
+        self.leftAmbModelNameCombo.addItems(self.smfList)
+        ambModelInfoGridLayout.addWidget(self.leftAmbModelNameCombo, 0, 1)
+        # rightAmbModelNameLabel
+        rightAmbModelNameLabel = QLabel(textSetting.textList["railEditor"]["railModelLabel"], font=self.font2)
+        ambModelInfoGridLayout.addWidget(rightAmbModelNameLabel, 1, 0)
+        # rightAmbModelNameCombo
+        self.rightAmbModelNameCombo = QComboBox(font=self.font2)
+        self.rightAmbModelNameCombo.addItem("")
+        self.rightAmbModelNameCombo.addItems(self.smfList)
+        ambModelInfoGridLayout.addWidget(self.rightAmbModelNameCombo, 1, 1)
+        # kasenchuModelNameLabel
+        kasenchuModelNameLabel = QLabel(textSetting.textList["railEditor"]["railKasenchuLabel"], font=self.font2)
+        ambModelInfoGridLayout.addWidget(kasenchuModelNameLabel, 0, 2)
+        # kasenchuModelNameCombo
+        self.kasenchuModelNameCombo = QComboBox(font=self.font2)
+        self.kasenchuModelNameCombo.addItem("")
+        self.kasenchuModelNameCombo.addItems(self.smfList)
+        ambModelInfoGridLayout.addWidget(self.kasenchuModelNameCombo, 0, 3)
+        # fixAmbModelNameLabel
+        fixAmbModelNameLabel = QLabel(textSetting.textList["railEditor"]["railFixAmbLabel"], font=self.font2)
+        ambModelInfoGridLayout.addWidget(fixAmbModelNameLabel, 1, 2)
+        # fixAmbModelNameCombo
+        self.fixAmbModelNameCombo = QComboBox(font=self.font2)
+        self.fixAmbModelNameCombo.addItem("")
+        self.fixAmbModelNameCombo.addItems(self.smfList)
+        ambModelInfoGridLayout.addWidget(self.fixAmbModelNameCombo, 1, 3)
+
+        # horizontalLayout - stretch
+        horizontalLayout.addStretch(1)
+        return horizontalLayout
+
+    def setAmbAddInfo(self, ambAddInfoList):
+        item = self.ambAddInfoLayout.takeAt(0)
+        if item is not None and item.widget():
+            item.widget().deleteLater()
+
+        if len(ambAddInfoList) == 0:
+            return
+
+        labelWidth = 66
+        labelHeight = 30
+        newGroupBox = QGroupBox(textSetting.textList["railEditor"]["ambInfo2Label"])
+        newGroupBox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.ambAddInfoLayout.addWidget(newGroupBox)
+        ambAddInfoInLayout = QVBoxLayout()
+        newGroupBox.setLayout(ambAddInfoInLayout)
+        for ambAddInfo in ambAddInfoList:
+            ambAddInfoHorizontalLayout = QHBoxLayout()
+            ambAddInfoHorizontalLayout.setContentsMargins(5, 10, 5, 10)
+            ambAddInfoInLayout.addLayout(ambAddInfoHorizontalLayout)
+            for ambAddValue in ambAddInfo:
+                ambAddLabel = QLabel("{0}".format(ambAddValue), font=self.font2)
+                ambAddLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+                ambAddLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                ambAddLabel.setFixedSize(labelWidth, labelHeight)
+                ambAddInfoHorizontalLayout.addWidget(ambAddLabel)
+
+    def searchAmb(self):
+        if not self.ambNoLineEdit.hasAcceptableInput():
+            return
+
+        if len(self.ambList) == 0:
+            return
+
+        ambNo = int(self.ambNoLineEdit.text())
+        if ambNo >= len(self.ambList):
+            ambNo = len(self.ambList) - 1
+            self.ambNoLineEdit.setText("{0}".format(ambNo))
         ambInfo = self.ambList[ambNo]
 
         if self.decryptFile.game in ["CS", "RS"]:
-            self.v_type.set(ambInfo[0])
-            self.v_length.set(ambInfo[1])
-            self.v_railNo.set(ambInfo[2])
-            self.v_railPos.set(ambInfo[3])
-            self.v_xPos.set(ambInfo[4])
-            self.v_yPos.set(ambInfo[5])
-            self.v_zPos.set(ambInfo[6])
-            self.v_xRot.set(ambInfo[7])
-            self.v_yRot.set(ambInfo[8])
-            self.v_zRot.set(ambInfo[9])
-            self.v_priority.set(ambInfo[10])
-            self.v_fog.set(ambInfo[11])
+            self.typeLabel.setText("{0}".format(ambInfo[0]))
+            self.lengthLabel.setText("{0}".format(ambInfo[1]))
+            self.railNoLabel.setText("{0}".format(ambInfo[2]))
+            self.railPosLabel.setText("{0}".format(ambInfo[3]))
+            self.ambBasePosXLabel.setText("{0}".format(ambInfo[4]))
+            self.ambBasePosYLabel.setText("{0}".format(ambInfo[5]))
+            self.ambBasePosZLabel.setText("{0}".format(ambInfo[6]))
+            self.ambBaseRotXLabel.setText("{0}".format(ambInfo[7]))
+            self.ambBaseRotYLabel.setText("{0}".format(ambInfo[8]))
+            self.ambBaseRotZLabel.setText("{0}".format(ambInfo[9]))
+            self.priorityLabel.setText("{0}".format(ambInfo[10]))
+            self.fogLabel.setText("{0}".format(ambInfo[11]))
 
-            self.varList[0].current(ambInfo[12])
-            self.varList[1].set(ambInfo[13])
-            self.varList[2].set(ambInfo[14])
-            self.varList[3].set(ambInfo[15])
-            self.varList[4].set(ambInfo[16])
-            self.varList[5].set(ambInfo[17])
-            self.varList[6].set(ambInfo[18])
-            self.varList[7].set(ambInfo[19])
-            self.varList[8].set(ambInfo[20])
-            self.varList[9].set(ambInfo[21])
-            self.varList[10].set(ambInfo[22])
+            self.modelNameCombo.setCurrentIndex(ambInfo[12] + 1)
+            self.ambPosXLabel.setText("{0}".format(ambInfo[13]))
+            self.ambPosYLabel.setText("{0}".format(ambInfo[14]))
+            self.ambPosZLabel.setText("{0}".format(ambInfo[15]))
+            self.ambDirXLabel.setText("{0}".format(ambInfo[16]))
+            self.ambDirYLabel.setText("{0}".format(ambInfo[17]))
+            self.ambDirZLabel.setText("{0}".format(ambInfo[18]))
+            self.ambRotXLabel.setText("{0}".format(ambInfo[19]))
+            self.ambRotYLabel.setText("{0}".format(ambInfo[20]))
+            self.ambRotZLabel.setText("{0}".format(ambInfo[21]))
+            self.perLabel.setText("{0}".format(ambInfo[22]))
 
-            self.setAmbChildInfo(ambInfo)
             childCount = ambInfo[23]
-            for i in range(childCount):
-                self.varChildList[11 * i + 0].current(ambInfo[11 * i + 24])
-                self.varChildList[11 * i + 1].set(ambInfo[11 * i + 25])
-                self.varChildList[11 * i + 2].set(ambInfo[11 * i + 26])
-                self.varChildList[11 * i + 3].set(ambInfo[11 * i + 27])
-                self.varChildList[11 * i + 4].set(ambInfo[11 * i + 28])
-                self.varChildList[11 * i + 5].set(ambInfo[11 * i + 29])
-                self.varChildList[11 * i + 6].set(ambInfo[11 * i + 30])
-                self.varChildList[11 * i + 7].set(ambInfo[11 * i + 31])
-                self.varChildList[11 * i + 8].set(ambInfo[11 * i + 32])
-                self.varChildList[11 * i + 9].set(ambInfo[11 * i + 33])
-                self.varChildList[11 * i + 10].set(ambInfo[11 * i + 34])
+            self.setDefaultAmbChildModelInfoLayout(childCount, ambInfo[24:])
         elif self.decryptFile.game == "BS":
-            self.v_railNo.set(ambInfo[0])
-            self.v_priority.set(ambInfo[1])
-            self.v_fog.set(ambInfo[2])
-            self.varList[0].current(ambInfo[3])
-            self.varList[1].set(ambInfo[4])
-            self.varList[2].set(ambInfo[5])
-            self.varList[3].set(ambInfo[6])
-            self.varList[4].set(ambInfo[7])
-            self.varList[5].set(ambInfo[8])
-            self.varList[6].set(ambInfo[9])
-            self.varList[7].set(ambInfo[10])
-            self.varList[8].set(ambInfo[11])
-        elif self.decryptFile.game == "LS" or (self.decryptFile.game == "LSTrial" and not self.decryptFile.oldFlag):
-            self.v_railNo.set(ambInfo[0])
-            self.v_pos.set(ambInfo[1])
-            self.v_railPos.set(ambInfo[2])
-            if ambInfo[3] == 0:
-                self.mdlNoCb.set("なし")
+            self.railNoLabel.setText("{0}".format(ambInfo[0]))
+            self.priorityLabel.setText("{0}".format(ambInfo[1]))
+            self.fogLabel.setText("{0}".format(ambInfo[2]))
+            self.modelNameCombo.setCurrentIndex(ambInfo[3] + 1)
+            self.modelDetailNoLabel.setText("{0}".format(ambInfo[4]))
+            self.ambPosXLabel.setText("{0}".format(ambInfo[5]))
+            self.ambPosYLabel.setText("{0}".format(ambInfo[6]))
+            self.ambPosZLabel.setText("{0}".format(ambInfo[7]))
+            self.ambRotXLabel.setText("{0}".format(ambInfo[8]))
+            self.ambRotYLabel.setText("{0}".format(ambInfo[9]))
+            self.ambRotZLabel.setText("{0}".format(ambInfo[10]))
+            self.perLabel.setText("{0}".format(ambInfo[11]))
+        elif self.decryptFile.game == "LS":
+            self.railNoLabel.setText("{0}".format(ambInfo[0]))
+            self.posLabel.setText("{0}".format(ambInfo[1]))
+            self.railPosLabel.setText("{0}".format(ambInfo[2]))
+            modelNo = ambInfo[3]
+            if modelNo != 0:
+                modelNo += 1
+            self.modelNameCombo.setCurrentIndex(modelNo)
+            self.animeNoLabel.setText("{0}".format(ambInfo[4]))
+        elif self.decryptFile.game == "LSTrial":
+            if self.decryptFile.oldFlag:
+                self.ambPosXLabel.setText("{0}".format(ambInfo[0]))
+                self.ambPosYLabel.setText("{0}".format(ambInfo[1]))
+                self.ambPosZLabel.setText("{0}".format(ambInfo[2]))
+                self.ambNextLabel.setText("{0}".format(ambInfo[3]))
+                self.ambPrevLabel.setText("{0}".format(ambInfo[4]))
+                self.ambDirXLabel.setText("{0}".format(ambInfo[5]))
+                self.ambDirYLabel.setText("{0}".format(ambInfo[6]))
+                self.ambDirZLabel.setText("{0}".format(ambInfo[7]))
+                leftAmbModelNo = ambInfo[8]
+                if leftAmbModelNo == -1:
+                    leftAmbModelNo = len(self.smfList) + leftAmbModelNo
+                leftAmbModelNo += 1
+                self.leftAmbModelNameCombo.setCurrentIndex(leftAmbModelNo)
+
+                rightAmbModelNo = ambInfo[9]
+                if rightAmbModelNo == -1:
+                    rightAmbModelNo = len(self.smfList) + rightAmbModelNo
+                rightAmbModelNo += 1
+                self.rightAmbModelNameCombo.setCurrentIndex(rightAmbModelNo)
+
+                kasenchuNo = ambInfo[10]
+                if kasenchuNo == -1:
+                    kasenchuNo = len(self.smfList) + kasenchuNo
+                kasenchuNo += 1
+                self.kasenchuModelNameCombo.setCurrentIndex(kasenchuNo)
+
+                fixAmbNo = ambInfo[11]
+                if fixAmbNo == -1:
+                    fixAmbNo = len(self.smfList) + fixAmbNo
+                fixAmbNo += 1
+                self.fixAmbModelNameCombo.setCurrentIndex(fixAmbNo)
+                self.setAmbAddInfo(ambInfo[-1])
             else:
-                self.mdlNoCb.current(ambInfo[3])
-            self.v_animeNo.set(ambInfo[4])
-        elif self.decryptFile.game == "LSTrial" and self.decryptFile.oldFlag:
-            self.v_x_pos.set(ambInfo[0])
-            self.v_y_pos.set(ambInfo[1])
-            self.v_z_pos.set(ambInfo[2])
-            self.v_next.set(ambInfo[3])
-            self.v_prev.set(ambInfo[4])
-            self.v_x_dir.set(ambInfo[5])
-            self.v_y_dir.set(ambInfo[6])
-            self.v_z_dir.set(ambInfo[7])
-            if ambInfo[8] == -1:
-                self.leftMdlNoCb.set("なし")
-            else:
-                self.leftMdlNoCb.current(ambInfo[8])
-            if ambInfo[9] == -1:
-                self.rightMdlNoCb.set("なし")
-            else:
-                self.rightMdlNoCb.current(ambInfo[9])
-            if ambInfo[10] == -1:
-                self.mdlKasenchuCb.set("なし")
-            else:
-                self.mdlKasenchuCb.current(ambInfo[10])
-            if ambInfo[11] == -1:
-                self.fixAmbCb.set("なし")
-            else:
-                self.fixAmbCb.current(ambInfo[11])
-            self.setAmbChildInfo(ambInfo)
+                self.railNoLabel.setText("{0}".format(ambInfo[0]))
+                self.posLabel.setText("{0}".format(ambInfo[1]))
+                self.railPosLabel.setText("{0}".format(ambInfo[2]))
+                modelNo = ambInfo[3]
+                if modelNo != 0:
+                    modelNo += 1
+                self.modelNameCombo.setCurrentIndex(modelNo)
+                self.animeNoLabel.setText("{0}".format(ambInfo[4]))
 
     def extractCsv(self):
         filename = self.decryptFile.filename + "_amb.csv"
-        file_path = fd.asksaveasfilename(initialfile=filename, defaultextension="csv", filetypes=[(textSetting.textList["railEditor"]["ambCsvFileType"], "*.csv")])
-        errorMsg = textSetting.textList["errorList"]["E7"]
-        if file_path:
-            if not self.decryptFile.extractAmbCsv(file_path):
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return
-            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
-
-    def saveCsv(self):
-        errorMsg = textSetting.textList["errorList"]["E71"]
-        file_path = fd.askopenfilename(defaultextension="csv", filetypes=[(textSetting.textList["railEditor"]["ambCsvFileType"], "*.csv")])
+        fileTypes = "{0} ({1})".format(textSetting.textList["railEditor"]["ambCsvFileType"], "*.csv")
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "",
+            filename,
+            fileTypes
+        )
         if not file_path:
             return
-        try:
-            f = open(file_path)
-            csvLines = f.readlines()
-            f.close()
-        except Exception:
-            errorMsg = textSetting.textList["errorList"]["E74"]
-            mb.showerror(title=textSetting.textList["readError"], message=errorMsg)
-            return
 
         try:
-            csvLines.pop(0)
-            ambList = []
-            ambInfo = []
-            count = 0
-            childCount = 0
-            childAllCount = 0
-            childFlag = False
-            for csv in csvLines:
-                csv = csv.strip()
-                arr = csv.split(",")
+            self.decryptFile.extractAmbCsv(file_path)
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
+        except PermissionError:
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E7"])
 
-                if self.decryptFile.game in ["CS", "RS"]:
-                    if not childFlag:
-                        ambInfo = []
+    def saveCsv(self):
+        fileTypes = "{0} ({1})".format(textSetting.textList["railEditor"]["ambCsvFileType"], "*.csv")
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "",
+            "",
+            fileTypes
+        )
 
-                        if len(arr) < 24:
-                            raise Exception
-
-                        type0 = int(float(arr[1]))
-                        ambInfo.append(type0)
-
-                        length = int(float(arr[2]))
-                        ambInfo.append(length)
-
-                        railNo = int(arr[3])
-                        ambInfo.append(railNo)
-
-                        railPos = int(arr[4])
-                        ambInfo.append(railPos)
-
-                        for i in range(6):
-                            tempF = float(arr[5 + i])
-                            ambInfo.append(tempF)
-
-                        priority = int(arr[11])
-                        ambInfo.append(priority)
-
-                        fog = int(arr[12])
-                        ambInfo.append(fog)
-
-                        #
-                        mdl_no = int(arr[13])
-                        ambInfo.append(mdl_no)
-
-                        for i in range(10):
-                            tempF = float(arr[14 + i])
-                            ambInfo.append(tempF)
-
-                        childFlag = True
-                        count += 1
-                        continue
-
-                    if childCount == 0:
-                        childAllCount = int(arr[12])
-                        ambInfo.append(childAllCount)
-
-                    if childAllCount > 0:
-                        mdl_no = int(arr[13])
-                        ambInfo.append(mdl_no)
-
-                        for i in range(10):
-                            tempF = float(arr[14 + i])
-                            ambInfo.append(tempF)
-
-                        childCount += 1
-
-                    if childCount == childAllCount:
-                        childFlag = False
-                        childCount = 0
-                        ambList.append(ambInfo)
-                    count += 1
-                elif self.decryptFile.game == "BS":
-                    ambInfo = []
-                    if len(arr) < 12:
-                        raise Exception
-
-                    for i in range(5):
-                        temp = int(arr[i])
-                        ambInfo.append(temp)
-
-                    for i in range(7):
-                        tempF = float(arr[5 + i])
-                        ambInfo.append(tempF)
-                    ambList.append(ambInfo)
-                    count += 1
-                elif self.decryptFile.game == "LS" or (self.decryptFile.game == "LSTrial" and not self.decryptFile.oldFlag):
-                    ambInfo = []
-                    if len(arr) < 5:
-                        raise Exception
-
-                    for i in range(5):
-                        temp = int(arr[i])
-                        ambInfo.append(temp)
-                    ambList.append(ambInfo)
-                    count += 1
-                elif self.decryptFile.game == "LSTrial" and self.decryptFile.oldFlag:
-                    ambInfo = []
-                    if len(arr) < 14:
-                        raise Exception
-
-                    ambIdx = 1
-                    for i in range(3):
-                        temp = float(arr[ambIdx])
-                        ambInfo.append(temp)
-                        ambIdx += 1
-                    for i in range(2):
-                        temp = int(arr[ambIdx])
-                        ambInfo.append(temp)
-                        ambIdx += 1
-                    for i in range(3):
-                        temp = float(arr[ambIdx])
-                        ambInfo.append(temp)
-                        ambIdx += 1
-                    for i in range(4):
-                        temp = int(arr[ambIdx])
-                        ambInfo.append(temp)
-                        ambIdx += 1
-                    cnt = int(arr[ambIdx])
-                    ambIdx += 1
-                    ambCntList = []
-                    for i in range(cnt):
-                        ambCntInfo = []
-                        for j in range(4):
-                            temp = int(arr[ambIdx])
-                            ambCntInfo.append(temp)
-                            ambIdx += 1
-                        ambCntList.append(ambCntInfo)
-                    ambInfo.append(ambCntList)
-                    ambList.append(ambInfo)
-                    count += 1
-
-            if childCount != 0 and childCount != childAllCount:
-                msg = textSetting.textList["errorList"]["E74"]
-                mb.showerror(title=textSetting.textList["error"], message=msg)
-                return
-
-            if childFlag:
-                msg = textSetting.textList["errorList"]["E74"]
-                mb.showerror(title=textSetting.textList["error"], message=msg)
-                return
-
-            msg = textSetting.textList["infoList"]["I15"].format(count)
-            result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
-
-            if result:
-                if not self.decryptFile.saveAmbCsv(ambList):
-                    self.decryptFile.printError()
-                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-                    return
-                mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I95"])
-                self.reloadFunc()
-
-        except Exception:
-            errorMsg = textSetting.textList["errorList"]["E15"].format(count + 1)
-            mb.showerror(title=textSetting.textList["readError"], message=errorMsg)
+        if not file_path:
             return
+
+        ambObj, message = self.decryptFile.loadAmbCsv(file_path)
+        if message:
+            mb.showerror(title=textSetting.textList["error"], message=message)
+            return
+
+        msg = textSetting.textList["infoList"]["I15"].format(ambObj["csvLines"])
+        result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
+        if result == mb.OK:
+            ambList = ambObj["data"]
+            if not self.decryptFile.saveAmbCsv(ambList):
+                self.decryptFile.printError()
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                return
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I95"])
+            self.reloadFunc()

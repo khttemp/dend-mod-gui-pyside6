@@ -654,6 +654,7 @@ textList = {
         "ambModelInfo": "AMBモデル情報",
         "ambChildModelInfo": "AMB子モデル情報",
         "ambModelSmf": "モデル(smf)",
+        "ambChildModelSmf": "子モデル(smf)[{0}]",
         "ambModelPosX": "xの距離",
         "ambModelPosY": "yの距離",
         "ambModelPosZ": "zの距離",

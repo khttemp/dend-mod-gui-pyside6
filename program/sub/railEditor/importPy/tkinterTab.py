@@ -28,10 +28,10 @@ from program.sub.railEditor.importPy.tab9.else3ListWidget import Else3ListWidget
 
 from program.sub.railEditor.importPy.tab10.else4ListWidget import Else4ListWidget
 
-# from program.railEditor.importPy.tab11.ambListWidget import AmbListWidget
+from program.sub.railEditor.importPy.tab11.ambListWidget import AmbListWidget
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QWidget, QFrame, QSizePolicy
+    QVBoxLayout, QHBoxLayout, QFrame
 )
 from PySide6.QtCore import Qt
 
@@ -176,7 +176,10 @@ def tab10AllWidget(contentFrame, decryptFile, reloadFunc):
     tab10Layout.addWidget(else4ListWidget)
 
 
-def tab11AllWidget(tabFrame, decryptFile, rootFrameAppearance, reloadFunc):
-    frame = ScrollbarFrame(tabFrame, bgColor=rootFrameAppearance.bgColor)
-    frame.pack(expand=True, fill=tkinter.BOTH)
-    AmbListWidget(frame.interior, decryptFile, decryptFile.ambList, rootFrameAppearance, reloadFunc)
+def tab11AllWidget(contentFrame, decryptFile, reloadFunc):
+    tab11Layout = QHBoxLayout()
+    tab11Layout.setContentsMargins(0, 0, 0, 0)
+    contentFrame.setLayout(tab11Layout)
+
+    ambListWidget = AmbListWidget(decryptFile, reloadFunc)
+    tab11Layout.addWidget(ambListWidget)
