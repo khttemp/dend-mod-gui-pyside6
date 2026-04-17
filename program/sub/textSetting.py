@@ -665,7 +665,7 @@ textList = {
         "ambModelRotY": "y軸回転",
         "ambModelRotZ": "z軸回転",
         "ambModelPer": "per",
-        "ambModelBsSmf": "モデル1(smf)",
+        "ambModelBsSmf": "モデル(smf)",
         "ambModelBsDetail": "ポーン数",
         "ambCsvFileType": "AMBデータCSV",
         "railComboValue": [

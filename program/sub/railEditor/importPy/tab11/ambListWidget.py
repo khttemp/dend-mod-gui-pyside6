@@ -588,7 +588,7 @@ class AmbListWidget(QWidget):
         ambModelInfoGridLayout.setVerticalSpacing(20)
         ambModelInfoInLayout.addLayout(ambModelInfoGridLayout)
         # QGroupBox - ambModelInfoInLayout - QGridLayout - modelNameLabel
-        modelNameLabel = QLabel(textSetting.textList["railEditor"]["railModelLabel"], font=self.font2)
+        modelNameLabel = QLabel(textSetting.textList["railEditor"]["ambModelBsSmf"], font=self.font2)
         ambModelInfoGridLayout.addWidget(modelNameLabel, 0, 0)
         # QGroupBox - ambModelInfoInLayout - QGridLayout - modelNameCombo
         self.modelNameCombo = QComboBox(font=self.font2)
