@@ -14,6 +14,7 @@ import program.sub.railEditor.dendDecrypt.CSdecrypt as dendCs
 import program.sub.railEditor.dendDecrypt.BSdecrypt as dendBs
 import program.sub.railEditor.dendDecrypt.LSdecrypt as dendLs
 import program.sub.railEditor.dendDecrypt.LSTrialDecrypt as dendLsTrial
+import program.sub.railEditor.dendDecrypt.LSTrialExcelWidget as dendLsTrialExcelWidget
 
 from PySide6.QtWidgets import (
     QWidget, QFrame, QScrollArea, QLabel, QComboBox,
@@ -125,6 +126,7 @@ class RailEditorWindow(QWidget):
         self.excelExtractButton = QPushButton(textSetting.textList["railEditor"]["railDataExtractExcel"])
         self.excelExtractButton.setFixedSize(buttonWidth, buttonHeight)
         self.excelExtractButton.setEnabled(False)
+        self.excelExtractButton.clicked.connect(self.excelExtract)
         excelButtonLayout.addWidget(self.excelExtractButton)
         # headerRight - buttonLayout - space
         excelButtonLayout.addStretch()
@@ -132,6 +134,7 @@ class RailEditorWindow(QWidget):
         self.excelSaveButton = QPushButton(textSetting.textList["railEditor"]["railDataSaveExcel"])
         self.excelSaveButton.setFixedSize(buttonWidth, buttonHeight)
         self.excelSaveButton.setEnabled(False)
+        self.excelSaveButton.clicked.connect(self.excelSave)
         excelButtonLayout.addWidget(self.excelSaveButton)
         # headerRight - buttonLayout - stretch
         excelButtonLayout.addStretch()
@@ -254,3 +257,57 @@ class RailEditorWindow(QWidget):
 
             self.excelExtractButton.setEnabled(True)
             self.excelSaveButton.setEnabled(True)
+
+    def excelExtract(self):
+        filename = self.decryptFile.filename + ".xlsx"
+        fileTypes = "railData (*.xlsx)"
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "",
+            filename,
+            fileTypes
+        )
+        if not file_path:
+            return
+
+        selectedRadioId = self.radioGroup.checkedId()
+        if selectedRadioId == self.LSTrial:
+            excelWidget = dendLsTrialExcelWidget.ExcelWidget(file_path, self.decryptFile, self.importDict["configPath"])
+        else:
+            return
+
+        if not excelWidget.extractExcel():
+            if excelWidget.errorMessage:
+                mb.showerror(title=textSetting.textList["error"], message=excelWidget.errorMessage)
+                return
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+            return
+        mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I113"])
+
+    def excelSave(self):
+        fileTypes = "railData (*.xlsx)"
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "",
+            "",
+            fileTypes
+        )
+        if not file_path:
+            return
+
+        selectedRadioId = self.radioGroup.checkedId()
+        if selectedRadioId == self.LSTrial:
+            excelWidget = dendLsTrialExcelWidget.ExcelWidget(file_path, self.decryptFile, self.importDict["configPath"])
+        else:
+            return
+
+        result, obj = excelWidget.loadExcelData()
+        if not result:
+            mb.showerror(title=textSetting.textList["error"], message=obj["message"])
+            return
+        result = mb.askyesno(title=textSetting.textList["confirm"], message=obj["message"], icon="warning")
+        if result == mb.NO:
+            return
+        excelWidget.saveRailFile(self.decryptFile.filePath, obj["data"])
+        mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I114"])
+        self.reloadFunc()
