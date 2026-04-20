@@ -418,7 +418,10 @@ class ExcelWidget:
         # TabList
         tabList = textSetting.textList["railEditor"]["railLsComboValue"]
         try:
-            for tabName in tabList:
+            for sheetIndex, tabName in enumerate(tabList):
+                # 要素２は不要
+                if sheetIndex == 4:
+                    continue
                 if tabName not in wb.sheetnames:
                     return (False, {"message":textSetting.textList["errorList"]["E95"].format(tabName) })
             # BGM、配置情報
