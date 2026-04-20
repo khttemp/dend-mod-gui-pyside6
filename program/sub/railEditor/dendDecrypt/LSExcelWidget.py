@@ -78,9 +78,6 @@ class ExcelWidget:
         # 駅名位置情報
         elif sheetIndex == 3:
             self.extractStationInfo(ws)
-        # 要素２
-        elif sheetIndex == 4:
-            self.extractElse2Info(ws)
         # CPU情報
         elif sheetIndex == 5:
             self.extractCpuInfo(ws)
@@ -177,16 +174,6 @@ class ExcelWidget:
             ws.cell(self.row, 1).value = stIdx
             for idx, stInfo in enumerate(stationNameInfo):
                 ws.cell(self.row, 2 + idx).value = stInfo
-            self.row += 1
-
-    def extractElse2Info(self, ws):
-        ws.cell(self.row, 1).value = "else2"
-        ws.cell(self.row, 2).value = len(self.decryptFile.else2List)
-        self.row += 1
-
-        for else2Info in self.decryptFile.else2List:
-            for idx, else2 in enumerate(else2Info):
-                ws.cell(self.row, 1 + idx).value = else2
             self.row += 1
 
     def extractCpuInfo(self, ws):
