@@ -10,6 +10,7 @@ from program.sub.railEditor.importPy.tkinterTab import (
 )
 
 import program.sub.railEditor.dendDecrypt.RSdecrypt as dendRs
+import program.sub.railEditor.dendDecrypt.RSExcelWidget as dendRsExcelWidget
 import program.sub.railEditor.dendDecrypt.CSdecrypt as dendCs
 import program.sub.railEditor.dendDecrypt.CSExcelWidget as dendCsExcelWidget
 import program.sub.railEditor.dendDecrypt.BSdecrypt as dendBs
