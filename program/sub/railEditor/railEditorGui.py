@@ -310,4 +310,4 @@ class RailEditorWindow(QWidget):
             return
         excelWidget.saveRailFile(self.decryptFile.filePath, obj["data"])
         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I114"])
-        self.reloadFunc()
+        self.reloadWidget()

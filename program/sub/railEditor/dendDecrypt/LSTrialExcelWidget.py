@@ -651,13 +651,13 @@ class ExcelWidget:
             for i in range(3):
                 self.excelCell = ws.cell(row, 1)
                 railNo = self.excelCell.value
-                hRailNo = struct.pack("<h", railNo)
-                self.railPosByteArr.extend(hRailNo)
+                iRailNo = struct.pack("<i", railNo)
+                self.railPosByteArr.extend(iRailNo)
 
                 self.excelCell = ws.cell(row, 2)
                 railPos = self.excelCell.value
-                hRailPos = struct.pack("<h", railPos)
-                self.railPosByteArr.extend(hRailPos)
+                iRailPos = struct.pack("<i", railPos)
+                self.railPosByteArr.extend(iRailPos)
 
                 self.excelCell = ws.cell(row, 3)
                 i1 = self.excelCell.value
@@ -681,9 +681,9 @@ class ExcelWidget:
                 self.railPosByteArr.append(self.excelCell.value)
 
                 self.excelCell = ws.cell(row, 4)
-                i1 = self.excelCell.value
-                tempI = struct.pack("<i", i1)
-                self.railPosByteArr.extend(tempI)
+                f1 = self.excelCell.value
+                tempF = struct.pack("<f", f1)
+                self.railPosByteArr.extend(tempF)
                 row += 1
 
     def getSmfInfo(self, ws):
@@ -841,6 +841,12 @@ class ExcelWidget:
 
             self.excelCell = ws.cell(row, 2)
             ambCnt = self.excelCell.value
+
+            row = self.findLabel("index", ws["A"])
+            if row == -1:
+                self.errorLogList.append(textSetting.textList["errorList"]["E100"].format(self.excelSheet, "index"))
+                return
+
             row += 1
             self.ambDict = {}
             for i in range(ambCnt):
@@ -869,6 +875,11 @@ class ExcelWidget:
             iRailCnt = struct.pack("<i", railCnt)
             self.newByteArr.extend(iRailCnt)
             self.newByteArr.extend(self.railPosByteArr)
+
+            row = self.findLabel("index", ws["A"])
+            if row == -1:
+                self.errorLogList.append(textSetting.textList["errorList"]["E100"].format(self.excelSheet, "index"))
+                return
 
             row += 1
             for i in range(railCnt):
