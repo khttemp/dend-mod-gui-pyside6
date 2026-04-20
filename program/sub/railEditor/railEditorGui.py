@@ -13,6 +13,7 @@ import program.sub.railEditor.dendDecrypt.RSdecrypt as dendRs
 import program.sub.railEditor.dendDecrypt.CSdecrypt as dendCs
 import program.sub.railEditor.dendDecrypt.BSdecrypt as dendBs
 import program.sub.railEditor.dendDecrypt.LSdecrypt as dendLs
+import program.sub.railEditor.dendDecrypt.LSExcelWidget as dendLsExcelWidget
 import program.sub.railEditor.dendDecrypt.LSTrialDecrypt as dendLsTrial
 import program.sub.railEditor.dendDecrypt.LSTrialExcelWidget as dendLsTrialExcelWidget
 
@@ -273,6 +274,8 @@ class RailEditorWindow(QWidget):
         selectedRadioId = self.radioGroup.checkedId()
         if selectedRadioId == self.LSTrial:
             excelWidget = dendLsTrialExcelWidget.ExcelWidget(file_path, self.decryptFile, self.importDict["configPath"])
+        elif selectedRadioId == self.LS:
+            excelWidget = dendLsExcelWidget.ExcelWidget(file_path, self.decryptFile, self.importDict["configPath"])
         else:
             return
 
@@ -298,6 +301,8 @@ class RailEditorWindow(QWidget):
         selectedRadioId = self.radioGroup.checkedId()
         if selectedRadioId == self.LSTrial:
             excelWidget = dendLsTrialExcelWidget.ExcelWidget(file_path, self.decryptFile, self.importDict["configPath"])
+        elif selectedRadioId == self.LS:
+            excelWidget = dendLsExcelWidget.ExcelWidget(file_path, self.decryptFile, self.importDict["configPath"])
         else:
             return
 
