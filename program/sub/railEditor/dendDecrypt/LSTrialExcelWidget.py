@@ -813,6 +813,9 @@ class ExcelWidget:
                         dupName = self.excelCell.value
                         self.warningLogList.append(textSetting.textList["infoList"]["I115"].format(i, dupName))
                     mdl_no = self.getSmfModelIndex(i, mdl_no, self.newSmfList)
+                    if mdl_no is None:
+                        return
+
                     if mdl_no > 127:
                         bMdlNo = struct.pack("<B", mdl_no)
                     else:
@@ -834,7 +837,7 @@ class ExcelWidget:
             row = self.findLabel(search, ws["A"])
             if row == -1:
                 self.errorLogList.append(textSetting.textList["errorList"]["E100"].format(self.excelSheet, search))
-                return False
+                return
 
             self.excelCell = ws.cell(row, 2)
             ambCnt = self.excelCell.value
@@ -899,6 +902,9 @@ class ExcelWidget:
                     dupName = self.excelCell.value
                     self.warningLogList.append(textSetting.textList["infoList"]["I115"].format(i, dupName))
                 mdl_no = self.getSmfModelIndex(i, mdl_no, self.newSmfList)
+                if mdl_no is None:
+                    return
+
                 self.newByteArr.append(mdl_no)
 
                 # mdl_kasen
@@ -908,6 +914,9 @@ class ExcelWidget:
                     dupName = self.excelCell.value
                     self.warningLogList.append(textSetting.textList["infoList"]["I115"].format(i, dupName))
                 kasen = self.getSmfModelIndex(i, kasen, self.newSmfList)
+                if kasen is None:
+                    return
+
                 if kasen > 127:
                     bKasen = struct.pack("<B", kasen)
                 else:
@@ -941,6 +950,9 @@ class ExcelWidget:
                     dupName = self.excelCell.value
                     self.warningLogList.append(textSetting.textList["infoList"]["I115"].format(i, dupName))
                 mdl_no = self.getSmfModelIndex(i, mdl_no, self.newSmfList)
+                if mdl_no is None:
+                    return
+
                 self.newByteArr.append(mdl_no)
 
                 # prevRail
@@ -964,6 +976,9 @@ class ExcelWidget:
                     dupName = self.excelCell.value
                     self.warningLogList.append(textSetting.textList["infoList"]["I115"].format(i, dupName))
                 kasenchu = self.getSmfModelIndex(i, kasenchu, self.newSmfList)
+                if kasenchu is None:
+                    return
+
                 if kasenchu > 127:
                     bKasenchu = struct.pack("<B", kasenchu)
                 else:
@@ -977,6 +992,9 @@ class ExcelWidget:
                     dupName = self.excelCell.value
                     self.warningLogList.append(textSetting.textList["infoList"]["I115"].format(i, dupName))
                 kasen = self.getSmfModelIndex(i, kasen, self.newSmfList)
+                if kasen is None:
+                    return
+
                 if kasen > 127:
                     bKasen = struct.pack("<B", kasen)
                 else:
@@ -1000,6 +1018,9 @@ class ExcelWidget:
                     dupName = self.excelCell.value
                     self.warningLogList.append(textSetting.textList["infoList"]["I115"].format(i, dupName))
                 fix_amb_mdl = self.getSmfModelIndex(i, fix_amb_mdl, self.newSmfList)
+                if fix_amb_mdl is None:
+                    return
+
                 if fix_amb_mdl > 127:
                     bFixAmb = struct.pack("<B", fix_amb_mdl)
                 else:
@@ -1243,6 +1264,16 @@ class ExcelWidget:
             if column.value == search:
                 return column.row
         return -1
+
+    def getSmfModelIndex(self, i, modelValue, smfNameList):
+        if type(modelValue) is str:
+            if modelValue not in smfNameList:
+                self.errorLogList.append(textSetting.textList["errorList"]["E96"].format(i, modelValue))
+                return None
+            modelIndex = smfNameList.index(modelValue)
+            return modelIndex
+        else:
+            return modelValue
 
     def saveRailFile(self, filePath, newByteArr):
         w = open(filePath, "wb")
