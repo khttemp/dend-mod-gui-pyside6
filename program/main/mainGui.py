@@ -7,6 +7,7 @@ import program.sub.textSetting as textSetting
 
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 import program.sub.ssUnity.ssUnityGui as ssUnityGui
+import program.sub.orgInfoEditor.orgInfoEditorGui as orgInfoEditorGui
 import program.sub.railEditor.railEditorGui as railEditorGui
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMenu
@@ -108,6 +109,8 @@ class MainWindow(QMainWindow):
         newWidget = None
         if self.selectedProgram == "SSUnity":
             newWidget = ssUnityGui.SSUnityWindow(self.importDict)
+        elif self.selectedProgram == "orgInfoEditor":
+            newWidget = orgInfoEditorGui.OrgInfoEditorWindow(self.importDict)
         elif self.selectedProgram == "railEditor":
             newWidget = railEditorGui.RailEditorWindow(self.importDict)
 
