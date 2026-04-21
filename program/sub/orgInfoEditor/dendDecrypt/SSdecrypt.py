@@ -653,6 +653,10 @@ class SSdecrypt:
             self.error = traceback.format_exc()
             return False
 
+    def reload(self):
+        self.open()
+        return self
+
     def saveTrain(self, trainIdx, newLines):
         try:
             data = self.dataList[SSTrainName[trainIdx]]

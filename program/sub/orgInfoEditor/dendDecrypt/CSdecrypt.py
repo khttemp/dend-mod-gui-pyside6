@@ -1624,6 +1624,10 @@ class CSdecrypt():
             self.error = traceback.format_exc()
             return False
 
+    def reload(self):
+        self.open()
+        return self
+
     def saveTrain(self):
         w = open(self.filePath, "wb")
         w.write(self.byteArr)
