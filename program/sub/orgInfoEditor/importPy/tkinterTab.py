@@ -92,7 +92,7 @@ def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
     perf = trainInfo[1]
     perfCnt = len(perf)
     for i in range(perfCnt):
-        perfWidget = PerfWidget(decryptFile, decryptFile.trainPerfNameList[i], perf[i], selectDefaultData)
+        perfWidget = PerfWidget(decryptFile, decryptFile.trainPerfNameList[i], perf[i], selectDefaultData["att"][i])
         if decryptFile.trainPerfNameList[i] == "None_Tlk":
             perfWidget.setObjectName("NoneTlkWidget")
         elif decryptFile.trainPerfNameList[i] == "Weight":

@@ -1,15 +1,20 @@
+from functools import partial
+
 import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from PySide6.QtWidgets import (
-    QWidget, QGridLayout, QFrame, QLabel, QPushButton,
-    QSizePolicy
+    QWidget, QVBoxLayout, QGridLayout, QFrame, QLabel,
+    QPushButton, QDialog, QLineEdit, QDialogButtonBox, QSizePolicy
 )
-from PySide6.QtGui import QFont
-from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QPalette, QColor, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QRegularExpression
+
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
 class PerfWidget(QWidget):
-    def __init__(self, decryptFile, perfName, perfValue, defaultData):
+    def __init__(self, decryptFile, perfName, perfValue, defaultValue):
         super().__init__()
         self.decryptFile = decryptFile
         font6 = QFont(textSetting.textList["font6"][0], textSetting.textList["font6"][1])
@@ -23,98 +28,90 @@ class PerfWidget(QWidget):
         fixedHeight = 40
 
         # perfNameLabel
-        perfNameLabel = QLabel(perfName, font=font6)
-        perfNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
-        perfNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        mainLayout.addWidget(perfNameLabel, 0, 0)
+        self.perfNameLabel = QLabel(perfName, font=font6)
+        self.perfNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.perfNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        mainLayout.addWidget(self.perfNameLabel, 0, 0)
         # perfLabel
-        perfLabel = QLabel("{0}".format(perfValue), font=font6)
-        perfLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
-        perfLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        perfLabel.setFixedSize(fixedWidth, fixedHeight)
-        mainLayout.addWidget(perfLabel, 0, 1)
+        self.perfValue = perfValue
+        self.perfLabel = QLabel("{0}".format(self.perfValue), font=font6)
+        self.perfLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.perfLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.perfLabel.setFixedSize(fixedWidth, fixedHeight)
+        mainLayout.addWidget(self.perfLabel, 0, 1)
         # editPerfButton
         editPerfButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
         editPerfButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        editPerfButton.clicked.connect(partial(self.editVar, defaultValue))
         mainLayout.addWidget(editPerfButton, 0, 2)
+        self.setLabelColor(self.perfNameLabel, self.perfLabel, self.perfValue, defaultValue)
 
-        # color = ""
-        # if self.defaultData[self.cbIdx]["att"][i] < perf[i]:
-        #     color = "red"
-        # elif self.defaultData[self.cbIdx]["att"][i] > perf[i]:
-        #     color = "blue"
-        # else:
-        #     color = "black"
-        # self.perfNameLb.setFgColor(color)
-        # self.perfLb.setFgColor(color)
+    def setLabelColor(self, nameLabel, label, value, defaultValue):
+        if defaultValue is None:
+            color = QColor("green")
+        else:
+            if value > defaultValue:
+                color = QColor("red")
+            elif value < defaultValue:
+                color = QColor("blue")
+            else:
+                color = QPalette().color(QPalette.WindowText)
+        nameLabelPalette = nameLabel.palette()
+        nameLabelPalette.setColor(QPalette.WindowText, color)
+        nameLabel.setPalette(nameLabelPalette)
+        labelPalette = label.palette()
+        labelPalette.setColor(QPalette.WindowText, color)
+        label.setPalette(labelPalette)
 
-    def editVar(self, labelList, var, value, defaultValue, flag=False):
-        EditPerfVarInfo(self.root, textSetting.textList["orgInfoEditor"]["valueModify"], labelList, var, value, defaultValue, self.rootFrameAppearance, flag)
+    def editVar(self, defaultValue):
+        editPerfVarDialog = EditPerfVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.perfValue, defaultValue)
+        if editPerfVarDialog.exec() == QDialog.Accepted:
+            editValue = float(editPerfVarDialog.lineEdit.text())
+            self.perfValue = editValue
+            self.perfLabel.setText("{0}".format(self.perfValue))
+            self.setLabelColor(self.perfNameLabel, self.perfLabel, self.perfValue, defaultValue)
 
 
-# class EditPerfVarInfo(CustomSimpleDialog):
-#     def __init__(self, master, title, labelList, var, value, defaultValue, rootFrameAppearance, flag=False):
-#         self.labelList = labelList
-#         self.var = var
-#         self.value = value
-#         self.defaultValue = defaultValue
-#         self.flag = flag
-#         super().__init__(master, title, rootFrameAppearance.bgColor)
+class EditPerfVarDialog(QDialog):
+    def __init__(self, parent, title, value, defaultValue):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        numberValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+(\.\d+)?"), self)
 
-#     def body(self, frame):
-#         self.defaultLb = ttkCustomWidget.CustomTtkLabel(frame, text=textSetting.textList["orgInfoEditor"]["defaultValueLabel"] + str(self.defaultValue), font=textSetting.textList["font2"])
-#         self.defaultLb.pack()
+        # layout
+        layout = QVBoxLayout(self)
+        # defaultLabel
+        defaultText = textSetting.textList["orgInfoEditor"]["defaultValueLabel"] + str(defaultValue)
+        defaultLabel = QLabel(defaultText, font=font2)
+        layout.addWidget(defaultLabel)
+        # separator
+        horizentalLine = QFrame()
+        horizentalLine.setFrameShape(QFrame.Shape.HLine)
+        horizentalLine.setFrameShadow(QFrame.Shadow.Sunken)
+        layout.addWidget(horizentalLine)
 
-#         sep = ttkCustomWidget.CustomTtkSeparator(frame, orient="horizontal")
-#         sep.pack(fill=tkinter.X, ipady=5)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
+        # layout - LineEdit
+        self.lineEdit = QLineEdit(font=font2)
+        self.lineEdit.setValidator(numberValidator)
+        self.lineEdit.setText("{0}".format(value))
+        layout.addWidget(self.lineEdit)
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
-#         self.inputLb = ttkCustomWidget.CustomTtkLabel(frame, text=textSetting.textList["infoList"]["I44"], font=textSetting.textList["font2"])
-#         self.inputLb.pack()
+    def validate(self):
+        if not self.lineEdit.hasAcceptableInput():
+            mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+            return
+        return True
 
-#         self.v_val = tkinter.StringVar()
-#         self.v_val.set(self.value)
-#         self.inputEt = ttkCustomWidget.CustomTtkEntry(frame, textvariable=self.v_val, font=textSetting.textList["font2"])
-#         self.inputEt.pack()
-#         super().body(frame)
-
-#     def validate(self):
-#         result = self.inputEt.get()
-#         if result:
-#             try:
-#                 if self.flag:
-#                     try:
-#                         result = int(result)
-#                         if result < 0:
-#                             errorMsg = textSetting.textList["errorList"]["E61"].format(0)
-#                             mb.showerror(title=textSetting.textList["intError"], message=errorMsg)
-#                             return False
-#                         self.var.set(result)
-#                     except Exception:
-#                         errorMsg = textSetting.textList["errorList"]["E60"]
-#                         mb.showerror(title=textSetting.textList["intError"], message=errorMsg)
-#                         return False
-#                 else:
-#                     try:
-#                         result = float(result)
-#                         self.var.set(result)
-#                     except Exception:
-#                         errorMsg = textSetting.textList["errorList"]["E3"]
-#                         mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-#                         return False
-#             except Exception:
-#                 errorMsg = textSetting.textList["errorList"]["E14"]
-#                 mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-#                 return False
-
-#             if self.defaultValue is not None:
-#                 color = ""
-#                 if self.defaultValue < result:
-#                     color = "red"
-#                 elif self.defaultValue > result:
-#                     color = "blue"
-#                 else:
-#                     color = "black"
-
-#                 for label in self.labelList:
-#                     label.setFgColor(color)
-#             return True
+    def accept(self):
+        if not self.validate():
+            return
+        super().accept()
