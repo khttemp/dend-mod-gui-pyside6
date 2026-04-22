@@ -12,7 +12,7 @@ mb = customMessageBoxWidget.CustomMessageBox()
 
 
 class SetDefaultEditDialog(QDialog):
-    def __init__(self, parent, title, decryptFile, defaultData):
+    def __init__(self, parent, title, trainIndex, decryptFile, defaultData):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.decryptFile = decryptFile
@@ -47,7 +47,7 @@ class SetDefaultEditDialog(QDialog):
         defaultTextLabel = QLabel(textSetting.textList["orgInfoEditor"]["setDefaultLabel"], font=self.font2)
         mainLayout.addWidget(defaultTextLabel, alignment=Qt.AlignmentFlag.AlignTop)
 
-        self.targetTrainListCombo.setCurrentIndex(0)
+        self.targetTrainListCombo.setCurrentIndex(trainIndex)
         # layout - QDialogButtonBox
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttonBox.accepted.connect(self.accept)

@@ -59,7 +59,10 @@ class EditOrgButtonWidget(QWidget):
         buttonLayout.addWidget(self.editAllTrainInfoButton, 1)
 
     def setDefault(self):
-        setDefaultEditDialog = SetDefaultEditDialog(self, textSetting.textList["orgInfoEditor"]["setDefaultBtnLabel"], self.decryptFile, self.defaultData)
+        root = self.window()
+        trainCombo = root.findChild(QWidget, "trainCombo")
+        trainIndex = trainCombo.currentIndex()
+        setDefaultEditDialog = SetDefaultEditDialog(self, textSetting.textList["orgInfoEditor"]["setDefaultBtnLabel"], trainIndex, self.decryptFile, self.defaultData)
         if setDefaultEditDialog.exec() == QDialog.Accepted:
             self.reloadWidget()
 
