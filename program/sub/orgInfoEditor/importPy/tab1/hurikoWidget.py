@@ -1,94 +1,117 @@
-import tkinter
-from tkinter import messagebox as mb
-import program.textSetting as textSetting
-import program.appearance.ttkCustomWidget as ttkCustomWidget
-from program.appearance.customSimpleDialog import CustomSimpleDialog
+from functools import partial
+
+import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
+
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QGridLayout, QFrame, QLabel,
+    QPushButton, QDialog, QLineEdit, QDialogButtonBox, QSizePolicy
+)
+from PySide6.QtGui import QFont, QPalette, QColor, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QRegularExpression
+
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
-class HurikoWidget():
-    def __init__(self, root, cbIdx, i, perfCnt, frame, huriko, decryptFile, varList, btnList, defaultData, rootFrameAppearance):
-        self.root = root
-        self.cbIdx = cbIdx
+class HurikoWidget(QWidget):
+    def __init__(self, decryptFile, hurikoName, hurikoValue, defaultValue):
+        super().__init__()
         self.decryptFile = decryptFile
-        self.varList = varList
-        self.btnList = btnList
-        self.defaultData = defaultData
-        self.rootFrameAppearance = rootFrameAppearance
+        font6 = QFont(textSetting.textList["font6"][0], textSetting.textList["font6"][1])
 
-        self.hurikoNameLb = ttkCustomWidget.CustomTtkLabel(frame, text=self.decryptFile.trainHurikoNameList[i], font=textSetting.textList["font6"], anchor=tkinter.CENTER, relief="solid")
-        self.hurikoNameLb.grid(row=perfCnt + i, column=0, sticky=tkinter.NSEW)
-        self.varHuriko = tkinter.IntVar()
-        self.varHuriko.set(str(huriko[i]))
-        self.varList.append(self.varHuriko)
-        self.hurikoLb = ttkCustomWidget.CustomTtkLabel(frame, textvariable=self.varHuriko, font=textSetting.textList["font6"], anchor=tkinter.CENTER, relief="solid")
-        self.hurikoLb.grid(row=perfCnt + i, column=1, sticky=tkinter.NSEW)
-        self.hurikoBtn = ttkCustomWidget.CustomTtkButton(frame, text=textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], style="custom.update.TButton", command=lambda: self.editVar([self.hurikoNameLb, self.hurikoLb], self.varHuriko, self.varHuriko.get(), self.defaultData[self.cbIdx]["huriko"][i]), state="disabled")
-        self.hurikoBtn.grid(row=perfCnt + i, column=2, sticky=tkinter.NSEW, padx=(0, 10))
-        self.btnList.append(self.hurikoBtn)
+        # mainLayout
+        mainLayout = QGridLayout(self)
+        mainLayout.setContentsMargins(0, 0, 0, 0)
+        mainLayout.setSpacing(0)
 
-        color = ""
-        if self.defaultData[self.cbIdx]["huriko"][i] < huriko[i]:
-            color = "red"
-        elif self.defaultData[self.cbIdx]["huriko"][i] > huriko[i]:
-            color = "blue"
+        fixedWidth = 100
+        fixedHeight = 40
+
+        # hurikoNameLabel
+        self.hurikoNameLabel = QLabel(hurikoName, font=font6)
+        self.hurikoNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.hurikoNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        mainLayout.addWidget(self.hurikoNameLabel, 0, 0)
+        # hurikoLabel
+        self.hurikoValue = hurikoValue
+        self.hurikoLabel = QLabel("{0}".format(self.hurikoValue), font=font6)
+        self.hurikoLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.hurikoLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.hurikoLabel.setFixedSize(fixedWidth, fixedHeight)
+        mainLayout.addWidget(self.hurikoLabel, 0, 1)
+        # editHurikoButton
+        editHurikoButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
+        editHurikoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        editHurikoButton.clicked.connect(partial(self.editVar, defaultValue))
+        mainLayout.addWidget(editHurikoButton, 0, 2)
+        self.setLabelColor(self.hurikoNameLabel, self.hurikoLabel, self.hurikoValue, defaultValue)
+
+    def setLabelColor(self, nameLabel, label, value, defaultValue):
+        if defaultValue is None:
+            color = QColor("green")
         else:
-            color = "black"
-        self.hurikoNameLb.setFgColor(color)
-        self.hurikoLb.setFgColor(color)
+            if value > defaultValue:
+                color = QColor("red")
+            elif value < defaultValue:
+                color = QColor("blue")
+            else:
+                color = QPalette().color(QPalette.WindowText)
+        nameLabelPalette = nameLabel.palette()
+        nameLabelPalette.setColor(QPalette.WindowText, color)
+        nameLabel.setPalette(nameLabelPalette)
+        labelPalette = label.palette()
+        labelPalette.setColor(QPalette.WindowText, color)
+        label.setPalette(labelPalette)
 
-    def editVar(self, labelList, var, value, defaultValue, flag=True):
-        EditHurikoVarInfo(self.root, textSetting.textList["orgInfoEditor"]["valueModify"], labelList, var, value, defaultValue, self.rootFrameAppearance)
+    def editVar(self, defaultValue):
+        editHurikoVarDialog = EditHurikoVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.hurikoValue, defaultValue)
+        if editHurikoVarDialog.exec() == QDialog.Accepted:
+            editValue = int(editHurikoVarDialog.lineEdit.text())
+            self.hurikoValue = editValue
+            self.hurikoLabel.setText("{0}".format(self.hurikoValue))
+            self.setLabelColor(self.hurikoNameLabel, self.hurikoLabel, self.hurikoValue, defaultValue)
 
 
-class EditHurikoVarInfo(CustomSimpleDialog):
-    def __init__(self, master, title, labelList, var, value, defaultValue, rootFrameAppearance):
-        self.labelList = labelList
-        self.var = var
-        self.value = value
-        self.defaultValue = defaultValue
-        super().__init__(master, title, rootFrameAppearance.bgColor)
+class EditHurikoVarDialog(QDialog):
+    def __init__(self, parent, title, value, defaultValue):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^-?\d+$"), self)
 
-    def body(self, frame):
-        self.defaultLb = ttkCustomWidget.CustomTtkLabel(frame, text=textSetting.textList["orgInfoEditor"]["defaultValueLabel"] + str(self.defaultValue), font=textSetting.textList["font2"])
-        self.defaultLb.pack()
+        # layout
+        layout = QVBoxLayout(self)
+        # defaultLabel
+        defaultText = textSetting.textList["orgInfoEditor"]["defaultValueLabel"] + str(defaultValue)
+        defaultLabel = QLabel(defaultText, font=font2)
+        layout.addWidget(defaultLabel)
+        # separator
+        horizentalLine = QFrame()
+        horizentalLine.setFrameShape(QFrame.Shape.HLine)
+        horizentalLine.setFrameShadow(QFrame.Shadow.Sunken)
+        layout.addWidget(horizentalLine)
 
-        sep = ttkCustomWidget.CustomTtkSeparator(frame, orient="horizontal")
-        sep.pack(fill=tkinter.X, ipady=5)
-
-        self.inputLb = ttkCustomWidget.CustomTtkLabel(frame, text=textSetting.textList["infoList"]["I44"], font=textSetting.textList["font2"])
-        self.inputLb.pack()
-
-        self.v_val = tkinter.StringVar()
-        self.v_val.set(self.value)
-        self.inputEt = ttkCustomWidget.CustomTtkEntry(frame, textvariable=self.v_val, font=textSetting.textList["font2"])
-        self.inputEt.pack()
-        super().body(frame)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
+        # layout - LineEdit
+        self.lineEdit = QLineEdit(font=font2)
+        self.lineEdit.setValidator(integerValidator)
+        self.lineEdit.setText("{0}".format(value))
+        layout.addWidget(self.lineEdit)
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
     def validate(self):
-        result = self.inputEt.get()
-        if result:
-            try:
-                try:
-                    result = int(result)
-                    self.var.set(result)
-                except Exception:
-                    errorMsg = textSetting.textList["errorList"]["E60"]
-                    mb.showerror(title=textSetting.textList["intError"], message=errorMsg)
-                    return False
-            except Exception:
-                errorMsg = textSetting.textList["errorList"]["E14"]
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return False
+        if not self.lineEdit.hasAcceptableInput():
+            mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+            return
+        return True
 
-            if self.defaultValue is not None:
-                color = ""
-                if self.defaultValue < result:
-                    color = "red"
-                elif self.defaultValue > result:
-                    color = "blue"
-                else:
-                    color = "black"
-
-                for label in self.labelList:
-                    label.setFgColor(color)
-            return True
+    def accept(self):
+        if not self.validate():
+            return
+        super().accept()

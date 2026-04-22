@@ -102,7 +102,7 @@ def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
     if decryptFile.game in ["CS", "RS"]:
         huriko = trainInfo[2]
         for i in range(len(huriko)):
-            hurikoWidget = HurikoWidget(decryptFile, decryptFile.trainHurikoNameList[i], huriko[i], selectDefaultData)
+            hurikoWidget = HurikoWidget(decryptFile, decryptFile.trainHurikoNameList[i], huriko[i], selectDefaultData["huriko"][i])
             perfContentLayout.addWidget(hurikoWidget)
     perfContentLayout.addStretch()
 
