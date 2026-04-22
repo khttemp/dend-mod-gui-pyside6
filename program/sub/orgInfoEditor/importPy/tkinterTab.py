@@ -3,7 +3,7 @@ import program.sub.textSetting as textSetting
 from program.sub.orgInfoEditor.importPy.tab1.editOrgButtonWidget import EditOrgButtonWidget
 from program.sub.orgInfoEditor.importPy.tab1.notchWidget import NotchWidget
 from program.sub.orgInfoEditor.importPy.tab1.perfWidget import PerfWidget
-# from program.orgInfoEditor.importPy.tab1.hurikoWidget import HurikoWidget
+from program.sub.orgInfoEditor.importPy.tab1.hurikoWidget import HurikoWidget
 # from program.orgInfoEditor.importPy.tab1.tab1EditWidget import setDefault, extractCsvTrainInfo, saveCsvTrainInfo, editTrain, editAllTrain
 
 # from program.orgInfoEditor.importPy.tab2.countWidget import CountWidget
@@ -18,7 +18,7 @@ from program.sub.orgInfoEditor.importPy.tab1.perfWidget import PerfWidget
 
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QGroupBox, QScrollArea, QFrame, QLabel
+    QVBoxLayout, QHBoxLayout, QGroupBox, QScrollArea, QFrame, QWidget
 )
 from PySide6.QtCore import Qt
 
@@ -33,14 +33,19 @@ def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
     editOrgButtonWidget = EditOrgButtonWidget(decryptFile, reloadFunc)
     mainLayout.addWidget(editOrgButtonWidget, 1)
 
-    contentLayout = QHBoxLayout()
-    mainLayout.addLayout(contentLayout, 12)
+    contentWidget = QWidget()
+    mainLayout.addWidget(contentWidget, 12)
+
+    contentInLayout = QHBoxLayout()
+    contentWidget.setLayout(contentInLayout)
 
     # contentLayout - speedGroupBox
     speedGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["speedLfLabel"])
-    contentLayout.addWidget(speedGroupBox, 2)
+    contentInLayout.addWidget(speedGroupBox, 2)
     # contentLayout - speedGroupBox - QVBoxLayout
     speedInLayout = QVBoxLayout()
+    speedInLayout.setContentsMargins(0, 0, 0, 0)
+    speedInLayout.setSpacing(0)
     speedGroupBox.setLayout(speedInLayout)
     # contentLayout - speedGroupBox - QVBoxLayout - QScrollArea
     speedScrollArea = QScrollArea()
@@ -60,12 +65,15 @@ def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
         # speedContentLayout - NotchWidget
         notchWidget = NotchWidget(notchIndex, decryptFile, notchCnt, speed, selectDefaultData)
         speedContentLayout.addWidget(notchWidget)
+    speedContentLayout.addStretch()
 
     # contentLayout - perfGroupBox
     perfGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["perfLfLabel"])
-    contentLayout.addWidget(perfGroupBox, 3)
+    contentInLayout.addWidget(perfGroupBox, 3)
     # contentLayout - perfGroupBox - QVBoxLayout
     perfInLayout = QVBoxLayout()
+    perfInLayout.setContentsMargins(0, 0, 0, 0)
+    perfInLayout.setSpacing(0)
     perfGroupBox.setLayout(perfInLayout)
     # contentLayout - perfGroupBox - QVBoxLayout - QScrollArea
     perfScrollArea = QScrollArea()
@@ -85,16 +93,18 @@ def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
     perfCnt = len(perf)
     for i in range(perfCnt):
         perfWidget = PerfWidget(decryptFile, decryptFile.trainPerfNameList[i], perf[i], selectDefaultData)
+        if decryptFile.trainPerfNameList[i] == "None_Tlk":
+            perfWidget.setObjectName("NoneTlkWidget")
+        elif decryptFile.trainPerfNameList[i] == "Weight":
+            perfWidget.setObjectName("WeightWidget")
         perfContentLayout.addWidget(perfWidget)
 
-    # if game in [gameDefine.CS, gameDefine.RS]:
-    #     huriko = trainInfo[2]
-    #     for i in range(len(huriko)):
-    #         HurikoWidget(tabFrame, trainIdx, i, perfCnt, perfScrollFrame.interior, huriko, decryptFile, varList, btnList, defaultData, rootFrameAppearance)
-
-    # notchPerfFrame.grid_columnconfigure(0, weight=3)
-    # notchPerfFrame.grid_columnconfigure(1, weight=4)
-    # notchPerfFrame.grid_rowconfigure(0, weight=1)
+    if decryptFile.game in ["CS", "RS"]:
+        huriko = trainInfo[2]
+        for i in range(len(huriko)):
+            hurikoWidget = HurikoWidget(decryptFile, decryptFile.trainHurikoNameList[i], huriko[i], selectDefaultData)
+            perfContentLayout.addWidget(hurikoWidget)
+    perfContentLayout.addStretch()
 
 
 def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):

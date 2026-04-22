@@ -1,11 +1,17 @@
+from functools import partial
+
 import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from PySide6.QtWidgets import (
-    QWidget, QGridLayout, QFrame, QLabel, QPushButton,
-    QSizePolicy
+    QWidget, QVBoxLayout, QGridLayout, QFrame, QLabel,
+    QPushButton, QDialog, QLineEdit, QDialogButtonBox, QSizePolicy
 )
-from PySide6.QtGui import QFont
-from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QPalette, QColor, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QRegularExpression
+
+mb = customMessageBoxWidget.CustomMessageBox()
+
 
 class NotchWidget(QWidget):
     def __init__(self, notchIndex, decryptFile, notchCnt, speed, defaultData):
@@ -14,6 +20,8 @@ class NotchWidget(QWidget):
         self.decryptFile = decryptFile
         self.notchContentCnt = decryptFile.notchContentCnt
         font6 = QFont(textSetting.textList["font6"][0], textSetting.textList["font6"][1])
+        numberValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+(\.\d+)?"), self)
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
 
         # mainLayout
         mainLayout = QGridLayout(self)
@@ -27,235 +35,214 @@ class NotchWidget(QWidget):
         notchLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         mainLayout.addWidget(notchLabel, 0, 0, rowSpanNum, 1)
 
-        # try:
-        #     color = ""
-        #     if self.defaultData[self.cbIdx]["notch"][i] < speed[i]:
-        #         color = "red"
-        #     elif self.defaultData[self.cbIdx]["notch"][i] > speed[i]:
-        #         color = "blue"
-        #     else:
-        #         color = "black"
-        #     speedDefaultValue = self.defaultData[self.cbIdx]["notch"][i]
-        # except Exception:
-        #     color = "green"
-        #     speedDefaultValue = None
-
+        self.speedValue = speed[notchIndex]
+        if notchIndex >= len(defaultData["notch"]):
+            speedDefaultValue = None
+        else:
+            speedDefaultValue = defaultData["notch"][notchIndex]
         # speedNameLabel
-        speedNameLabel = QLabel(textSetting.textList["orgInfoEditor"]["csvNotchSpeed"], font=font6)
-        speedNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
-        speedNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        mainLayout.addWidget(speedNameLabel, 0, 1)
+        self.speedNameLabel = QLabel(textSetting.textList["orgInfoEditor"]["csvNotchSpeed"], font=font6)
+        self.speedNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.speedNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        mainLayout.addWidget(self.speedNameLabel, 0, 1)
         # speedLabel
-        speedLabel = QLabel("{0}".format(speed[notchIndex]), font=font6)
-        speedLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
-        speedLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        mainLayout.addWidget(speedLabel, 0, 2)
+        self.speedLabel = QLabel("{0}".format(self.speedValue), font=font6)
+        self.speedLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.speedLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        mainLayout.addWidget(self.speedLabel, 0, 2)
         # editSpeedButton
         editSpeedButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
         editSpeedButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        editSpeedButton.clicked.connect(partial(self.editSpeedVar, speedDefaultValue, numberValidator))
         mainLayout.addWidget(editSpeedButton, 0, 3)
+        self.setLabelColor(self.speedNameLabel, self.speedLabel, self.speedValue, speedDefaultValue)
 
-        # try:
-        #     color = ""
-        #     if self.defaultData[self.cbIdx]["tlk"][i] < speed[notchCnt + i]:
-        #         color = "red"
-        #     elif self.defaultData[self.cbIdx]["tlk"][i] > speed[notchCnt + i]:
-        #         color = "blue"
-        #     else:
-        #         color = "black"
-        #     tlkDefaultValue = self.defaultData[self.cbIdx]["tlk"][i]
-        # except Exception:
-        #     color = "green"
-        #     tlkDefaultValue = None
-
+        self.tlkValue = speed[notchCnt + notchIndex]
+        if notchIndex >= len(defaultData["tlk"]):
+            tlkDefaultValue = None
+        else:
+            tlkDefaultValue = defaultData["tlk"][notchIndex]
         # tlkNameLabel
-        tlkNameLabel = QLabel(textSetting.textList["orgInfoEditor"]["csvNotchTlk"], font=font6)
-        tlkNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
-        tlkNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        mainLayout.addWidget(tlkNameLabel, 1, 1)
+        self.tlkNameLabel = QLabel(textSetting.textList["orgInfoEditor"]["csvNotchTlk"], font=font6)
+        self.tlkNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.tlkNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        mainLayout.addWidget(self.tlkNameLabel, 1, 1)
         # tlkLabel
-        tlkLabel = QLabel("{0}".format(speed[notchCnt + notchIndex]), font=font6)
-        tlkLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
-        tlkLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        mainLayout.addWidget(tlkLabel, 1, 2)
+        self.tlkLabel = QLabel("{0}".format(self.tlkValue), font=font6)
+        self.tlkLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+        self.tlkLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        mainLayout.addWidget(self.tlkLabel, 1, 2)
         # editTlkButton
         editTlkButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
         editTlkButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        editTlkButton.clicked.connect(partial(self.editTlkVar, tlkDefaultValue, numberValidator))
         mainLayout.addWidget(editTlkButton, 1, 3)
+        self.setLabelColor(self.tlkNameLabel, self.tlkLabel, self.tlkValue, tlkDefaultValue)
 
         if self.notchContentCnt > 2:
-            # try:
-            #     color = ""
-            #     if self.defaultData[self.cbIdx]["soundNum"][i] < speed[notchCnt * 2 + i]:
-            #         color = "red"
-            #     elif self.defaultData[self.cbIdx]["soundNum"][i] > speed[notchCnt * 2 + i]:
-            #         color = "blue"
-            #     else:
-            #         color = "black"
-            #     soundDefaultValue = self.defaultData[self.cbIdx]["soundNum"][i]
-            # except Exception:
-            #     color = "green"
-            #     soundDefaultValue = None
-
+            self.soundValue = speed[notchCnt*2 + notchIndex]
+            if notchIndex >= len(defaultData["soundNum"]):
+                soundDefaultValue = None
+            else:
+                soundDefaultValue = defaultData["soundNum"][notchIndex]
             # soundNameLabel
-            soundNameLabel = QLabel(textSetting.textList["orgInfoEditor"]["csvNotchSound"], font=font6)
-            soundNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
-            soundNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            mainLayout.addWidget(soundNameLabel, 2, 1)
+            self.soundNameLabel = QLabel(textSetting.textList["orgInfoEditor"]["csvNotchSound"], font=font6)
+            self.soundNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            self.soundNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            mainLayout.addWidget(self.soundNameLabel, 2, 1)
             # soundLabel
-            soundLabel = QLabel("{0}".format(speed[notchCnt*2 + notchIndex]), font=font6)
-            soundLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
-            soundLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            mainLayout.addWidget(soundLabel, 2, 2)
+            self.soundLabel = QLabel("{0}".format(self.soundValue), font=font6)
+            self.soundLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            self.soundLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            mainLayout.addWidget(self.soundLabel, 2, 2)
             # editSoundButton
             editSoundButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
             editSoundButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            editSoundButton.clicked.connect(partial(self.editSoundVar, soundDefaultValue, integerValidator))
             mainLayout.addWidget(editSoundButton, 2, 3)
+            self.setLabelColor(self.soundNameLabel, self.soundLabel, self.soundValue, soundDefaultValue)
 
-            # try:
-            #     color = ""
-            #     if self.defaultData[self.cbIdx]["add"][i] < speed[notchCnt * 3 + i]:
-            #         color = "red"
-            #     elif self.defaultData[self.cbIdx]["add"][i] > speed[notchCnt * 3 + i]:
-            #         color = "blue"
-            #     else:
-            #         color = "black"
-            #     addDefaultValue = self.defaultData[self.cbIdx]["add"][i]
-            # except Exception:
-            #     color = "green"
-            #     addDefaultValue = None
-
+            self.addValue = speed[notchCnt*3 + notchIndex]
+            if notchIndex >= len(defaultData["add"]):
+                addDefaultValue = None
+            else:
+                addDefaultValue = defaultData["add"][notchIndex]
             # addNameLabel
-            addNameLabel = QLabel(textSetting.textList["orgInfoEditor"]["csvNotchAdd"], font=font6)
-            addNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
-            addNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            mainLayout.addWidget(addNameLabel, 3, 1)
+            self.addNameLabel = QLabel(textSetting.textList["orgInfoEditor"]["csvNotchAdd"], font=font6)
+            self.addNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            self.addNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            mainLayout.addWidget(self.addNameLabel, 3, 1)
             # addLabel
-            addLabel = QLabel("{0}".format(speed[notchCnt*3 + notchIndex]), font=font6)
-            addLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
-            addLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            mainLayout.addWidget(addLabel, 3, 2)
+            self.addLabel = QLabel("{0}".format(self.addValue), font=font6)
+            self.addLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            self.addLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            mainLayout.addWidget(self.addLabel, 3, 2)
             # editAddButton
             editAddButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
             editAddButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            editAddButton.clicked.connect(partial(self.editAddVar, addDefaultValue, numberValidator))
             mainLayout.addWidget(editAddButton, 3, 3)
+            self.setLabelColor(self.addNameLabel, self.addLabel, self.addValue, addDefaultValue)
 
-        # frame.grid_columnconfigure(0, weight=10)
-        # frame.grid_columnconfigure(1, weight=1)
-        # frame.grid_columnconfigure(2, weight=1)
+    def setLabelColor(self, nameLabel, label, value, defaultValue):
+        if defaultValue is None:
+            color = QColor("green")
+        else:
+            if value > defaultValue:
+                color = QColor("red")
+            elif value < defaultValue:
+                color = QColor("blue")
+            else:
+                color = QPalette().color(QPalette.WindowText)
+        nameLabelPalette = nameLabel.palette()
+        nameLabelPalette.setColor(QPalette.WindowText, color)
+        nameLabel.setPalette(nameLabelPalette)
+        labelPalette = label.palette()
+        labelPalette.setColor(QPalette.WindowText, color)
+        label.setPalette(labelPalette)
 
-    def editVar(self, labelList, var, value, notchName, notchNum, defaultValue, flag=False):
-        EditNotchVarInfo(self.root, textSetting.textList["orgInfoEditor"]["valueModify"], labelList, var, value, notchName, notchNum, defaultValue, self.rootFrameAppearance, flag)
+    def editSpeedVar(self, defaultValue, validator):
+        editNotchVarDialog = EditNotchVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.notchIndex, self.speedValue, defaultValue, validator)
+        if editNotchVarDialog.exec() == QDialog.Accepted:
+            editValue = float(editNotchVarDialog.lineEdit.text())
+            self.speedValue = editValue
+            self.speedLabel.setText("{0}".format(self.speedValue))
+            self.setLabelColor(self.speedNameLabel, self.speedLabel, self.speedValue, defaultValue)
+
+    def editTlkVar(self, defaultValue, validator):
+        root = self.window()
+        noneTlkWidget = root.findChild(QWidget, "NoneTlkWidget")
+        noneTlkValue = noneTlkWidget.perfValue
+        weightWidget = root.findChild(QWidget, "WeightWidget")
+        weightValue = weightWidget.perfValue
+        editNotchVarDialog = EditNotchVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.notchIndex, self.tlkValue, defaultValue, validator, True, noneTlkValue, weightValue)
+        if editNotchVarDialog.exec() == QDialog.Accepted:
+            editValue = float(editNotchVarDialog.lineEdit.text())
+            self.tlkValue = editValue
+            self.tlkLabel.setText("{0}".format(self.tlkValue))
+            self.setLabelColor(self.tlkNameLabel, self.tlkLabel, self.tlkValue, defaultValue)
+
+    def editSoundVar(self, defaultValue, validator):
+        editNotchVarDialog = EditNotchVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.notchIndex, self.soundValue, defaultValue, validator)
+        if editNotchVarDialog.exec() == QDialog.Accepted:
+            editValue = int(editNotchVarDialog.lineEdit.text())
+            self.soundValue = editValue
+            self.soundLabel.setText("{0}".format(self.soundValue))
+            self.setLabelColor(self.soundNameLabel, self.soundLabel, self.soundValue, defaultValue)
+
+    def editAddVar(self, defaultValue, validator):
+        editNotchVarDialog = EditNotchVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.notchIndex, self.addValue, defaultValue, validator)
+        if editNotchVarDialog.exec() == QDialog.Accepted:
+            editValue = float(editNotchVarDialog.lineEdit.text())
+            self.addValue = editValue
+            self.addLabel.setText("{0}".format(self.addValue))
+            self.setLabelColor(self.addNameLabel, self.addLabel, self.addValue, defaultValue)
 
 
-# class EditNotchVarInfo(CustomSimpleDialog):
-#     def __init__(self, master, title, labelList, var, value, notchName, notchNum, defaultValue, rootFrameAppearance, flag=False):
-#         self.labelList = labelList
-#         self.master = master
-#         self.var = var
-#         self.value = value
-#         self.notchName = notchName
-#         self.notchNum = notchNum
-#         self.defaultValue = defaultValue
-#         self.flag = flag
-#         super().__init__(master, title, rootFrameAppearance.bgColor)
+class EditNotchVarDialog(QDialog):
+    def __init__(self, parent, title, notchIndex, value, defaultValue, validator, calcFlag=False, noneTlkValue=None, weightValue=None):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.noneTlkValue = noneTlkValue
+        self.weightValue = weightValue
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
 
-#     def body(self, frame):
-#         self.defaultLb = ttkCustomWidget.CustomTtkLabel(frame, text=textSetting.textList["orgInfoEditor"]["defaultValueLabel"] + str(self.defaultValue), font=textSetting.textList["font2"])
-#         self.defaultLb.pack()
+        # layout
+        layout = QVBoxLayout(self)
+        # defaultLabel
+        defaultText = textSetting.textList["orgInfoEditor"]["defaultValueLabel"] + str(defaultValue)
+        defaultLabel = QLabel(defaultText, font=font2)
+        layout.addWidget(defaultLabel)
+        # separator
+        horizentalLine = QFrame()
+        horizentalLine.setFrameShape(QFrame.Shape.HLine)
+        horizentalLine.setFrameShadow(QFrame.Shadow.Sunken)
+        layout.addWidget(horizentalLine)
 
-#         sep = ttkCustomWidget.CustomTtkSeparator(frame, orient="horizontal")
-#         sep.pack(fill=tkinter.X, ipady=5)
+        if calcFlag:
+            # calcMinSpeedLabel
+            calcMinSpeedNameLabel = QLabel(textSetting.textList["orgInfoEditor"]["calcMinSpeedLabel"].format(notchIndex, notchIndex + 1), font=font2)
+            layout.addWidget(calcMinSpeedNameLabel)
+            # calcMinSpeedValueLabel
+            self.calcMinSpeedLabel = QLabel("", font=font2)
+            layout.addWidget(self.calcMinSpeedLabel, alignment=Qt.AlignmentFlag.AlignCenter)
+            # separator
+            horizentalLine = QFrame()
+            horizentalLine.setFrameShape(QFrame.Shape.HLine)
+            horizentalLine.setFrameShadow(QFrame.Shadow.Sunken)
+            layout.addWidget(horizentalLine)
 
-#         self.v_calcMinSpeed = tkinter.DoubleVar()
-#         self.v_calcMinSpeed.set(0.0)
-#         if self.notchName == "tlk":
-#             calcMinSpeedLb = ttkCustomWidget.CustomTtkLabel(frame, text=textSetting.textList["orgInfoEditor"]["calcMinSpeedLabel"].format(self.notchNum, self.notchNum + 1), font=textSetting.textList["font2"])
-#             calcMinSpeedLb.pack()
-#             calcMinSpeedValue = ttkCustomWidget.CustomTtkLabel(frame, textvariable=self.v_calcMinSpeed, font=textSetting.textList["font2"])
-#             calcMinSpeedValue.pack()
-#             sep = ttkCustomWidget.CustomTtkSeparator(frame, orient="horizontal")
-#             sep.pack(fill=tkinter.X, ipady=5)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
+        # layout - LineEdit
+        self.lineEdit = QLineEdit(font=font2)
+        self.lineEdit.setValidator(validator)
+        if calcFlag:
+            self.lineEdit.textChanged.connect(self.calcMinSpeed)
+        self.lineEdit.setText("{0}".format(value))
+        layout.addWidget(self.lineEdit)
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
-#         self.inputLb = ttkCustomWidget.CustomTtkLabel(frame, text=textSetting.textList["infoList"]["I44"], font=textSetting.textList["font2"])
-#         self.inputLb.pack()
+    def calcMinSpeed(self):
+        inputTlk = float(self.lineEdit.text())
+        minSpeed = (self.weightValue - inputTlk) / self.noneTlkValue
+        if minSpeed < 0:
+            minSpeed = 0
+        minSpeed = round(minSpeed * 60 / 1.11, 3)
+        self.calcMinSpeedLabel.setText("{0}".format(minSpeed))
 
-#         self.v_val = tkinter.StringVar()
-#         self.v_val.set(self.value)
-#         self.inputEt = ttkCustomWidget.CustomTtkEntry(frame, textvariable=self.v_val, font=textSetting.textList["font2"])
-#         self.inputEt.pack()
-#         if self.notchName == "tlk":
-#             self.inputEt.bind("<KeyRelease>", self.calcMinSpeedHandler)
-#             self.calcMinSpeed()
-#         super().body(frame)
+    def validate(self):
+        if not self.lineEdit.hasAcceptableInput():
+            mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+            return
+        return True
 
-#     def calcMinSpeedHandler(self, event):
-#         self.calcMinSpeed()
-
-#     def calcMinSpeed(self):
-#         try:
-#             inputTlk = float(self.v_val.get())
-#         except Exception:
-#             inputTlk = float(self.value)
-
-#         notchPerfFrame = self.master.winfo_children()[1]
-#         perfLabelFrame = notchPerfFrame.winfo_children()[1]
-#         perfAllFrame = perfLabelFrame.winfo_children()[0]
-#         perfCanvas = perfAllFrame.winfo_children()[1]
-#         perfCanvasInFrame = perfCanvas.winfo_children()[0]
-
-#         weightIdx = -1
-#         noneTlkIdx = -1
-#         perfWidgetList = perfCanvasInFrame.winfo_children()
-#         for i in range(len(perfWidgetList) // 3):
-#             nameLabel = perfWidgetList[3 * i]
-#             if nameLabel["text"] == "Weight":
-#                 weightIdx = i
-#             if nameLabel["text"] == "None_Tlk":
-#                 noneTlkIdx = i
-
-#         weight = float(perfWidgetList[3 * weightIdx + 1]["text"])
-#         noneTlk = float(perfWidgetList[3 * noneTlkIdx + 1]["text"])
-#         minSpeed = ((weight - inputTlk) / noneTlk)
-#         if minSpeed < 0:
-#             minSpeed = 0
-#         minSpeed = round(minSpeed * 60 / 1.11, 3)
-#         self.v_calcMinSpeed.set(minSpeed)
-
-#     def validate(self):
-#         result = self.inputEt.get()
-#         if result:
-#             try:
-#                 if self.flag:
-#                     try:
-#                         result = int(result)
-#                         self.var.set(result)
-#                     except Exception:
-#                         errorMsg = textSetting.textList["errorList"]["E60"]
-#                         mb.showerror(title=textSetting.textList["intError"], message=errorMsg)
-#                         return False
-#                 else:
-#                     try:
-#                         result = float(result)
-#                         self.var.set(result)
-#                     except Exception:
-#                         errorMsg = textSetting.textList["errorList"]["E3"]
-#                         mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-#                         return False
-#             except Exception:
-#                 errorMsg = textSetting.textList["errorList"]["E14"]
-#                 mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-#                 return False
-
-#             if self.defaultValue is not None:
-#                 color = ""
-#                 if self.defaultValue < result:
-#                     color = "red"
-#                 elif self.defaultValue > result:
-#                     color = "blue"
-#                 else:
-#                     color = "black"
-
-#                 for label in self.labelList:
-#                     label.setFgColor(color)
-#             return True
+    def accept(self):
+        if not self.validate():
+            return
+        super().accept()

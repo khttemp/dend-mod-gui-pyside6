@@ -119,9 +119,9 @@ class OrgInfoEditorWindow(QWidget):
 
     def clearContent(self):
         while self.mainLayout.count():
-            child = self.mainLayout.takeAt(0)
-            if child.widget():
-                child.widget().deleteLater()
+            item = self.mainLayout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
 
     def selectGame(self, index):
         self.clearContent()
