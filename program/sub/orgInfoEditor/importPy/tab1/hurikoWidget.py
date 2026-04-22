@@ -42,6 +42,7 @@ class HurikoWidget(QWidget):
         # editHurikoButton
         editHurikoButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
         editHurikoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        editHurikoButton.setEnabled(False)
         editHurikoButton.clicked.connect(partial(self.editVar, defaultValue))
         mainLayout.addWidget(editHurikoButton, 0, 2)
         self.setLabelColor(self.hurikoNameLabel, self.hurikoLabel, self.hurikoValue, defaultValue)

@@ -76,6 +76,7 @@ class OrgInfoEditorWindow(QWidget):
         headerLayout.addSpacing(20)
         # gameCombo
         self.gameCombo = QComboBox(font=font2)
+        self.gameCombo.setObjectName("gameCombo")
         self.gameCombo.addItems(gameList)
         self.gameCombo.setCurrentIndex(-1)
         self.gameCombo.currentIndexChanged.connect(self.selectGame)
@@ -84,6 +85,7 @@ class OrgInfoEditorWindow(QWidget):
         headerLayout.addSpacing(30)
         # trainCombo
         self.trainCombo = QComboBox(font=font2)
+        self.trainCombo.setObjectName("trainCombo")
         self.trainCombo.setFixedWidth(200)
         self.trainCombo.setEnabled(False)
         self.trainCombo.currentIndexChanged.connect(self.selectTrain)
@@ -92,6 +94,7 @@ class OrgInfoEditorWindow(QWidget):
         headerLayout.addSpacing(30)
         # menuCombo
         self.menuCombo = QComboBox(font=font2)
+        self.menuCombo.setObjectName("menuCombo")
         self.menuCombo.setFixedWidth(200)
         self.menuCombo.setEnabled(False)
         self.menuCombo.currentIndexChanged.connect(self.selectMenu)
@@ -99,6 +102,7 @@ class OrgInfoEditorWindow(QWidget):
         # space
         headerLayout.addSpacing(30)
         self.editStageTrainButton = QPushButton(textSetting.textList["orgInfoEditor"]["editStageDefaultTrain"], font=font2)
+        self.editStageTrainButton.setObjectName("editStageTrainButton")
         self.editStageTrainButton.setEnabled(False)
         self.editStageTrainButton.clicked.connect(self.editStageTrain)
         headerLayout.addWidget(self.editStageTrainButton)
@@ -333,6 +337,9 @@ class OrgInfoEditorWindow(QWidget):
                 del self.decryptFile
                 self.decryptFile = dendLs.LSdecrypt(file_path)
         else:
+            return
+
+        if not self.decryptFile:
             return
 
         if not self.decryptFile.open():

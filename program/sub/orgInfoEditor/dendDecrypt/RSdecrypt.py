@@ -471,7 +471,7 @@ class RSdecrypt():
             self.error = traceback.format_exc()
             return False
 
-    def saveTrainInfo(self, trainIdx, varList):
+    def saveTrainInfo(self, trainIdx, valueList):
         try:
             newByteArr = bytearray()
 
@@ -482,28 +482,28 @@ class RSdecrypt():
             newByteArr = self.byteArr[0:index]
 
             for i in range(notchCnt):
-                speed = struct.pack("<f", varList[self.notchContentCnt * i].get())
+                speed = struct.pack("<f", valueList[self.notchContentCnt * i])
                 newByteArr.extend(speed)
 
             for i in range(notchCnt):
-                tlk = struct.pack("<f", varList[self.notchContentCnt * i + 1].get())
+                tlk = struct.pack("<f", valueList[self.notchContentCnt * i + 1])
                 newByteArr.extend(tlk)
 
             for i in range(notchCnt):
-                sound = struct.pack("<b", varList[self.notchContentCnt * i + 2].get())
+                sound = struct.pack("<b", valueList[self.notchContentCnt * i + 2])
                 newByteArr.extend(sound)
 
             for i in range(notchCnt):
-                add = struct.pack("<f", varList[self.notchContentCnt * i + 3].get())
+                add = struct.pack("<f", valueList[self.notchContentCnt * i + 3])
                 newByteArr.extend(add)
 
             perfCnt = len(self.trainPerfNameList)
             for i in range(perfCnt):
-                perf = struct.pack("<f", varList[notchCnt * self.notchContentCnt + i].get())
+                perf = struct.pack("<f", valueList[notchCnt * self.notchContentCnt + i])
                 newByteArr.extend(perf)
 
             for i in range(2):
-                huriko = struct.pack("<b", varList[notchCnt * self.notchContentCnt + perfCnt + i].get())
+                huriko = struct.pack("<b", valueList[notchCnt * self.notchContentCnt + perfCnt + i])
                 newByteArr.extend(huriko)
 
             index = self.mdlIndexList[trainIdx]

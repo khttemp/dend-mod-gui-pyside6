@@ -51,6 +51,7 @@ class NotchWidget(QWidget):
         # editSpeedButton
         editSpeedButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
         editSpeedButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        editSpeedButton.setEnabled(False)
         editSpeedButton.clicked.connect(partial(self.editSpeedVar, speedDefaultValue, numberValidator))
         mainLayout.addWidget(editSpeedButton, 0, 3)
         self.setLabelColor(self.speedNameLabel, self.speedLabel, self.speedValue, speedDefaultValue)
@@ -73,6 +74,7 @@ class NotchWidget(QWidget):
         # editTlkButton
         editTlkButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
         editTlkButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        editTlkButton.setEnabled(False)
         editTlkButton.clicked.connect(partial(self.editTlkVar, tlkDefaultValue, numberValidator))
         mainLayout.addWidget(editTlkButton, 1, 3)
         self.setLabelColor(self.tlkNameLabel, self.tlkLabel, self.tlkValue, tlkDefaultValue)
@@ -96,6 +98,7 @@ class NotchWidget(QWidget):
             # editSoundButton
             editSoundButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
             editSoundButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            editSoundButton.setEnabled(False)
             editSoundButton.clicked.connect(partial(self.editSoundVar, soundDefaultValue, integerValidator))
             mainLayout.addWidget(editSoundButton, 2, 3)
             self.setLabelColor(self.soundNameLabel, self.soundLabel, self.soundValue, soundDefaultValue)
@@ -118,6 +121,7 @@ class NotchWidget(QWidget):
             # editAddButton
             editAddButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
             editAddButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            editAddButton.setEnabled(False)
             editAddButton.clicked.connect(partial(self.editAddVar, addDefaultValue, numberValidator))
             mainLayout.addWidget(editAddButton, 3, 3)
             self.setLabelColor(self.addNameLabel, self.addLabel, self.addValue, addDefaultValue)

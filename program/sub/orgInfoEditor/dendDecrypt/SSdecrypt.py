@@ -495,7 +495,7 @@ class SSdecrypt:
             self.error = traceback.format_exc()
             return False
 
-    def saveTrainInfo(self, trainIdx, varList):
+    def saveTrainInfo(self, trainIdx, valueList):
         try:
             originLines = self.allList[SSTrainName[trainIdx]]
             newLines = copy.deepcopy(originLines)
@@ -511,13 +511,13 @@ class SSdecrypt:
                 newSpeed = []
                 for j in range(notchCnt):
                     if i == 0:
-                        newSpeed.append(varList[self.notchContentCnt * j].get())
+                        newSpeed.append(valueList[self.notchContentCnt * j])
                     elif i == 1:
-                        newSpeed.append(varList[self.notchContentCnt * j + 1].get())
+                        newSpeed.append(valueList[self.notchContentCnt * j + 1])
                     elif i == 2:
-                        newSpeed.append(varList[self.notchContentCnt * j + 2].get())
+                        newSpeed.append(valueList[self.notchContentCnt * j + 2])
                     elif i == 3:
-                        newSpeed.append(varList[self.notchContentCnt * j + 3].get())
+                        newSpeed.append(valueList[self.notchContentCnt * j + 3])
                 newSpeedLine = "\t".join([str(x) for x in newSpeed])
                 newSpeedLine += "\r"
                 newLines[index] = newSpeedLine
@@ -527,7 +527,7 @@ class SSdecrypt:
             index += 1
             newPerf = []
             for i in range(len(self.trainPerfNameList)):
-                newPerf.append(varList[notchCnt * self.notchContentCnt + i].get())
+                newPerf.append(valueList[notchCnt * self.notchContentCnt + i])
             newPerfLine = "\t".join([str(x) for x in newPerf])
             newPerfLine += "\r"
             newLines[index] = newPerfLine

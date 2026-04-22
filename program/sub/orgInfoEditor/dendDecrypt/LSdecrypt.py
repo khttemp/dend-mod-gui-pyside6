@@ -409,7 +409,7 @@ class LSdecrypt():
             self.error = traceback.format_exc()
             return False
 
-    def saveTrainInfo(self, trainIdx, varList):
+    def saveTrainInfo(self, trainIdx, valueList):
         try:
             index = self.indexList[trainIdx]
             notchCnt = self.byteArr[index]
@@ -418,16 +418,16 @@ class LSdecrypt():
             newByteArr = self.byteArr[0:index]
 
             for i in range(notchCnt):
-                speed = struct.pack("<f", varList[self.notchContentCnt * i].get())
+                speed = struct.pack("<f", valueList[self.notchContentCnt * i])
                 newByteArr.extend(speed)
 
             for i in range(notchCnt):
-                tlk = struct.pack("<f", varList[self.notchContentCnt * i + 1].get())
+                tlk = struct.pack("<f", valueList[self.notchContentCnt * i + 1])
                 newByteArr.extend(tlk)
 
             perfCnt = len(self.trainPerfNameList)
             for i in range(perfCnt):
-                perf = struct.pack("<f", varList[notchCnt * self.notchContentCnt + i].get())
+                perf = struct.pack("<f", valueList[notchCnt * self.notchContentCnt + i])
                 newByteArr.extend(perf)
 
             index = self.mdlIndexList[trainIdx]

@@ -42,6 +42,7 @@ class PerfWidget(QWidget):
         # editPerfButton
         editPerfButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
         editPerfButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        editPerfButton.setEnabled(False)
         editPerfButton.clicked.connect(partial(self.editVar, defaultValue))
         mainLayout.addWidget(editPerfButton, 0, 2)
         self.setLabelColor(self.perfNameLabel, self.perfLabel, self.perfValue, defaultValue)

@@ -53,6 +53,7 @@ def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
     speedInLayout.addWidget(speedScrollArea)
     # contentLayout - speedGroupBox - QVBoxLayout - QScrollArea - speedContentFrame
     speedContentFrame = QFrame()
+    speedContentFrame.setObjectName("speedContentFrame")
     speedScrollArea.setWidget(speedContentFrame)
 
     # speedContentLayout
@@ -81,6 +82,7 @@ def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
     perfInLayout.addWidget(perfScrollArea)
     # contentLayout - perfGroupBox - QVBoxLayout - QScrollArea - perfContentFrame
     perfContentFrame = QFrame()
+    perfContentFrame.setObjectName("perfContentFrame")
     perfScrollArea.setWidget(perfContentFrame)
 
     # perfContentLayout

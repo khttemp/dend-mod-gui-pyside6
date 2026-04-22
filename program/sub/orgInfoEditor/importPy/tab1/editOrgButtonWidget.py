@@ -1,5 +1,6 @@
 import traceback
 import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 from program.sub.encodingClass import SJISEncodingObject
 from program.sub.errorLogClass import ErrorLogObj
 
@@ -7,9 +8,11 @@ from program.sub.orgInfoEditor.importPy.tab1.setDefaultWidget import SetDefaultE
 from program.sub.orgInfoEditor.importPy.tab1.editAllTrainInfoWidget import EditAllTrainInfoDialog
 
 from PySide6.QtWidgets import (
-    QWidget, QHBoxLayout, QPushButton, QDialog
+    QWidget, QHBoxLayout, QStackedWidget, QPushButton, QDialog
 )
 from PySide6.QtGui import QFont
+
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
 class EditOrgButtonWidget(QWidget):
@@ -23,7 +26,7 @@ class EditOrgButtonWidget(QWidget):
         # setDefaultTrainInfoButton
         self.setDefaultTrainInfoButton = QPushButton(textSetting.textList["orgInfoEditor"]["setDefaultBtnLabel"])
         self.setDefaultTrainInfoButton.clicked.connect(self.setDefault)
-        buttonLayout.addWidget(self.setDefaultTrainInfoButton)
+        buttonLayout.addWidget(self.setDefaultTrainInfoButton, 1)
         # extractCsvTrainInfoButton
         if self.decryptFile.game in oldGameList:
             extractCsvButtonText = textSetting.textList["orgInfoEditor"]["extractCsv"]
@@ -31,7 +34,7 @@ class EditOrgButtonWidget(QWidget):
             extractCsvButtonText = textSetting.textList["orgInfoEditor"]["extractText"]
         self.extractCsvTrainInfoButton = QPushButton(extractCsvButtonText)
         self.extractCsvTrainInfoButton.clicked.connect(self.extractCsvTrainInfo)
-        buttonLayout.addWidget(self.extractCsvTrainInfoButton)
+        buttonLayout.addWidget(self.extractCsvTrainInfoButton, 1)
         # saveCsvTrainInfoButton
         if self.decryptFile.game in oldGameList:
             extractCsvButtonText = textSetting.textList["orgInfoEditor"]["saveCsv"]
@@ -39,15 +42,22 @@ class EditOrgButtonWidget(QWidget):
             extractCsvButtonText = textSetting.textList["orgInfoEditor"]["saveText"]
         self.saveCsvTrainInfoButton = QPushButton(textSetting.textList["orgInfoEditor"]["saveText"])
         self.saveCsvTrainInfoButton.clicked.connect(self.saveCsvTrainInfo)
-        buttonLayout.addWidget(self.saveCsvTrainInfoButton)
+        buttonLayout.addWidget(self.saveCsvTrainInfoButton, 1)
         # editTrainInfoButton
-        self.editTrainInfoButton = QPushButton(textSetting.textList["orgInfoEditor"]["trainModify"])
-        self.editTrainInfoButton.clicked.connect(self.editTrainInfo)
-        buttonLayout.addWidget(self.editTrainInfoButton)
+        self.stackButton = QStackedWidget()
+        self.stackButton.setFixedHeight(26)
+        editTrainInfoButton = QPushButton(textSetting.textList["orgInfoEditor"]["trainModify"])
+        editTrainInfoButton.clicked.connect(self.editTrainInfo)
+        self.stackButton.addWidget(editTrainInfoButton)
+        # saveTrainInfoButton
+        saveTrainInfoButton = QPushButton(textSetting.textList["orgInfoEditor"]["trainSave"])
+        saveTrainInfoButton.clicked.connect(self.saveTrainInfo)
+        self.stackButton.addWidget(saveTrainInfoButton)
+        buttonLayout.addWidget(self.stackButton, 1)
         # editAllTrainInfoButton
         self.editAllTrainInfoButton = QPushButton(textSetting.textList["orgInfoEditor"]["allSave"])
         self.editAllTrainInfoButton.clicked.connect(self.editAllTrainInfo)
-        buttonLayout.addWidget(self.editAllTrainInfoButton)
+        buttonLayout.addWidget(self.editAllTrainInfoButton, 1)
 
     def setDefault(self):
         setDefaultEditDialog = SetDefaultEditDialog(self, textSetting.textList["orgInfoEditor"]["setDefaultBtnLabel"], self.decryptFile)
@@ -146,67 +156,96 @@ class EditOrgButtonWidget(QWidget):
         #         mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
 
     def editTrainInfo(self):
-        pass
-        # v_edit = widgetList[0]
-        # cb = widgetList[1]
-        # menuCb = widgetList[2]
-        # edit_stage_train_button = widgetList[3]
+        root = self.window()
+        gameCombo = root.findChild(QWidget, "gameCombo")
+        gameCombo.setEnabled(False)
+        trainCombo = root.findChild(QWidget, "trainCombo")
+        trainCombo.setEnabled(False)
+        menuCombo = root.findChild(QWidget, "menuCombo")
+        menuCombo.setEnabled(False)
+        editStageTrainButton = root.findChild(QPushButton, "editStageTrainButton")
+        editStageTrainButton.setEnabled(False)
 
-        # set_default_train_info_button = innerButtonList[0]
-        # extract_csv_train_info_button = innerButtonList[1]
-        # save_csv_train_info_button = innerButtonList[2]
-        # edit_button = innerButtonList[3]
-        # edit_all_button = innerButtonList[4]
+        speedContentFrame = root.findChild(QWidget, "speedContentFrame")
+        speedContentLayout = speedContentFrame.layout()
+        for i in range(speedContentLayout.count()):
+            item = speedContentLayout.itemAt(i)
+            if item.widget():
+                buttonList = item.widget().findChildren(QPushButton, "")
+                for button in buttonList:
+                    button.setEnabled(True)
 
-        # v_edit.set(textSetting.textList["orgInfoEditor"]["trainSave"])
-        # for btn in btnList:
-        #     btn["state"] = "normal"
-
-        # edit_button["command"] = lambda: saveTrain(decryptFile, varList, btnList, widgetList, innerButtonList, reloadFunc)
-        # cb["state"] = "disabled"
-        # menuCb["state"] = "disabled"
-        # edit_stage_train_button["state"] = "disabled"
-
-        # set_default_train_info_button["state"] = "disabled"
-        # extract_csv_train_info_button["state"] = "disabled"
-        # save_csv_train_info_button["state"] = "disabled"
-        # edit_all_button["state"] = "disabled"
+        perfContentFrame = root.findChild(QWidget, "perfContentFrame")
+        perfContentLayout = perfContentFrame.layout()
+        for i in range(perfContentLayout.count()):
+            item = perfContentLayout.itemAt(i)
+            if item.widget():
+                button = item.widget().findChild(QPushButton, "")
+                button.setEnabled(True)
+        self.setDefaultTrainInfoButton.setEnabled(False)
+        self.extractCsvTrainInfoButton.setEnabled(False)
+        self.saveCsvTrainInfoButton.setEnabled(False)
+        self.stackButton.setCurrentIndex(1)
+        self.editAllTrainInfoButton.setEnabled(False)
 
     def saveTrainInfo(self):
-        pass
-        # v_edit = widgetList[0]
-        # cb = widgetList[1]
-        # menuCb = widgetList[2]
-        # edit_stage_train_button = widgetList[3]
+        valueList = []
+        root = self.window()
+        gameCombo = root.findChild(QWidget, "gameCombo")
+        gameCombo.setEnabled(True)
+        trainCombo = root.findChild(QWidget, "trainCombo")
+        trainCombo.setEnabled(True)
+        menuCombo = root.findChild(QWidget, "menuCombo")
+        menuCombo.setEnabled(True)
+        editStageTrainButton = root.findChild(QPushButton, "editStageTrainButton")
+        editStageTrainButton.setEnabled(True)
 
-        # set_default_train_info_button = innerButtonList[0]
-        # extract_csv_train_info_button = innerButtonList[1]
-        # save_csv_train_info_button = innerButtonList[2]
-        # edit_button = innerButtonList[3]
+        speedContentFrame = root.findChild(QWidget, "speedContentFrame")
+        speedContentLayout = speedContentFrame.layout()
+        for i in range(speedContentLayout.count()):
+            item = speedContentLayout.itemAt(i)
+            if item.widget():
+                valueList.append(item.widget().speedValue)
+                valueList.append(item.widget().tlkValue)
+                if self.decryptFile.notchContentCnt > 2:
+                    valueList.append(item.widget().soundValue)
+                    valueList.append(item.widget().addValue)
+                buttonList = item.widget().findChildren(QPushButton, "")
+                for button in buttonList:
+                    button.setEnabled(False)
 
-        # v_edit.set(textSetting.textList["orgInfoEditor"]["trainModify"])
-        # for btn in btnList:
-        #     btn["state"] = "disabled"
+        perfContentFrame = root.findChild(QWidget, "perfContentFrame")
+        perfContentLayout = perfContentFrame.layout()
+        for i in range(len(self.decryptFile.trainPerfNameList)):
+            item = perfContentLayout.itemAt(i)
+            if item.widget():
+                valueList.append(item.widget().perfValue)
+                button = item.widget().findChild(QPushButton, "")
+                button.setEnabled(False)
 
-        # edit_button["command"] = lambda: editTrain(decryptFile, varList, btnList, widgetList, innerButtonList, reloadFunc)
-        # cb["state"] = "readonly"
-        # menuCb["state"] = "readonly"
-        # edit_stage_train_button["state"] = "normal"
+        if self.decryptFile.game in ["CS", "RS"]:
+            for i in range(2):
+                index = len(self.decryptFile.trainPerfNameList)
+                item = perfContentLayout.itemAt(index + i)
+                if item.widget():
+                    valueList.append(item.widget().hurikoValue)
+                    button = item.widget().findChild(QPushButton, "")
+                    button.setEnabled(False)
 
-        # set_default_train_info_button["state"] = "normal"
-        # extract_csv_train_info_button["state"] = "normal"
-        # save_csv_train_info_button["state"] = "normal"
+        self.setDefaultTrainInfoButton.setEnabled(True)
+        self.extractCsvTrainInfoButton.setEnabled(True)
+        self.saveCsvTrainInfoButton.setEnabled(True)
+        self.stackButton.setCurrentIndex(0)
+        self.editAllTrainInfoButton.setEnabled(True)
 
-        # trainIdx = cb.current()
+        trainIndex = trainCombo.currentIndex()
+        if not self.decryptFile.saveTrainInfo(trainIndex, valueList):
+            self.decryptFile.printError()
+            mb.showerror(title=textSetting.textList["saveError"], message=textSetting.textList["errorList"]["E4"])
+            return
 
-        # errorMsg = textSetting.textList["errorList"]["E4"]
-        # if not decryptFile.saveTrainInfo(trainIdx, varList):
-        #     decryptFile.printError()
-        #     mb.showerror(title=textSetting.textList["saveError"], message=errorMsg)
-        #     return
-
-        # mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I49"])
-        # reloadFunc()
+        mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I49"])
+        self.reloadWidget()
 
     def editAllTrainInfo(self):
         editAllTrainInfoDialog = EditAllTrainInfoDialog(self, textSetting.textList["orgInfoEditor"]["allSaveLabel"], self.decryptFile)
