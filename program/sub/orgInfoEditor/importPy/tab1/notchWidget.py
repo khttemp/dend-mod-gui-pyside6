@@ -17,8 +17,6 @@ class NotchWidget(QWidget):
     def __init__(self, notchIndex, decryptFile, notchCnt, speed, defaultData):
         super().__init__()
         self.notchIndex = notchIndex
-        self.decryptFile = decryptFile
-        self.notchContentCnt = decryptFile.notchContentCnt
         font6 = QFont(textSetting.textList["font6"][0], textSetting.textList["font6"][1])
         numberValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+(\.\d+)?"), self)
         integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
@@ -27,7 +25,7 @@ class NotchWidget(QWidget):
         mainLayout = QGridLayout(self)
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
-        rowSpanNum = self.notchContentCnt
+        rowSpanNum = decryptFile.notchContentCnt
         # notchLabel
         notchText = textSetting.textList["orgInfoEditor"]["notchLabel"] + str(notchIndex + 1)
         notchLabel = QLabel(notchText, font=font6)
@@ -79,7 +77,7 @@ class NotchWidget(QWidget):
         mainLayout.addWidget(editTlkButton, 1, 3)
         self.setLabelColor(self.tlkNameLabel, self.tlkLabel, self.tlkValue, tlkDefaultValue)
 
-        if self.notchContentCnt > 2:
+        if decryptFile.notchContentCnt > 2:
             self.soundValue = speed[notchCnt*2 + notchIndex]
             if notchIndex >= len(defaultData["soundNum"]):
                 soundDefaultValue = None
@@ -142,7 +140,7 @@ class NotchWidget(QWidget):
         label.setPalette(labelPalette)
 
     def editSpeedVar(self, defaultValue, validator):
-        editNotchVarDialog = EditNotchVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.notchIndex, self.speedValue, defaultValue, validator)
+        editNotchVarDialog = EditNotchVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.speedValue, defaultValue, validator)
         if editNotchVarDialog.exec() == QDialog.Accepted:
             editValue = float(editNotchVarDialog.lineEdit.text())
             self.speedValue = editValue
@@ -155,7 +153,7 @@ class NotchWidget(QWidget):
         noneTlkValue = noneTlkWidget.perfValue
         weightWidget = root.findChild(QWidget, "WeightWidget")
         weightValue = weightWidget.perfValue
-        editNotchVarDialog = EditNotchVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.notchIndex, self.tlkValue, defaultValue, validator, True, noneTlkValue, weightValue)
+        editNotchVarDialog = EditNotchVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.tlkValue, defaultValue, validator, True, self.notchIndex, noneTlkValue, weightValue)
         if editNotchVarDialog.exec() == QDialog.Accepted:
             editValue = float(editNotchVarDialog.lineEdit.text())
             self.tlkValue = editValue
@@ -163,7 +161,7 @@ class NotchWidget(QWidget):
             self.setLabelColor(self.tlkNameLabel, self.tlkLabel, self.tlkValue, defaultValue)
 
     def editSoundVar(self, defaultValue, validator):
-        editNotchVarDialog = EditNotchVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.notchIndex, self.soundValue, defaultValue, validator)
+        editNotchVarDialog = EditNotchVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.soundValue, defaultValue, validator)
         if editNotchVarDialog.exec() == QDialog.Accepted:
             editValue = int(editNotchVarDialog.lineEdit.text())
             self.soundValue = editValue
@@ -171,7 +169,7 @@ class NotchWidget(QWidget):
             self.setLabelColor(self.soundNameLabel, self.soundLabel, self.soundValue, defaultValue)
 
     def editAddVar(self, defaultValue, validator):
-        editNotchVarDialog = EditNotchVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.notchIndex, self.addValue, defaultValue, validator)
+        editNotchVarDialog = EditNotchVarDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.addValue, defaultValue, validator)
         if editNotchVarDialog.exec() == QDialog.Accepted:
             editValue = float(editNotchVarDialog.lineEdit.text())
             self.addValue = editValue
@@ -180,7 +178,7 @@ class NotchWidget(QWidget):
 
 
 class EditNotchVarDialog(QDialog):
-    def __init__(self, parent, title, notchIndex, value, defaultValue, validator, calcFlag=False, noneTlkValue=None, weightValue=None):
+    def __init__(self, parent, title, value, defaultValue, validator, calcFlag=False, notchIndex=None, noneTlkValue=None, weightValue=None):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.noneTlkValue = noneTlkValue
