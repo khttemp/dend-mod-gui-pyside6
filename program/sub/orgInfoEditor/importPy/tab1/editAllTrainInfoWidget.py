@@ -1,16 +1,49 @@
+import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QDialogButtonBox, QPushButton
+    QDialog, QVBoxLayout, QHBoxLayout, QDialogButtonBox,
+    QLabel, QComboBox, QLineEdit
 )
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QRegularExpression
+
+mb = customMessageBoxWidget.CustomMessageBox()
+
 
 class EditAllTrainInfoDialog(QDialog):
     def __init__(self, parent, title, decryptFile):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.decryptFile = decryptFile
+        font2 = QFont(textSetting.textList["font6"][0], textSetting.textList["font2"][1])
+        numberValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+(\.\d+)?"), self)
+
         # layout
         layout = QVBoxLayout(self)
+        # layout - mainLayout
+        mainLayout = QHBoxLayout()
+        layout.addLayout(mainLayout)
+        # layout - mainLayout - perfTextLabel
+        perfTextLabel = QLabel(textSetting.textList["orgInfoEditor"]["perfElement"], font=font2)
+        mainLayout.addWidget(perfTextLabel)
+        # layout - mainLayout - perfTextCombo
+        self.perfTextCombo = QComboBox(font=font2)
+        self.perfTextCombo.addItems(decryptFile.trainPerfNameList)
+        mainLayout.addWidget(self.perfTextCombo)
+        # layout - mainLayout - perfAllTextLabel
+        perfAllTextLabel = QLabel(textSetting.textList["orgInfoEditor"]["perfAllTrainLabel"], font=font2)
+        mainLayout.addWidget(perfAllTextLabel)
+        # layout - mainLayout - lineEdit
+        self.lineEdit = QLineEdit("1.0", font=font2)
+        self.lineEdit.setValidator(numberValidator)
+        self.lineEdit.setFixedWidth(70)
+        self.lineEdit.setAlignment(Qt.AlignmentFlag.AlignRight)
+        mainLayout.addWidget(self.lineEdit)
+        # layout - mainLayout - perfCalcCombo
+        self.perfCalcCombo = QComboBox(font=font2)
+        self.perfCalcCombo.addItems(textSetting.textList["orgInfoEditor"]["perfCalcList"])
+        mainLayout.addWidget(self.perfCalcCombo)
 
         # layout - QDialogButtonBox
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -18,59 +51,29 @@ class EditAllTrainInfoDialog(QDialog):
         buttonBox.rejected.connect(self.reject)
         layout.addWidget(buttonBox)
 
-#     def __init__(self, master, title, decryptFile, rootFrameAppearance):
-#         self.decryptFile = decryptFile
-#         self.notchContentCnt = decryptFile.notchContentCnt
-#         self.reloadFlag = False
-#         super().__init__(master, title, rootFrameAppearance.bgColor)
+    def validate(self):
+        if not self.lineEdit.hasAcceptableInput():
+            mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+            return
 
-#     def body(self, master):
-#         self.eleLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["orgInfoEditor"]["perfElement"], width=5, font=textSetting.textList["font2"])
-#         self.eleLb.grid(row=0, column=0, sticky=tkinter.N + tkinter.S, padx=3)
-#         self.v_ele = tkinter.StringVar()
-#         self.eleCb = ttkCustomWidget.CustomTtkCombobox(master, textvariable=self.v_ele, width=24, value=self.decryptFile.trainPerfNameList, state="readonly")
-#         self.eleCb.grid(row=0, column=1, sticky=tkinter.N + tkinter.S, padx=3)
-#         self.v_ele.set(self.decryptFile.trainPerfNameList[0])
+        if self.perfCalcCombo.currentIndex() == 0:
+            warnMsg = textSetting.textList["infoList"]["I52"]
+        else:
+            warnMsg = textSetting.textList["infoList"]["I53"]
+        result = mb.askokcancel(title=textSetting.textList["warning"], message=warnMsg, icon="warning")
 
-#         self.allLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["orgInfoEditor"]["perfAllTrainLabel"], width=5, font=textSetting.textList["font2"])
-#         self.allLb.grid(row=0, column=2, sticky=tkinter.N + tkinter.S, padx=3)
+        if result == mb.OK:
+            perfIndex = self.perfTextCombo.currentIndex()
+            num = float(self.lineEdit.text())
 
-#         self.v_num = tkinter.DoubleVar()
-#         self.v_num.set(1.0)
-#         self.numEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.v_num, width=6, font=textSetting.textList["font2"], justify="right")
-#         self.numEt.grid(row=0, column=3, sticky=tkinter.N + tkinter.S, padx=3)
+            if not self.decryptFile.saveAllEdit(perfIndex, num, self.perfCalcCombo.currentIndex()):
+                self.decryptFile.printError()
+                mb.showerror(title=textSetting.textList["saveError"], message=textSetting.textList["errorList"]["E4"])
+                return False
+            return True
 
-#         calcList = textSetting.textList["orgInfoEditor"]["perfCalcList"]
-#         self.v_ele2 = tkinter.StringVar()
-#         self.eleCb2 = ttkCustomWidget.CustomTtkCombobox(master, textvariable=self.v_ele2, font=textSetting.textList["font2"], width=8, value=calcList, state="readonly")
-#         self.v_ele2.set(calcList[0])
-
-#         self.eleCb2.grid(row=0, column=4, sticky=tkinter.N + tkinter.S, padx=3)
-#         super().body(master)
-
-#     def validate(self):
-#         try:
-#             result = float(self.v_num.get())
-#             if self.eleCb2.current() == 0:
-#                 warnMsg = textSetting.textList["infoList"]["I52"]
-#             else:
-#                 warnMsg = textSetting.textList["infoList"]["I53"]
-#             result = mb.askokcancel(title=textSetting.textList["warning"], message=warnMsg, icon="warning", parent=self)
-
-#             if result:
-#                 perfIndex = self.eleCb.current()
-#                 num = self.v_num.get()
-
-#                 errorMsg = textSetting.textList["errorList"]["E4"]
-#                 if not self.decryptFile.saveAllEdit(perfIndex, num, self.eleCb2.current()):
-#                     self.decryptFile.printError()
-#                     mb.showerror(title=textSetting.textList["saveError"], message=errorMsg)
-#                     return False
-#                 return True
-#         except Exception:
-#             errorMsg = textSetting.textList["errorList"]["E3"]
-#             mb.showerror(title=textSetting.textList["numberError"], message=errorMsg, parent=self)
-
-#     def apply(self):
-#         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I54"])
-#         self.reloadFlag = True
+    def accept(self):
+        if not self.validate():
+            return
+        super().accept()
+        mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I54"])
