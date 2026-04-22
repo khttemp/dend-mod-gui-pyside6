@@ -30,7 +30,7 @@ def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
         return
     selectDefaultData = defaultData[trainIndex]
 
-    editOrgButtonWidget = EditOrgButtonWidget(decryptFile, reloadFunc)
+    editOrgButtonWidget = EditOrgButtonWidget(decryptFile, defaultData, reloadFunc)
     mainLayout.addWidget(editOrgButtonWidget, 1)
 
     contentWidget = QWidget()

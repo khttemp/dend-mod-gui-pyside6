@@ -1,7 +1,6 @@
 import traceback
 import program.sub.textSetting as textSetting
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
-from program.sub.encodingClass import SJISEncodingObject
 from program.sub.errorLogClass import ErrorLogObj
 
 from program.sub.orgInfoEditor.importPy.tab1.setDefaultWidget import SetDefaultEditDialog
@@ -10,15 +9,15 @@ from program.sub.orgInfoEditor.importPy.tab1.editAllTrainInfoWidget import EditA
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QStackedWidget, QPushButton, QDialog
 )
-from PySide6.QtGui import QFont
 
 mb = customMessageBoxWidget.CustomMessageBox()
 
 
 class EditOrgButtonWidget(QWidget):
-    def __init__(self, decryptFile, reloadWidget):
+    def __init__(self, decryptFile, defaultData, reloadWidget):
         super().__init__()
         self.decryptFile = decryptFile
+        self.defaultData = defaultData
         self.reloadWidget = reloadWidget
         oldGameList = ["RS", "CS", "BS", "LS"]
 
@@ -60,7 +59,7 @@ class EditOrgButtonWidget(QWidget):
         buttonLayout.addWidget(self.editAllTrainInfoButton, 1)
 
     def setDefault(self):
-        setDefaultEditDialog = SetDefaultEditDialog(self, textSetting.textList["orgInfoEditor"]["setDefaultBtnLabel"], self.decryptFile)
+        setDefaultEditDialog = SetDefaultEditDialog(self, textSetting.textList["orgInfoEditor"]["setDefaultBtnLabel"], self.decryptFile, self.defaultData)
         if setDefaultEditDialog.exec() == QDialog.Accepted:
             self.reloadWidget()
 
