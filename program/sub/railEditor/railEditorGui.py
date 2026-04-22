@@ -3,7 +3,7 @@ import os
 import program.sub.textSetting as textSetting
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
-from program.sub.railEditor.importPy.tkinterTab import (
+from program.sub.railEditor.importPy.tabWidget import (
     tab1AllWidget, tab2AllWidget, tab3AllWidget, tab4AllWidget,
     tab5AllWidget, tab6AllWidget, tab7AllWidget, tab8AllWidget,
     tab9AllWidget, tab10AllWidget, tab11AllWidget
