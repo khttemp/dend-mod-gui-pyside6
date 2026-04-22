@@ -63,10 +63,6 @@ class EditOrgButtonWidget(QWidget):
         if setDefaultEditDialog.exec() == QDialog.Accepted:
             self.reloadWidget()
 
-        # result = SetDefaultEdit(tabFrame, textSetting.textList["orgInfoEditor"]["setDefaultBtnLabel"], decryptFile, game, trainIdx, defaultData, rootFrameAppearance)
-        # if result.reloadFlag:
-        #     reloadFunc()
-
     def extractCsvTrainInfo(self):
         pass
         # filename = decryptFile.trainNameList[trainIdx]
