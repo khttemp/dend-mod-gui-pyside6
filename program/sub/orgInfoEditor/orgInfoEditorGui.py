@@ -6,12 +6,9 @@ import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from PySide6.QtWidgets import (
     QWidget, QFrame, QVBoxLayout, QHBoxLayout,
-    QComboBox, QPushButton, QFileDialog
+    QComboBox, QPushButton, QFileDialog, QDialog
 )
 from PySide6.QtGui import QFont
-
-
-# from program.orgInfoEditor.importPy.tkinterStageWidget import EditStageInfo
 
 import program.sub.orgInfoEditor.orgInfoEditorProcess as orgInfoEditorProcess
 from program.sub.orgInfoEditor.dendDecrypt import LSdecrypt as dendLs
@@ -20,29 +17,12 @@ from program.sub.orgInfoEditor.dendDecrypt import CSdecrypt as dendCs
 from program.sub.orgInfoEditor.dendDecrypt import RSdecrypt as dendRs
 from program.sub.orgInfoEditor.dendDecrypt import SSdecrypt as dendSs
 
-from program.sub.orgInfoEditor.importPy.tkinterTab import (
+from program.sub.orgInfoEditor.importPy.editStageTrainWidget import EditStageTrainDialog
+from program.sub.orgInfoEditor.importPy.tabWidget import (
     tab1AllWidget, tab2AllWidget, tab3AllWidget
 )
 
 mb = customMessageBoxWidget.CustomMessageBox()
-
-
-# def editStageTrain():
-#     global root
-#     global gameCb
-#     global decryptFile
-#     global rootFrameAppearance
-
-#     index = decryptFile.stageIdx
-#     if index == -1:
-#         errorMsg = textSetting.textList["errorList"]["E69"]
-#         mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-#         return
-
-#     game = gameCb.current()
-#     EditStageInfo(root, textSetting.textList["orgInfoEditor"]["editStageLabel"], game, decryptFile, rootFrameAppearance)
-
-
 
 
 class OrgInfoEditorWindow(QWidget):
@@ -163,7 +143,9 @@ class OrgInfoEditorWindow(QWidget):
             tab3AllWidget(self.mainLayout, self.decryptFile, trainIndex, self.reloadWidget)
 
     def editStageTrain(self):
-        pass
+        editStageTrainDialog = EditStageTrainDialog(self, textSetting.textList["orgInfoEditor"]["editStageLabel"], self.decryptFile)
+        if editStageTrainDialog.exec() == QDialog.Accepted:
+            self.reloadWidget()
 
     def modifiedTrainNameList(self):
         copyTrainNameList = copy.deepcopy(self.decryptFile.trainNameList)
