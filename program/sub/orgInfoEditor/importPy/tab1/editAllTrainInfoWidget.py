@@ -16,7 +16,7 @@ class EditAllTrainInfoDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.decryptFile = decryptFile
-        font2 = QFont(textSetting.textList["font6"][0], textSetting.textList["font2"][1])
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
         numberValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+(\.\d+)?"), self)
 
         # layout

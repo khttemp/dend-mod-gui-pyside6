@@ -20,7 +20,7 @@ class AmbListWidget(QWidget):
         self.smfList.append("なし")
         self.ambList = decryptFile.ambList
         self.reloadFunc = reloadFunc
-        self.font2 = QFont(textSetting.textList["font6"][0], textSetting.textList["font2"][1])
+        self.font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
 
         # mainLayout
         mainLayout = QVBoxLayout(self)

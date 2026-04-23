@@ -22,7 +22,7 @@ class RailListWidget(QWidget):
         self.smfList = [smfInfo[0] for smfInfo in decryptFile.smfList]
         self.railList = decryptFile.railList
         self.reloadFunc = reloadFunc
-        self.font2 = QFont(textSetting.textList["font6"][0], textSetting.textList["font2"][1])
+        self.font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
 
         if self.decryptFile.game in ["CS", "RS"]:
             self.smfList.extend(textSetting.textList["railEditor"]["smfListAddList1"])

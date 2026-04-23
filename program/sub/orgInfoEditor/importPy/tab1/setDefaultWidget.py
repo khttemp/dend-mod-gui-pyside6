@@ -17,7 +17,7 @@ class SetDefaultEditDialog(QDialog):
         self.setWindowTitle(title)
         self.decryptFile = decryptFile
         self.defaultData = defaultData
-        self.font2 = QFont(textSetting.textList["font6"][0], textSetting.textList["font2"][1])
+        self.font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
 
         # layout
         layout = QVBoxLayout(self)
