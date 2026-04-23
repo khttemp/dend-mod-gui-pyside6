@@ -275,9 +275,10 @@ class OrgInfoEditorWindow(QWidget):
                 "",
                 fileTypes.format(textSetting.textList["orgInfoEditor"]["fileType"], "train_org_data.den")
             )
-            if file_path:
-                del self.decryptFile
-                self.decryptFile = dendSs.SSdecrypt(file_path)
+            if not file_path:
+                return
+            del self.decryptFile
+            self.decryptFile = dendSs.SSdecrypt(file_path)
         elif self.gameCombo.currentText() == "Rising Stage":
             file_path, _ = QFileDialog.getOpenFileName(
                 self,
@@ -285,9 +286,10 @@ class OrgInfoEditorWindow(QWidget):
                 "",
                 fileTypes.format(textSetting.textList["orgInfoEditor"]["fileType"], "TRAIN_DATA4TH.BIN")
             )
-            if file_path:
-                del self.decryptFile
-                self.decryptFile = dendRs.RSdecrypt(file_path)
+            if not file_path:
+                return
+            del self.decryptFile
+            self.decryptFile = dendRs.RSdecrypt(file_path)
         elif self.gameCombo.currentText() == "Climax Stage":
             file_path, _ = QFileDialog.getOpenFileName(
                 self,
@@ -295,9 +297,10 @@ class OrgInfoEditorWindow(QWidget):
                 "",
                 fileTypes.format(textSetting.textList["orgInfoEditor"]["fileType"], "TRAIN_DATA3RD.BIN")
             )
-            if file_path:
-                del self.decryptFile
-                self.decryptFile = dendCs.CSdecrypt(file_path)
+            if not file_path:
+                return
+            del self.decryptFile
+            self.decryptFile = dendCs.CSdecrypt(file_path)
         elif self.gameCombo.currentText() == "Burning Stage":
             file_path, _ = QFileDialog.getOpenFileName(
                 self,
@@ -305,9 +308,10 @@ class OrgInfoEditorWindow(QWidget):
                 "",
                 fileTypes.format(textSetting.textList["orgInfoEditor"]["fileType"], "TRAIN_DATA2ND.BIN")
             )
-            if file_path:
-                del self.decryptFile
-                self.decryptFile = dendBs.BSdecrypt(file_path)
+            if not file_path:
+                return
+            del self.decryptFile
+            self.decryptFile = dendBs.BSdecrypt(file_path)
         elif self.gameCombo.currentText() == "Lightning Stage":
             file_path, _ = QFileDialog.getOpenFileName(
                 self,
@@ -315,13 +319,11 @@ class OrgInfoEditorWindow(QWidget):
                 "",
                 fileTypes.format(textSetting.textList["orgInfoEditor"]["fileType"], "TRAIN_DATA.BIN")
             )
-            if file_path:
-                del self.decryptFile
-                self.decryptFile = dendLs.LSdecrypt(file_path)
+            if not file_path:
+                return
+            del self.decryptFile
+            self.decryptFile = dendLs.LSdecrypt(file_path)
         else:
-            return
-
-        if not self.decryptFile:
             return
 
         if not self.decryptFile.open():

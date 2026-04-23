@@ -1,13 +1,14 @@
-import traceback
 import program.sub.textSetting as textSetting
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 from program.sub.errorLogClass import ErrorLogObj
 
 from program.sub.orgInfoEditor.importPy.tab1.setDefaultWidget import SetDefaultEditDialog
 from program.sub.orgInfoEditor.importPy.tab1.editAllTrainInfoWidget import EditAllTrainInfoDialog
+import program.sub.orgInfoEditor.importPy.tab1.trainInfoProcess as trainInfoProcess
 
 from PySide6.QtWidgets import (
-    QWidget, QHBoxLayout, QStackedWidget, QPushButton, QDialog
+    QWidget, QHBoxLayout, QStackedWidget, QPushButton, QDialog,
+    QFileDialog
 )
 
 mb = customMessageBoxWidget.CustomMessageBox()
@@ -19,7 +20,7 @@ class EditOrgButtonWidget(QWidget):
         self.decryptFile = decryptFile
         self.defaultData = defaultData
         self.reloadWidget = reloadWidget
-        oldGameList = ["RS", "CS", "BS", "LS"]
+        self.oldGameList = ["RS", "CS", "BS", "LS"]
 
         buttonLayout = QHBoxLayout(self)
         # setDefaultTrainInfoButton
@@ -27,7 +28,7 @@ class EditOrgButtonWidget(QWidget):
         self.setDefaultTrainInfoButton.clicked.connect(self.setDefault)
         buttonLayout.addWidget(self.setDefaultTrainInfoButton, 1)
         # extractCsvTrainInfoButton
-        if self.decryptFile.game in oldGameList:
+        if self.decryptFile.game in self.oldGameList:
             extractCsvButtonText = textSetting.textList["orgInfoEditor"]["extractCsv"]
         else:
             extractCsvButtonText = textSetting.textList["orgInfoEditor"]["extractText"]
@@ -35,7 +36,7 @@ class EditOrgButtonWidget(QWidget):
         self.extractCsvTrainInfoButton.clicked.connect(self.extractCsvTrainInfo)
         buttonLayout.addWidget(self.extractCsvTrainInfoButton, 1)
         # saveCsvTrainInfoButton
-        if self.decryptFile.game in oldGameList:
+        if self.decryptFile.game in self.oldGameList:
             extractCsvButtonText = textSetting.textList["orgInfoEditor"]["saveCsv"]
         else:
             extractCsvButtonText = textSetting.textList["orgInfoEditor"]["saveText"]
@@ -67,91 +68,94 @@ class EditOrgButtonWidget(QWidget):
             self.reloadWidget()
 
     def extractCsvTrainInfo(self):
-        pass
-        # filename = decryptFile.trainNameList[trainIdx]
-        # if game in [gameDefine.LS, gameDefine.BS, gameDefine.CS, gameDefine.RS]:
-        #     file_path = fd.asksaveasfilename(initialfile=filename, defaultextension="csv", filetypes=[("traininfo_csv", "*.csv")])
-        #     errorMsg = textSetting.textList["errorList"]["E63"]
-        #     if file_path:
-        #         if not decryptFile.extractCsvTrainInfo(trainIdx, file_path):
-        #             decryptFile.printError()
-        #             mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-        #             return False
-        #         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
-        # else:
-        #     file_path = fd.asksaveasfilename(initialfile=filename, defaultextension="txt", filetypes=[("traininfo_text", "*.txt")])
-        #     errorMsg = textSetting.textList["errorList"]["E64"]
-        #     if file_path:
-        #         try:
-        #             data = decryptFile.dataList[decryptFile.trainNameList[trainIdx]]
-        #             w = open(file_path, "wb")
-        #             w.write(data.script)
-        #             w.close()
-        #             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I48"])
-        #         except Exception:
-        #             errObj.write(traceback.format_exc())
-        #             mb.showerror(title=textSetting.textList["error"], message=errorMsg)
+        root = self.window()
+        trainCombo = root.findChild(QWidget, "trainCombo")
+        trainIndex = trainCombo.currentIndex()
+        if self.decryptFile.game in self.oldGameList:
+            filename = self.decryptFile.trainNameList[trainIndex] + ".csv"
+            fileTypes = "traininfo_csv (*.csv)"
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "",
+                filename,
+                fileTypes
+            )
+            if file_path:
+                if not self.decryptFile.extractCsvTrainInfo(trainIndex, file_path):
+                    self.decryptFile.printError()
+                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E63"])
+                    return False
+                mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
+        else:
+            filename = self.decryptFile.trainNameList[trainIndex] + ".txt"
+            fileTypes = "traininfo_text (*.txt)"
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "",
+                filename,
+                fileTypes
+            )
+            if file_path:
+                data = self.decryptFile.dataList[self.decryptFile.trainNameList[trainIndex]]
+                if not trainInfoProcess.extractTrainInfoByDenFile(file_path, data):
+                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E64"])
+                    return
+                mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I48"])
 
     def saveCsvTrainInfo(self):
-        pass
-        # if game in [gameDefine.LS, gameDefine.BS, gameDefine.CS, gameDefine.RS]:
-        #     file_path = fd.askopenfilename(defaultextension="csv", filetypes=[("traindata_csv", "*.csv")])
-        #     if not file_path:
-        #         return
-        #     csvLines = None
-        #     try:
-        #         f = open(file_path, "r", encoding="utf-8-sig")
-        #         csvLines = f.readlines()
-        #         f.close()
-        #     except UnicodeDecodeError:
-        #         f = open(file_path, "r", encoding=encObj.enc)
-        #         csvLines = f.readlines()
-        #         f.close()
+        root = self.window()
+        trainCombo = root.findChild(QWidget, "trainCombo")
+        trainIndex = trainCombo.currentIndex()
+        if self.decryptFile.game in self.oldGameList:
+            fileTypes = "traininfo_csv (*.csv)"
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "",
+                "",
+                fileTypes
+            )
+            if not file_path:
+                return
 
-        #     if not decryptFile.checkCsvResult(csvLines):
-        #         mb.showerror(title=textSetting.textList["error"], message=decryptFile.error)
-        #         return
-        #     warnMsg = textSetting.textList["infoList"]["I11"]
-        #     result = mb.askokcancel(title=textSetting.textList["warning"], message=warnMsg, icon="warning")
-
-        #     if result:
-        #         errorMsg = textSetting.textList["errorList"]["E14"]
-        #         if not decryptFile.saveCsvTrainInfo(trainIdx):
-        #             decryptFile.printError()
-        #             mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-        #             return False
-        #         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I49"])
-        #         reloadFunc()
-        # else:
-        #     file_path = fd.askopenfilename(filetypes=[("traininfo_text", "*.txt")])
-        #     if not file_path:
-        #         return
+            if not self.decryptFile.checkCsvResult(file_path):
+                mb.showerror(title=textSetting.textList["error"], message=self.decryptFile.error)
+                return
+            result = mb.askokcancel(title=textSetting.textList["warning"], message=textSetting.textList["infoList"]["I11"], icon="warning")
+            if result == mb.OK:
+                if not self.decryptFile.saveCsvTrainInfo(trainIndex):
+                    self.decryptFile.printError()
+                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                    return False
+                mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I49"])
+                self.reloadWidget()
+        else:
+            fileTypes = "traininfo_text (*.txt)"
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "",
+                "",
+                fileTypes
+            )
+            if not file_path:
+                return
             
-        #     f = open(file_path, "r", encoding="utf-8")
-        #     lines = f.readlines()
-        #     f.close()
-        #     resultList = decryptFile.decryptLines(lines)
-        #     if resultList is None:
-        #         errorMsg = textSetting.textList["errorList"]["E98"].format(decryptFile.error)
-        #         mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-        #         return
+            lines = trainInfoProcess.loadTrainInfoTextFile(file_path)
+            resultList = self.decryptFile.decryptLines(lines)
+            if resultList is None:
+                errorMsg = textSetting.textList["errorList"]["E98"].format(self.decryptFile.error)
+                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
+                return
 
-        #     result = mb.askquestion(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I50"], icon="warning")
-        #     if result == "no":
-        #         return
+            result = mb.askyesno(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I50"], icon="warning")
+            if result == mb.NO:
+                return
 
-        #     try:
-        #         data = decryptFile.dataList[decryptFile.trainNameList[trainIdx]]
-        #         with open(file_path, "rb") as f:
-        #             data.script = f.read()
-        #         data.save()
-        #         with open(decryptFile.filePath, "wb") as w:
-        #             w.write(decryptFile.env.file.save())
-        #         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I51"])
-        #         reloadFunc()
-        #     except Exception:
-        #         errObj.write(traceback.format_exc())
-        #         mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+            data = self.decryptFile.dataList[self.decryptFile.trainNameList[trainIndex]]
+            if not trainInfoProcess.saveTrainInfoDenFile(file_path, data, self.decryptFile):
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                return
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I51"])
+            self.reloadWidget()
 
     def editTrainInfo(self):
         root = self.window()

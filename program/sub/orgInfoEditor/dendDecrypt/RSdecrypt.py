@@ -1279,7 +1279,11 @@ class RSdecrypt():
             self.error = traceback.format_exc()
             return False
 
-    def checkCsvResult(self, csvLines):
+    def checkCsvResult(self, filePath):
+        f = open(filePath, "r", encoding="utf-8-sig")
+        csvLines = f.readlines()
+        f.close()
+
         cnt = 0
         self.csvReadInfo = {}
         try:
