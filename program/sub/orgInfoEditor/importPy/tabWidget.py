@@ -5,7 +5,8 @@ from program.sub.orgInfoEditor.importPy.tab1.notchWidget import NotchWidget
 from program.sub.orgInfoEditor.importPy.tab1.perfWidget import PerfWidget
 from program.sub.orgInfoEditor.importPy.tab1.hurikoWidget import HurikoWidget
 
-# from program.orgInfoEditor.importPy.tab2.countWidget import CountWidget
+from program.sub.orgInfoEditor.importPy.tab2.notchCountWidget import NotchCountWidget
+from program.sub.orgInfoEditor.importPy.tab2.countWidget import CountWidget
 # from program.orgInfoEditor.importPy.tab2.modelWidget import TrainModelWidget
 # from program.orgInfoEditor.importPy.tab2.fixedListWidget import FixedListWidget
 # from program.orgInfoEditor.importPy.tab2.fixedList2Widget import FixedList2Widget
@@ -17,19 +18,20 @@ from program.sub.orgInfoEditor.importPy.tab1.hurikoWidget import HurikoWidget
 
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QGroupBox, QScrollArea, QFrame, QWidget
+    QVBoxLayout, QHBoxLayout, QGroupBox, QScrollArea, QFrame,
+    QWidget
 )
 from PySide6.QtCore import Qt
 
 defaultAlignment = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
 
-def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
+def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget):
     trainInfo = decryptFile.trainInfoList[trainIndex]
     if trainInfo is None:
         return
     selectDefaultData = defaultData[trainIndex]
 
-    editOrgButtonWidget = EditOrgButtonWidget(decryptFile, defaultData, reloadFunc)
+    editOrgButtonWidget = EditOrgButtonWidget(decryptFile, defaultData, reloadWidget)
     mainLayout.addWidget(editOrgButtonWidget, 1)
 
     contentWidget = QWidget()
@@ -108,17 +110,52 @@ def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
     perfContentLayout.addStretch()
 
 
-def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
-    pass
-    # tab_two_frame = ttkCustomWidget.CustomTtkFrame(tabFrame)
-    # tab_two_frame.pack(anchor=tkinter.NW, fill=tkinter.X)
+def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget):
+    contentWidget = QWidget()
+    mainLayout.addWidget(contentWidget)
 
-    # if game in [gameDefine.LS, gameDefine.BS, gameDefine.CS, gameDefine.RS]:
-    #     countModelLf = ttkCustomWidget.CustomTtkLabelFrame(tab_two_frame, text=textSetting.textList["orgInfoEditor"]["trainLfLabel"], height=250)
-    #     countModelLf.pack(anchor=tkinter.NW, padx=10, pady=5, fill=tkinter.X)
-    #     countModelLf.propagate(False)
+    contentInLayout = QVBoxLayout()
+    contentInLayout.setContentsMargins(0, 0, 0, 0)
+    contentInLayout.setSpacing(0)
+    contentWidget.setLayout(contentInLayout)
 
-    #     countWidget = CountWidget(tabFrame, trainIdx, game, countModelLf, decryptFile, rootFrameAppearance, reloadFunc)
+    if decryptFile.game in ["RS", "CS", "BS", "LS"]:
+        # trainGroupBox
+        trainGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["trainLfLabel"])
+        contentInLayout.addWidget(trainGroupBox)
+        # trainGroupBox - QHBoxLayout
+        trainGroupInLayout = QHBoxLayout()
+        trainGroupInLayout.setContentsMargins(0, 0, 0, 0)
+        trainGroupInLayout.setSpacing(0)
+        trainGroupBox.setLayout(trainGroupInLayout)
+        # trainGroupBox - QHBoxLayout - QVBoxLayout
+        countLayout = QVBoxLayout()
+        countLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        trainGroupInLayout.addLayout(countLayout, 2)
+        # countLayout - NotchCountWidget
+        index = decryptFile.indexList[trainIndex]
+        notchNum = decryptFile.byteArr[index]
+        notchCountWidget = NotchCountWidget(trainIndex, notchNum, decryptFile, reloadWidget)
+        countLayout.addWidget(notchCountWidget)
+        # countLayout - CountWidget
+        countWidget = CountWidget(trainIndex, decryptFile, reloadWidget)
+        countLayout.addWidget(countWidget)
+
+        # stretch
+        countLayout.addStretch()
+
+        # trainGroupBox - QHBoxLayout - QFrame
+        verticalLine = QFrame()
+        verticalLine.setFrameShape(QFrame.Shape.VLine)
+        verticalLine.setFrameShadow(QFrame.Shadow.Sunken)
+        trainGroupInLayout.addWidget(verticalLine)
+        # trainGroupBox - QHBoxLayout - scrollArea
+        scrollArea = QScrollArea()
+        scrollArea.setWidgetResizable(True)
+        trainGroupInLayout.addWidget(scrollArea, 5)
+        # trainGroupBox - QHBoxLayout - scrollArea - QFrame
+        scrollAreaFrame = QFrame()
+        scrollArea.setWidget(scrollAreaFrame)
 
     #     v_edit = widgetList[0]
     #     v_edit.set(textSetting.textList["orgInfoEditor"]["orgModify"])
@@ -142,7 +179,7 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
     #         edit_model_button,
     #     ]
 
-    #     TrainModelWidget(tabFrame, trainIdx, game, countModelScrollFrame.interior, widgetList, innerButtonList, decryptFile, rootFrameAppearance, reloadFunc)
+    #     TrainModelWidget(tabFrame, trainIdx, game, countModelScrollFrame.interior, widgetList, innerButtonList, decryptFile, rootFrameAppearance, reloadWidget)
 
     #     if game == gameDefine.LS:
     #         elseScrollFrame = ScrollbarFrame(tabFrame, bgColor=rootFrameAppearance.bgColor)
@@ -161,15 +198,41 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
     #     else2Model = decryptFile.trainModelList[trainIdx]["else2Model"]
 
     #     if len(elseModel) > 0:
-    #         FixedListWidget(elseFrame, game, trainIdx, decryptFile, "else1", elseModel, 1, rootFrameAppearance, reloadFunc)
-    #     FixedListWidget(elseFrame, game, trainIdx, decryptFile, "else2", else2Model, 2, rootFrameAppearance, reloadFunc)
+    #         FixedListWidget(elseFrame, game, trainIdx, decryptFile, "else1", elseModel, 1, rootFrameAppearance, reloadWidget)
+    #     FixedListWidget(elseFrame, game, trainIdx, decryptFile, "else2", else2Model, 2, rootFrameAppearance, reloadWidget)
 
     #     elseList2 = decryptFile.trainModelList[trainIdx]["elseList2"]
-    #     FixedList2Widget(elseFrame2, trainIdx, decryptFile, "else3", elseList2, rootFrameAppearance, reloadFunc)
-    # else:
-    #     trainOrgInfo = decryptFile.trainInfoList[trainIdx]
-    #     if trainOrgInfo is None:
-    #         return
+    #     FixedList2Widget(elseFrame2, trainIdx, decryptFile, "else3", elseList2, rootFrameAppearance, reloadWidget)
+    else:
+        trainOrgInfo = decryptFile.trainInfoList[trainIndex]
+        if trainOrgInfo is None:
+            return
+        # scrollArea
+        scrollArea = QScrollArea()
+        scrollArea.setWidgetResizable(True)
+        mainLayout.addWidget(scrollArea)
+        # scrollArea - QFrame
+        scrollAreaFrame = QFrame()
+        scrollArea.setWidget(scrollAreaFrame)
+        # scrollArea - QFrame - QVBoxLayout
+        contentLayout = QVBoxLayout()
+        scrollAreaFrame.setLayout(contentLayout)
+
+        defaultAlignment = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+        # trainGroupBox
+        trainGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["trainLfLabel"])
+        contentLayout.addWidget(trainGroupBox, alignment=defaultAlignment)
+        # trainGroupBox - QVBoxLayout
+        trainLayout = QVBoxLayout()
+        trainLayout.setContentsMargins(0, 0, 0, 0)
+        trainLayout.setSpacing(0)
+        trainGroupBox.setLayout(trainLayout)
+        # trainGroupBox - QVBoxLayout - NotchCountWidget
+        trainOrgInfo = decryptFile.trainInfoList[trainIndex]
+        speedList = trainOrgInfo[0]
+        notchNum = len(speedList) // decryptFile.notchContentCnt
+        notchCountWidget = NotchCountWidget(trainIndex, notchNum, decryptFile, reloadWidget)
+        trainLayout.addWidget(notchCountWidget)
 
     #     mainFrame = ttkCustomWidget.CustomTtkFrame(tabFrame)
     #     mainFrame.pack(fill=tkinter.BOTH, expand=True)
@@ -180,40 +243,40 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadFunc):
     #     countModelLf = ttkCustomWidget.CustomTtkLabelFrame(scrollFrame, text=textSetting.textList["orgInfoEditor"]["SSTrainLfLabel"])
     #     countModelLf.pack(anchor=tkinter.NW, padx=10, pady=3)
 
-    #     countWidget = CountWidget(tabFrame, trainIdx, game, countModelLf, decryptFile, rootFrameAppearance, reloadFunc)
+    #     countWidget = CountWidget(tabFrame, trainIdx, game, countModelLf, decryptFile, rootFrameAppearance, reloadWidget)
 
     #     sidePackFrame = ttkCustomWidget.CustomTtkFrame(scrollFrame)
     #     sidePackFrame.pack(anchor=tkinter.NW)
     #     rainPerfLf = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["orgInfoEditor"]["SSRainLfLabel"])
     #     rainPerfLf.pack(side=tkinter.LEFT, anchor=tkinter.NW, padx=10, pady=3)
-    #     ElsePerfWidget(tabFrame, trainIdx, game, rainPerfLf, "rain", decryptFile.trainRainNameList, trainOrgInfo[2], True, defaultData, decryptFile, rootFrameAppearance, reloadFunc)
+    #     ElsePerfWidget(tabFrame, trainIdx, game, rainPerfLf, "rain", decryptFile.trainRainNameList, trainOrgInfo[2], True, defaultData, decryptFile, rootFrameAppearance, reloadWidget)
 
     #     carbPerfLf = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["orgInfoEditor"]["SSCarbLfLabel"])
     #     carbPerfLf.pack(side=tkinter.LEFT, anchor=tkinter.NW, padx=10, pady=3)
-    #     ElsePerfWidget(tabFrame, trainIdx, game, carbPerfLf, "carb", decryptFile.trainCarbNameList, trainOrgInfo[3], True, defaultData, decryptFile, rootFrameAppearance, reloadFunc)
+    #     ElsePerfWidget(tabFrame, trainIdx, game, carbPerfLf, "carb", decryptFile.trainCarbNameList, trainOrgInfo[3], True, defaultData, decryptFile, rootFrameAppearance, reloadWidget)
 
     #     otherPerfLf = ttkCustomWidget.CustomTtkLabelFrame(scrollFrame, text=textSetting.textList["orgInfoEditor"]["SSOtherLfLabel"])
     #     otherPerfLf.pack(anchor=tkinter.NW, padx=10, pady=3)
-    #     ElsePerfWidget(tabFrame, trainIdx, game, otherPerfLf, "other", decryptFile.trainOtherNameList, trainOrgInfo[4], True, defaultData, decryptFile, rootFrameAppearance, reloadFunc)
+    #     ElsePerfWidget(tabFrame, trainIdx, game, otherPerfLf, "other", decryptFile.trainOtherNameList, trainOrgInfo[4], True, defaultData, decryptFile, rootFrameAppearance, reloadWidget)
 
     #     sidePackFrame2 = ttkCustomWidget.CustomTtkFrame(scrollFrame)
     #     sidePackFrame2.pack(anchor=tkinter.NW)
     #     hurikoPerfLf = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame2, text=textSetting.textList["orgInfoEditor"]["SSHurikoLfLabel"])
     #     hurikoPerfLf.pack(side=tkinter.LEFT, anchor=tkinter.NW, padx=8, pady=3)
-    #     ElsePerfWidget(tabFrame, trainIdx, game, hurikoPerfLf, "huriko", decryptFile.trainHurikoNameList, trainOrgInfo[5], False, defaultData, decryptFile, rootFrameAppearance, reloadFunc)
+    #     ElsePerfWidget(tabFrame, trainIdx, game, hurikoPerfLf, "huriko", decryptFile.trainHurikoNameList, trainOrgInfo[5], False, defaultData, decryptFile, rootFrameAppearance, reloadWidget)
 
     #     oneWheelPerfLf = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame2, text=textSetting.textList["orgInfoEditor"]["SSOneWheelLfLabel"])
     #     oneWheelPerfLf.pack(side=tkinter.LEFT, anchor=tkinter.NW, padx=8, pady=3)
-    #     ElsePerfWidget(tabFrame, trainIdx, game, oneWheelPerfLf, "oneWheel", decryptFile.trainOneWheelNameList, trainOrgInfo[6], False, defaultData, decryptFile, rootFrameAppearance, reloadFunc)
+    #     ElsePerfWidget(tabFrame, trainIdx, game, oneWheelPerfLf, "oneWheel", decryptFile.trainOneWheelNameList, trainOrgInfo[6], False, defaultData, decryptFile, rootFrameAppearance, reloadWidget)
 
 
-def tab3AllWidget(mainLayout, decryptFile, trainIndex, reloadFunc):
+def tab3AllWidget(mainLayout, decryptFile, trainIndex, reloadWidget):
     pass
     # tab3frame = ttkCustomWidget.CustomTtkFrame(tabFrame)
     # tab3frame.pack(anchor=tkinter.NW, fill=tkinter.BOTH, expand=True)
 
     # lensList = decryptFile.trainModelList[trainIdx]["lensList"]
-    # LensListWidget(tab3frame, decryptFile, trainIdx, lensList, rootFrameAppearance, reloadFunc)
+    # LensListWidget(tab3frame, decryptFile, trainIdx, lensList, rootFrameAppearance, reloadWidget)
 
     # tailList = decryptFile.trainModelList[trainIdx]["tailList"]
-    # TailListWidget(tab3frame, decryptFile, trainIdx, tailList, rootFrameAppearance, reloadFunc)
+    # TailListWidget(tab3frame, decryptFile, trainIdx, tailList, rootFrameAppearance, reloadWidget)
