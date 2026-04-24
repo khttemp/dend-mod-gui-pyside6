@@ -206,36 +206,36 @@ class BSdecrypt():
             pantaModelCnt = line[index]
             index += 1
 
-            if pantaModelCnt > 0:
-                for j in range(pantaModelCnt):
-                    pantaModelNameCnt = line[index]
-                    index += 1
-                    pantaModelName = self.encObj.convertString(line[index:index + pantaModelNameCnt])
-                    train["pantaNames"].append(pantaModelName)
-                    index += pantaModelNameCnt
+            for j in range(pantaModelCnt):
+                pantaModelNameCnt = line[index]
+                index += 1
+                pantaModelName = self.encObj.convertString(line[index:index + pantaModelNameCnt])
+                train["pantaNames"].append(pantaModelName)
+                index += pantaModelNameCnt
 
-                train["pantaNames"].append(textSetting.textList["orgInfoEditor"]["noList"])
+            train["pantaNames"].append(textSetting.textList["orgInfoEditor"]["noList"])
 
             self.henseiModelEndIndexList.append(index)
 
             self.henseiStartIndexList.append(index)
-            # mdlList
+            # mdlList（固定でCOLを自動編成）
             for j in range(henseiCnt):
                 idx = line[index]
                 if idx == 0xFF:
                     train["mdlList"].append(-1)
+                    train["colList"].append(-1)
                 else:
                     train["mdlList"].append(idx)
+                    train["colList"].append(idx)
                 index += 1
 
-            if pantaModelCnt > 0:
-                for j in range(henseiCnt):
-                    idx = line[index]
-                    if idx == 0xFF:
-                        train["pantaList"].append(-1)
-                    else:
-                        train["pantaList"].append(idx)
-                    index += 1
+            for j in range(henseiCnt):
+                idx = line[index]
+                if idx == 0xFF:
+                    train["pantaList"].append(-1)
+                else:
+                    train["pantaList"].append(idx)
+                index += 1
 
             self.henseiEndIndexList.append(index)
 
@@ -519,7 +519,7 @@ class BSdecrypt():
             self.error = traceback.format_exc()
             return False
 
-    def saveHensei(self, trainIdx, trainWidget):
+    def saveHensei(self, trainIdx, comboValueList):
         try:
             index = self.henseiStartIndexList[trainIdx]
             newByteArr = self.byteArr[0:index]
@@ -528,16 +528,12 @@ class BSdecrypt():
             cnt = self.byteArr[henseiIndex]
 
             for i in range(cnt):
-                idx = trainWidget.comboList[2 * i].current()
-                if idx == len(trainWidget.comboList[2 * i]["values"]) - 1:
-                    idx = 255
+                idx = comboValueList[2 * i]
                 newByteArr.append(idx)
                 index += 1
 
             for i in range(cnt):
-                idx = trainWidget.comboList[2 * i + 1].current()
-                if idx == len(trainWidget.comboList[2 * i + 1]["values"]) - 1:
-                    idx = 255
+                idx = comboValueList[2 * i + 1]
                 newByteArr.append(idx)
                 index += 1
 

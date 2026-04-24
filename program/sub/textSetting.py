@@ -323,7 +323,7 @@ textList = {
         "fixedList2ModifyLabel": "elseの変更",
         "fixedList2NumLabel": "num",
         "fixedList2NameLabel": "name",
-        "modelTrainLabel": "車両",
+        "modelTrainLabel": "号車",
         "modelModelLabel": "モデル",
         "modelPantaLabel": "パンタ",
         "modelColLabel": "COL",

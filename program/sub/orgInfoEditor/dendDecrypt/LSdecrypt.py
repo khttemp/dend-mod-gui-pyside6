@@ -202,8 +202,11 @@ class LSdecrypt():
             # LSは固定で自動編成
             for i in range(henseiCnt):
                 train["mdlList"].append(1)
+                train["colList"].append(1)
             train["mdlList"][0] = 0
+            train["colList"][0] = 0
             train["mdlList"][-1] = len(train["mdlNames"]) - 1
+            train["colList"][-1] = len(train["colNames"]) - 1
 
             self.henseiStartIndexList.append(index)
 
@@ -490,7 +493,7 @@ class LSdecrypt():
             self.error = traceback.format_exc()
             return False
 
-    def saveHensei(self, trainIdx, trainWidget):
+    def saveHensei(self, trainIdx, comboValueList):
         try:
             index = self.henseiStartIndexList[trainIdx]
             newByteArr = self.byteArr[0:index]
@@ -511,9 +514,7 @@ class LSdecrypt():
                 newByteArr.extend(self.byteArr[startIdx:index])
 
                 for i in range(cnt):
-                    idx = trainWidget.comboList[2 * i + 1].current()
-                    if idx == len(trainWidget.comboList[2 * i + 1]["values"]) - 1:
-                        idx = 255
+                    idx = comboValueList[i]
                     newByteArr.append(idx)
                     index += 1
 

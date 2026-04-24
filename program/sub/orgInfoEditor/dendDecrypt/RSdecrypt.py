@@ -34,7 +34,10 @@ RSTrainName = [
     "H2300",
     "AE86",
     "Deki3",
-    "K80"
+    "K80",
+
+    "Yuri",
+    "S300"
 ]
 
 perfName = [
@@ -389,15 +392,7 @@ class RSdecrypt():
 
         self.colorIdx = index
         for i in range(trainCnt):
-            if i == len(RSTrainName):
-                # trainName = "Yuri"
-                pass
-            elif i == len(RSTrainName) + 1:
-                # trainName = "S300"
-                pass
-            else:
-                # trainName = RSTrainName[i]
-                self.trainModelList[i]["colorCnt"] = line[index]
+            self.trainModelList[i]["colorCnt"] = line[index]
             index += 1
         self.stageIdx = index
 
@@ -596,7 +591,7 @@ class RSdecrypt():
             self.error = traceback.format_exc()
             return False
 
-    def saveHensei(self, trainIdx, trainWidget):
+    def saveHensei(self, trainIdx, comboValueList):
         try:
             index = self.henseiStartIndexList[trainIdx]
             newByteArr = self.byteArr[0:index]
@@ -605,23 +600,17 @@ class RSdecrypt():
             cnt = self.byteArr[henseiIndex]
 
             for i in range(cnt):
-                idx = trainWidget.comboList[3 * i].current()
-                if idx == len(trainWidget.comboList[3 * i]["values"]) - 1:
-                    idx = 255
+                idx = comboValueList[3 * i]
                 newByteArr.append(idx)
                 index += 1
 
             for i in range(cnt):
-                idx = trainWidget.comboList[3 * i + 1].current()
-                if idx == len(trainWidget.comboList[3 * i + 1]["values"]) - 1:
-                    idx = 255
+                idx = comboValueList[3 * i + 1]
                 newByteArr.append(idx)
                 index += 1
 
             for i in range(cnt):
-                idx = trainWidget.comboList[3 * i + 2].current()
-                if idx == len(trainWidget.comboList[3 * i + 2]["values"]) - 1:
-                    idx = 255
+                idx = comboValueList[3 * i + 2]
                 newByteArr.append(idx)
                 index += 1
 

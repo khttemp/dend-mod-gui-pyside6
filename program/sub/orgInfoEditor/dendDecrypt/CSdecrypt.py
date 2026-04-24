@@ -27,7 +27,11 @@ CSTrainName = [
     "H2300",
     "AE86",
     "Deki3",
-    "K80"
+    "K80",
+
+    "S300",
+    "Yokohama",
+    "S500"
 ]
 
 perfName = [
@@ -243,8 +247,10 @@ class CSdecrypt():
             for j in range(mdlCnt):
                 if line[index] == 0xFF:
                     train["mdlList"].append(-1)
+                    train["colList"].append(-1)
                 else:
                     train["mdlList"].append(line[index])
+                    train["colList"].append(line[index])
                 index += 1
             # pantaList
             for j in range(mdlCnt):
@@ -372,18 +378,7 @@ class CSdecrypt():
 
         self.colorIdx = index
         for i in range(trainCnt):
-            if i == len(CSTrainName):
-                # trainName = "S300"
-                pass
-            elif i == len(CSTrainName) + 1:
-                # trainName = "Yokohama"
-                pass
-            elif i == len(CSTrainName) + 2:
-                # trainName = "S500"
-                pass
-            else:
-                # trainName = CSTrainName[i]
-                self.trainModelList[i]["colorCnt"] = line[index]
+            self.trainModelList[i]["colorCnt"] = line[index]
             index += 1
         self.stageIdx = index
 
@@ -566,7 +561,7 @@ class CSdecrypt():
             self.error = traceback.format_exc()
             return False
 
-    def saveHensei(self, trainIdx, trainWidget):
+    def saveHensei(self, trainIdx, comboValueList):
         try:
             index = self.henseiStartIndexList[trainIdx]
             newByteArr = self.byteArr[0:index]
@@ -575,16 +570,12 @@ class CSdecrypt():
             cnt = self.byteArr[henseiIndex]
 
             for i in range(cnt):
-                idx = trainWidget.comboList[2 * i].current()
-                if idx == len(trainWidget.comboList[2 * i]["values"]) - 1:
-                    idx = 255
+                idx = comboValueList[2 * i]
                 newByteArr.append(idx)
                 index += 1
 
             for i in range(cnt):
-                idx = trainWidget.comboList[2 * i + 1].current()
-                if idx == len(trainWidget.comboList[2 * i + 1]["values"]) - 1:
-                    idx = 255
+                idx = comboValueList[2 * i + 1]
                 newByteArr.append(idx)
                 index += 1
 

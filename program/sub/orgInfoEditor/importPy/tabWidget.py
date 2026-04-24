@@ -1,3 +1,5 @@
+from functools import partial
+
 import program.sub.textSetting as textSetting
 
 from program.sub.orgInfoEditor.importPy.tab1.editOrgButtonWidget import EditOrgButtonWidget
@@ -7,7 +9,8 @@ from program.sub.orgInfoEditor.importPy.tab1.hurikoWidget import HurikoWidget
 
 from program.sub.orgInfoEditor.importPy.tab2.notchCountWidget import NotchCountWidget
 from program.sub.orgInfoEditor.importPy.tab2.countWidget import CountWidget
-# from program.orgInfoEditor.importPy.tab2.modelWidget import TrainModelWidget
+from program.sub.orgInfoEditor.importPy.tab2.trainModelWidget import TrainModelWidget
+from program.sub.orgInfoEditor.importPy.tab2.editModelWidget import EditModelWidget
 # from program.orgInfoEditor.importPy.tab2.fixedListWidget import FixedListWidget
 # from program.orgInfoEditor.importPy.tab2.fixedList2Widget import FixedList2Widget
 # from program.orgInfoEditor.importPy.tab2.elsePerfWidget import ElsePerfWidget
@@ -19,7 +22,7 @@ from program.sub.orgInfoEditor.importPy.tab2.countWidget import CountWidget
 
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QGroupBox, QScrollArea, QFrame,
-    QWidget
+    QWidget, QStackedWidget, QPushButton
 )
 from PySide6.QtCore import Qt
 
@@ -141,9 +144,6 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget
         countWidget = CountWidget(trainIndex, decryptFile, reloadWidget)
         countLayout.addWidget(countWidget)
 
-        # stretch
-        countLayout.addStretch()
-
         # trainGroupBox - QHBoxLayout - QFrame
         verticalLine = QFrame()
         verticalLine.setFrameShape(QFrame.Shape.VLine)
@@ -156,30 +156,30 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget
         # trainGroupBox - QHBoxLayout - scrollArea - QFrame
         scrollAreaFrame = QFrame()
         scrollArea.setWidget(scrollAreaFrame)
+        # trainGroupBox - QHBoxLayout - scrollArea - QFrame - QVBoxLayout
+        trainModelLayout = QVBoxLayout()
+        scrollAreaFrame.setLayout(trainModelLayout)
 
-    #     v_edit = widgetList[0]
-    #     v_edit.set(textSetting.textList["orgInfoEditor"]["orgModify"])
-    #     edit_hensei_button = ttkCustomWidget.CustomTtkButton(countWidget.countFrame, textvariable=v_edit)
-    #     edit_hensei_button.grid(columnspan=3, row=3, column=0, sticky=tkinter.W + tkinter.E, pady=15)
+        trainModelWidget = TrainModelWidget(trainIndex, decryptFile, reloadWidget)
+        trainModelLayout.addWidget(trainModelWidget)
+        # stretch
+        trainModelLayout.addStretch()
 
-    #     edit_model_button = ttkCustomWidget.CustomTtkButton(countWidget.countFrame, text=textSetting.textList["orgInfoEditor"]["modelInfoModify"])
-    #     edit_model_button.grid(columnspan=3, row=4, column=0, sticky=tkinter.W + tkinter.E, pady=5)
+        # countLayout - spacing
+        countLayout.addSpacing(20)
+        # countLayout - stackButton
+        countLayout.addWidget(trainModelWidget.stackButton)
 
-    #     sep = ttkCustomWidget.CustomTtkSeparator(countModelLf, orient="vertical")
-    #     sep.pack(side=tkinter.LEFT, fill=tkinter.Y, padx=8)
+        editModelWidget = EditModelWidget(trainIndex, decryptFile, reloadWidget)
+        # countLayout - spacing
+        countLayout.addSpacing(20)
+        # countLayout - editModelWidget.editModelButton
+        countLayout.addWidget(editModelWidget)
+        # stretch
+        countLayout.addStretch()
 
     #     countModelScrollFrame = ScrollbarFrame(countModelLf, True, bgColor=rootFrameAppearance.bgColor)
     #     countModelScrollFrame.pack(expand=True, fill=tkinter.BOTH)
-
-    #     innerButtonList = [
-    #         countWidget.notchBtn,
-    #         countWidget.henseiBtn,
-    #         countWidget.colorBtn,
-    #         edit_hensei_button,
-    #         edit_model_button,
-    #     ]
-
-    #     TrainModelWidget(tabFrame, trainIdx, game, countModelScrollFrame.interior, widgetList, innerButtonList, decryptFile, rootFrameAppearance, reloadWidget)
 
     #     if game == gameDefine.LS:
     #         elseScrollFrame = ScrollbarFrame(tabFrame, bgColor=rootFrameAppearance.bgColor)
