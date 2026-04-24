@@ -443,6 +443,17 @@ class LSdecrypt():
             self.error = traceback.format_exc()
             return False
 
+    def saveDaishaCnt(self, trainIdx, num):
+        try:
+            index = self.mdlIndexList[trainIdx]
+            self.byteArr[index] = num
+
+            self.saveTrain()
+            return True
+        except Exception:
+            self.error = traceback.format_exc()
+            return False
+
     def saveHenseiNum(self, trainIdx, num):
         try:
             newByteArr = bytearray()

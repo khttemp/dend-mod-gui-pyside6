@@ -63,14 +63,41 @@ class CountWidget(QWidget):
             colorCountButton.clicked.connect(self.editColorCountVar)
             mainLayout.addWidget(colorCountButton, 1, 2)
 
+        if decryptFile.game in ["LS", "BS"]:
+            # daishaCountNameLabel
+            daishaCountText = textSetting.textList["orgInfoEditor"]["trackCnt"]
+            daishaCountText = daishaCountText[:5] + "\n" + daishaCountText[5:]
+            daishaCountNameLabel = QLabel(daishaCountText, font=self.font2)
+            daishaCountNameLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            daishaCountNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            daishaCountNameLabel.setFixedWidth(fixedWidth)
+            mainLayout.addWidget(daishaCountNameLabel, 2, 0)
+            # daishaCountLabel
+            self.daishaCount = modelInfo["daishaCnt"]
+            daishaCountLabel = QLabel("{0}".format(self.daishaCount), font=self.font2)
+            daishaCountLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            daishaCountLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            daishaCountLabel.setFixedWidth(fixedWidth)
+            mainLayout.addWidget(daishaCountLabel, 2, 1)
+            # daishaCountButton
+            daishaCountButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=self.font2)
+            daishaCountButton.clicked.connect(self.editDaishaCountVar)
+            daishaCountButton.setFixedHeight(60)
+            mainLayout.addWidget(daishaCountButton, 2, 2)
+
     def editHenseiVar(self):
         editHenseiCountDialog = EditHenseiCountDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.trainIndex, self.henseiCount, self.decryptFile)
         if editHenseiCountDialog.exec() == QDialog.Accepted:
             self.reloadWidget()
 
-    def editColorCountVar(self, value):
+    def editColorCountVar(self):
         editColorCountDialog = EditColorCountDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.trainIndex, self.colorCount, self.decryptFile)
         if editColorCountDialog.exec() == QDialog.Accepted:
+            self.reloadWidget()
+
+    def editDaishaCountVar(self):
+        editDaishaCountDialog = EditDaishaCountDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.trainIndex, self.daishaCount, self.decryptFile)
+        if editDaishaCountDialog.exec() == QDialog.Accepted:
             self.reloadWidget()
 
 
@@ -170,3 +197,46 @@ class EditColorCountDialog(QDialog):
             return
         super().accept()
         mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I56"])
+
+
+class EditDaishaCountDialog(QDialog):
+    def __init__(self, parent, title, trainIndex, daishaCount, decryptFile):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.trainIndex = trainIndex
+        self.decryptFile = decryptFile
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
+        # layout - LineEdit
+        self.lineEdit = QLineEdit(font=font2)
+        self.lineEdit.setText("{0}".format(daishaCount))
+        self.lineEdit.setValidator(integerValidator)
+        layout.addWidget(self.lineEdit)
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
+
+    def validate(self):
+        if not self.lineEdit.hasAcceptableInput():
+            mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+            return
+
+        resultValue = int(self.lineEdit.text())
+        if not self.decryptFile.saveDaishaCnt(self.trainIndex, resultValue):
+            self.decryptFile.printError()
+            mb.showerror(title=textSetting.textList["saveError"], message=textSetting.textList["errorList"]["E4"])
+            return False
+        return True
+
+    def accept(self):
+        if not self.validate():
+            return
+        super().accept()
+        mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I61"])
