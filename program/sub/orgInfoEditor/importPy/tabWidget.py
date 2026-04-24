@@ -11,8 +11,8 @@ from program.sub.orgInfoEditor.importPy.tab2.notchCountWidget import NotchCountW
 from program.sub.orgInfoEditor.importPy.tab2.countWidget import CountWidget
 from program.sub.orgInfoEditor.importPy.tab2.trainModelWidget import TrainModelWidget
 from program.sub.orgInfoEditor.importPy.tab2.editModelWidget import EditModelWidget
-# from program.orgInfoEditor.importPy.tab2.fixedListWidget import FixedListWidget
-# from program.orgInfoEditor.importPy.tab2.fixedList2Widget import FixedList2Widget
+from program.sub.orgInfoEditor.importPy.tab2.fixedListWidget import FixedListWidget
+from program.sub.orgInfoEditor.importPy.tab2.fixedList2Widget import FixedList2Widget
 # from program.orgInfoEditor.importPy.tab2.elsePerfWidget import ElsePerfWidget
 
 # from program.orgInfoEditor.importPy.tab3.lensListWidget import LensListWidget
@@ -125,7 +125,7 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget
     if decryptFile.game in ["RS", "CS", "BS", "LS"]:
         # trainGroupBox
         trainGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["trainLfLabel"])
-        contentInLayout.addWidget(trainGroupBox)
+        contentInLayout.addWidget(trainGroupBox, 2)
         # trainGroupBox - QHBoxLayout
         trainGroupInLayout = QHBoxLayout()
         trainGroupInLayout.setContentsMargins(0, 0, 0, 0)
@@ -172,37 +172,41 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget
 
         editModelWidget = EditModelWidget(trainIndex, decryptFile, reloadWidget)
         # countLayout - spacing
-        countLayout.addSpacing(20)
+        countLayout.addSpacing(15)
         # countLayout - editModelWidget.editModelButton
         countLayout.addWidget(editModelWidget)
+        # countLayout - spacing
+        countLayout.addSpacing(10)
         # stretch
         countLayout.addStretch()
 
-    #     countModelScrollFrame = ScrollbarFrame(countModelLf, True, bgColor=rootFrameAppearance.bgColor)
-    #     countModelScrollFrame.pack(expand=True, fill=tkinter.BOTH)
+        # contentInLayout - otherElementScrollArea
+        otherElementScrollArea = QScrollArea()
+        otherElementScrollArea.setWidgetResizable(True)
+        contentInLayout.addWidget(otherElementScrollArea, 3)
+        # contentInLayout - otherElementScrollArea - QFrame
+        otherScrollAreaFrame = QFrame()
+        otherElementScrollArea.setWidget(otherScrollAreaFrame)
+        # contentInLayout - otherElementScrollArea - QFrame - QVBoxLayout
+        otherElementLayout = QHBoxLayout()
+        otherElementLayout.setContentsMargins(0, 0, 0, 0)
+        otherElementLayout.setSpacing(0)
+        otherScrollAreaFrame.setLayout(otherElementLayout)
 
-    #     if game == gameDefine.LS:
-    #         elseScrollFrame = ScrollbarFrame(tabFrame, bgColor=rootFrameAppearance.bgColor)
-    #         elseScrollFrame.pack(expand=True, fill=tkinter.BOTH)
-    #         elseFrame = elseScrollFrame.interior
+        elseModel = decryptFile.trainModelList[trainIndex]["elseModel"]
+        else2Model = decryptFile.trainModelList[trainIndex]["else2Model"]
+        elseList2 = decryptFile.trainModelList[trainIndex]["elseList2"]
 
-    #         elseFrame2 = elseFrame
-    #     else:
-    #         elseFrame = ttkCustomWidget.CustomTtkFrame(tabFrame)
-    #         elseFrame.pack(anchor=tkinter.NW, fill=tkinter.X)
-
-    #         elseFrame2 = ttkCustomWidget.CustomTtkFrame(tabFrame)
-    #         elseFrame2.pack(anchor=tkinter.NW, fill=tkinter.X)
-
-    #     elseModel = decryptFile.trainModelList[trainIdx]["elseModel"]
-    #     else2Model = decryptFile.trainModelList[trainIdx]["else2Model"]
-
-    #     if len(elseModel) > 0:
-    #         FixedListWidget(elseFrame, game, trainIdx, decryptFile, "else1", elseModel, 1, rootFrameAppearance, reloadWidget)
-    #     FixedListWidget(elseFrame, game, trainIdx, decryptFile, "else2", else2Model, 2, rootFrameAppearance, reloadWidget)
-
-    #     elseList2 = decryptFile.trainModelList[trainIdx]["elseList2"]
-    #     FixedList2Widget(elseFrame2, trainIdx, decryptFile, "else3", elseList2, rootFrameAppearance, reloadWidget)
+        if len(elseModel) > 0:
+            elseModelFixedListWidget = FixedListWidget(trainIndex, decryptFile, "else1", elseModel, 1, reloadWidget)
+            otherElementLayout.addWidget(elseModelFixedListWidget, alignment=defaultAlignment)
+        else2ModelFixedListWidget = FixedListWidget(trainIndex, decryptFile, "else2", else2Model, 2, reloadWidget)
+        otherElementLayout.addWidget(else2ModelFixedListWidget, alignment=defaultAlignment)
+        # elseList2
+        fixedList2Widget = FixedList2Widget(trainIndex, decryptFile, "else3", elseList2, reloadWidget)
+        otherElementLayout.addWidget(fixedList2Widget, alignment=defaultAlignment)
+        # stretch
+        otherElementLayout.addStretch()
     else:
         trainOrgInfo = decryptFile.trainInfoList[trainIndex]
         if trainOrgInfo is None:
@@ -218,7 +222,6 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget
         contentLayout = QVBoxLayout()
         scrollAreaFrame.setLayout(contentLayout)
 
-        defaultAlignment = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
         # trainGroupBox
         trainGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["trainLfLabel"])
         contentLayout.addWidget(trainGroupBox, alignment=defaultAlignment)

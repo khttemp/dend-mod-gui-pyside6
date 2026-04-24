@@ -1,111 +1,130 @@
 from functools import partial
 
-import tkinter
-from tkinter import messagebox as mb
-import program.textSetting as textSetting
-import program.appearance.ttkCustomWidget as ttkCustomWidget
-from program.appearance.customSimpleDialog import CustomSimpleDialog, CustomAskstring
+import program.sub.textSetting as textSetting
+import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
+
+from PySide6.QtWidgets import (
+    QWidget, QFrame, QVBoxLayout, QGroupBox, QGridLayout,
+    QLabel, QLineEdit, QPushButton, QDialog,
+    QDialogButtonBox, QSizePolicy
+)
+from PySide6.QtGui import QFont, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QRegularExpression
+
+mb = customMessageBoxWidget.CustomMessageBox()
 
 
-class FixedList2Widget:
-    def __init__(self, frame, trainIdx, decryptFile, text, elseList, rootFrameAppearance, reloadFunc):
-        self.frame = frame
-        self.trainIdx = trainIdx
+class FixedList2Widget(QWidget):
+    def __init__(self, trainIndex, decryptFile, groupBoxTitle, elseList, reloadWidget):
+        super().__init__()
+        self.trainIndex = trainIndex
         self.decryptFile = decryptFile
         self.elseList = elseList
-        self.rootFrameAppearance = rootFrameAppearance
-        self.reloadFunc = reloadFunc
+        self.reloadWidget = reloadWidget
 
-        elseLf = ttkCustomWidget.CustomTtkLabelFrame(self.frame, text=text)
-        elseLf.pack(side=tkinter.LEFT, anchor=tkinter.NW, padx=10)
+        font6 = QFont(textSetting.textList["font6"][0], textSetting.textList["font6"][1])
+        fixedWidth = 140
 
-        txtFrame = ttkCustomWidget.CustomTtkFrame(elseLf)
-        txtFrame.pack(anchor=tkinter.NW, padx=10)
-        self.varList = []
+        # mainLayout
+        mainLayout = QVBoxLayout(self)
+        # mainLayout - mainGroupBox
+        mainGroupBox = QGroupBox(groupBoxTitle)
+        mainLayout.addWidget(mainGroupBox)
+        # mainLayout - mainGroupBox - QVBoxLayout
+        mainInLayout = QGridLayout()
+        mainInLayout.setContentsMargins(0, 0, 0, 0)
+        mainInLayout.setSpacing(0)
+        mainGroupBox.setLayout(mainInLayout)
 
-        for i in range(len(self.elseList)):
-            varList = []
-            elseInfo = self.elseList[i]
-            varList.append(tkinter.IntVar(value=elseInfo[0]))
-            varList.append(tkinter.StringVar(value=elseInfo[1]))
-            self.varList.append(varList)
-            tempNumLb = ttkCustomWidget.CustomTtkLabel(txtFrame, textvariable=varList[0], width=5, font=textSetting.textList["font6"], anchor=tkinter.CENTER, borderwidth=1, relief="solid")
-            tempNumLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E, ipadx=15)
-            tempTextLb = ttkCustomWidget.CustomTtkLabel(txtFrame, textvariable=varList[1], font=textSetting.textList["font6"], anchor=tkinter.CENTER, borderwidth=1, relief="solid")
-            tempTextLb.grid(row=i, column=1, sticky=tkinter.W + tkinter.E, ipadx=15)
-            tempBtn = ttkCustomWidget.CustomTtkButton(txtFrame, text=textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], style="custom.update.TButton", command=partial(self.editVar, i, elseInfo))
-            tempBtn.grid(row=i, column=2, sticky=tkinter.W + tkinter.E)
+        for i, elseValue in enumerate(self.elseList):
+            # mainInLayout - numValueLabel
+            numValueLabel = QLabel("{0}".format(elseValue[0]), font=font6)
+            numValueLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            numValueLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            numValueLabel.setFixedWidth(fixedWidth / 2)
+            mainInLayout.addWidget(numValueLabel, i, 0)
+            # mainInLayout - textValueLabel
+            textValueLabel = QLabel("{0}".format(elseValue[1]), font=font6)
+            textValueLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
+            textValueLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            textValueLabel.setFixedWidth(fixedWidth)
+            mainInLayout.addWidget(textValueLabel, i, 1)
+            # mainInLayout - elseButton
+            elseButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
+            elseButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            elseButton.clicked.connect(partial(self.editVar, i))
+            mainInLayout.addWidget(elseButton, i, 2)
 
-    def editVar(self, i, elseInfo):
-        result = EditFixedList2Widget(self.frame, textSetting.textList["orgInfoEditor"]["fixedList2ModifyLabel"], self.decryptFile, elseInfo, self.rootFrameAppearance)
-        if result.reloadFlag:
-            self.elseList[i] = result.resultValueList
-            if not self.decryptFile.saveElse2List(self.trainIdx, self.elseList):
+    def editVar(self, i):
+        editFixedList2Widget = EditFixedList2Widget(self, textSetting.textList["orgInfoEditor"]["fixedList2ModifyLabel"], self.elseList[i])
+        if editFixedList2Widget.exec() == QDialog.Accepted:
+            self.elseList[i] = editFixedList2Widget.resultValueList
+            if not self.decryptFile.saveElse2List(self.trainIndex, self.elseList):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I61"])
+            self.reloadWidget()
 
-            self.reloadFunc()
 
-
-class EditFixedList2Widget(CustomSimpleDialog):
-    def __init__(self, master, title, decryptFile, valList, rootFrameAppearance):
-        self.decryptFile = decryptFile
+class EditFixedList2Widget(QDialog):
+    def __init__(self, parent, title, valList):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
         self.valList = valList
-        self.varList = []
         self.resultValueList = []
-        self.reloadFlag = False
-        super().__init__(master, title, rootFrameAppearance.bgColor)
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
 
-    def body(self, master):
-        self.resizable(False, False)
-
-        self.valLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["infoList"]["I44"], font=textSetting.textList["font2"])
-        self.valLb.grid(columnspan=2, row=0, column=0, sticky=tkinter.W + tkinter.E)
-
-        for i in range(len(self.valList)):
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
+        # layout - QGridLayout
+        elseInfoGridLayout = QGridLayout()
+        layout.addLayout(elseInfoGridLayout)
+        self.lineEditList = []
+        for i, elseValue in enumerate(valList):
+            # layout - QGridLayout - railLabel
             if i == 0:
-                txtLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["orgInfoEditor"]["fixedList2NumLabel"], font=textSetting.textList["font2"])
-                txtLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
+                nameText = textSetting.textList["orgInfoEditor"]["fixedList2NumLabel"]
             else:
-                txtLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["orgInfoEditor"]["fixedList2NameLabel"], font=textSetting.textList["font2"])
-                txtLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-
+                nameText = textSetting.textList["orgInfoEditor"]["fixedList2NameLabel"]
+            elseInfoNameLabel = QLabel(nameText, font=font2)
+            elseInfoGridLayout.addWidget(elseInfoNameLabel, i, 0)
+            # layout - QGridLayout - railLineEdit
+            elseInfoLineEdit = QLineEdit(font=font2)
             if i == 0:
-                self.varTemp = tkinter.IntVar()
-            else:
-                self.varTemp = tkinter.StringVar()
-            self.varTemp.set(self.valList[i])
-            self.varList.append(self.varTemp)
-            txtEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varTemp, font=textSetting.textList["font2"])
-            txtEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-        super().body(master)
+                elseInfoLineEdit.setValidator(integerValidator)
+            elseInfoLineEdit.setText("{0}".format(elseValue))
+            self.lineEditList.append(elseInfoLineEdit)
+            elseInfoGridLayout.addWidget(elseInfoLineEdit, i, 1)
+
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
     def validate(self):
         self.resultValueList = []
-        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"], parent=self)
-        if result:
-            try:
-                for i in range(len(self.valList)):
-                    try:
-                        if i == 0:
-                            res = int(self.varList[i].get())
-                            if res <= 0:
-                                errorMsg = textSetting.textList["errorList"]["E61"].format(1)
-                                mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-                                return False
-                        else:
-                            res = self.varList[i].get()
+        for i, lineEdit in enumerate(self.lineEditList):
+            if not lineEdit.hasAcceptableInput():
+                mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+                return
 
-                        self.resultValueList.append(res)
-                    except Exception:
-                        errorMsg = textSetting.textList["errorList"]["E3"]
-                        mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return True
-            except Exception:
-                errorMsg = textSetting.textList["errorList"]["E14"]
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
+            if i == 0:
+                self.resultValueList.append(int(lineEdit.text()))
+            else:
+                self.resultValueList.append(lineEdit.text())
+        return True
 
-    def apply(self):
-        self.reloadFlag = True
+    def accept(self):
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
+
+        if not self.validate():
+            return
+        super().accept()
