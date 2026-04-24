@@ -560,38 +560,39 @@ class BSdecrypt():
     def saveModelInfo(self, trainIdx, modelInfo):
         try:
             index = self.mdlIndexList[trainIdx]
+            index += 1
             newByteArr = self.byteArr[0:index]
 
             newTrackList = modelInfo["trackNames"]
-
-            newByteArr.append(len(newTrackList))
             for newTrack in newTrackList:
-                newByteArr.append(len(newTrack))
-                newByteArr.extend(self.encObj.convertByteArray(newTrack))
+                bNewTrack = self.encObj.convertByteArray(newTrack)
+                newByteArr.append(len(bNewTrack))
+                newByteArr.extend(bNewTrack)
 
             newCnt = modelInfo["mdlCnt"]
             newByteArr.append(newCnt)
 
             newMdlList = modelInfo["mdlNames"]
-            newByteArr.append(len(newMdlList) - 1)
+            newByteArr.append(len(newMdlList))
             for newMdl in newMdlList:
-                if newMdl == textSetting.textList["orgInfoEditor"]["noList"]:
-                    continue
-                newByteArr.append(len(newMdl))
-                newByteArr.extend(self.encObj.convertByteArray(newMdl))
+                bNewMdl = self.encObj.convertByteArray(newMdl)
+                newByteArr.append(len(bNewMdl))
+                newByteArr.extend(bNewMdl)
 
-            for i in range(len(newMdlList) - 1):
-                strHex = "H2000_COL_0.smf"
-                newByteArr.append(len(strHex))
-                newByteArr.extend(self.encObj.convertByteArray(strHex))
+            newColList = modelInfo["colNames"]
+            for newCol in newColList:
+                bNewCol = self.encObj.convertByteArray(newCol)
+                newByteArr.append(len(bNewCol))
+                newByteArr.extend(bNewCol)
 
             newPantaList = modelInfo["pantaNames"]
             newByteArr.append(len(newPantaList) - 1)
             for newPanta in newPantaList:
                 if newPanta == textSetting.textList["orgInfoEditor"]["noList"]:
                     continue
-                newByteArr.append(len(newPanta))
-                newByteArr.extend(self.encObj.convertByteArray(newPanta))
+                bNewPanta = self.encObj.convertByteArray(newPanta)
+                newByteArr.append(len(bNewPanta))
+                newByteArr.extend(bNewPanta)
 
             index = self.henseiModelEndIndexList[trainIdx]
             newByteArr.extend(self.byteArr[index:])

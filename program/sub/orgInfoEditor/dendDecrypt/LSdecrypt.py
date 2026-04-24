@@ -538,6 +538,59 @@ class LSdecrypt():
             self.error = traceback.format_exc()
             return False
 
+    def saveModelInfo(self, trainIdx, modelInfo):
+        try:
+            index = self.mdlIndexList[trainIdx]
+            index += 1
+            newByteArr = self.byteArr[0:index]
+
+            newTrackList = modelInfo["trackNames"]
+
+            for newTrack in newTrackList:
+                bNewTrack = self.encObj.convertByteArray(newTrack)
+                newByteArr.append(len(bNewTrack))
+                newByteArr.extend(bNewTrack)
+
+            henseiCnt = modelInfo["mdlCnt"]
+            newByteArr.append(henseiCnt)
+
+            newMdlList = modelInfo["mdlNames"]
+            for newMdl in newMdlList:
+                bNewMdl = self.encObj.convertByteArray(newMdl)
+                newByteArr.append(len(bNewMdl))
+                newByteArr.extend(bNewMdl)
+
+            newColList = modelInfo["colNames"]
+            for newCol in newColList:
+                bNewCol = self.encObj.convertByteArray(newCol)
+                newByteArr.append(len(bNewCol))
+                newByteArr.extend(bNewCol)
+
+            newPantaList = modelInfo["pantaNames"]
+            newByteArr.append(len(newPantaList) - 1)
+            for newPanta in newPantaList:
+                if newPanta == textSetting.textList["orgInfoEditor"]["noList"]:
+                    continue
+                bNewPanta = self.encObj.convertByteArray(newPanta)
+                newByteArr.append(len(bNewPanta))
+                newByteArr.extend(bNewPanta)
+
+            for pantaIndex in modelInfo["pantaList"]:
+                idx = pantaIndex
+                if idx == -1:
+                    idx = 255
+                newByteArr.append(idx)
+
+            index = self.henseiEndIndexList[trainIdx]
+            newByteArr.extend(self.byteArr[index:])
+            self.byteArr = newByteArr
+
+            self.saveTrain()
+            return True
+        except Exception:
+            self.error = traceback.format_exc()
+            return False
+
     def saveElseList(self, trainIdx, ver, elseList):
         try:
             if ver == 1:
