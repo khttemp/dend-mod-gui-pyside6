@@ -69,13 +69,13 @@ class SimpleListWidget(QWidget):
             for i in range(len(simpleList)):
                 displaySimpleList.append(simpleList[i])
         else:
-            displaySimpleList = [textSetting.textList["railEditor"]["noList"]]
+            displaySimpleList = [textSetting.textList["orgInfoEditor"]["noList"]]
         return displaySimpleList
 
     def onItemClicked(self, item):
         self.selectIndex = self.simpleListListWidget.row(item)
         self.insertButton.setEnabled(True)
-        if item.text() == textSetting.textList["railEditor"]["noList"]:
+        if item.text() == textSetting.textList["orgInfoEditor"]["noList"]:
             self.modifyButton.setEnabled(False)
             self.deleteButton.setEnabled(False)
         else:
@@ -84,7 +84,7 @@ class SimpleListWidget(QWidget):
 
     def modifyFunc(self):
         item = self.simpleList[self.selectIndex]
-        editSimpleListWidget = EditSimpleListWidget(self, self.groupBoxTitle + textSetting.textList["railEditor"]["commonModifyLabel"], self.decryptFile, "modify", item)
+        editSimpleListWidget = EditSimpleListWidget(self, self.groupBoxTitle + textSetting.textList["orgInfoEditor"]["commonModifyLabel"], self.decryptFile, "modify", item)
         if editSimpleListWidget.exec() == QDialog.Accepted:
             self.simpleList[self.selectIndex] = editSimpleListWidget.simpleInfoLineEdit.text()
             displaySimpleList = self.setListboxInfo(self.simpleList)
@@ -93,7 +93,7 @@ class SimpleListWidget(QWidget):
             self.dirtyFlag = True
 
     def insertFunc(self):
-        editSimpleListWidget = EditSimpleListWidget(self, self.groupBoxTitle + textSetting.textList["railEditor"]["commonInsertLabel"], self.decryptFile, "insert")
+        editSimpleListWidget = EditSimpleListWidget(self, self.groupBoxTitle + textSetting.textList["orgInfoEditor"]["commonInsertLabel"], self.decryptFile, "insert")
         if editSimpleListWidget.exec() == QDialog.Accepted:
             self.simpleList.insert(self.selectIndex + editSimpleListWidget.insertPos, editSimpleListWidget.simpleInfoLineEdit.text())
             displaySimpleList = self.setListboxInfo(self.simpleList)
@@ -152,11 +152,11 @@ class EditSimpleListWidget(QDialog):
         horizentalLine.setFrameShadow(QFrame.Shadow.Sunken)
         self.simpleInfoGridLayout.addWidget(horizentalLine, insertRow, 0, 1, 2)
         # layout - QGridLayout - insertLabel
-        insertLabel = QLabel(textSetting.textList["railEditor"]["posLabel"], font=self.font2)
+        insertLabel = QLabel(textSetting.textList["orgInfoEditor"]["posLabel"], font=self.font2)
         self.simpleInfoGridLayout.addWidget(insertLabel, insertRow + 1, 0)
         # layout - QGridLayout - insertCombo
         self.insertCombo = QComboBox(font=self.font2)
-        self.insertCombo.addItems(textSetting.textList["railEditor"]["posValue"])
+        self.insertCombo.addItems(textSetting.textList["orgInfoEditor"]["posValue"])
         self.simpleInfoGridLayout.addWidget(self.insertCombo, insertRow + 1, 1)
 
     def validate(self):
@@ -326,9 +326,22 @@ class EditModelDialog(QDialog):
             newPantaList = []
             for i in range(self.pantaModelSimpleList.simpleListListWidget.count()):
                 item = self.pantaModelSimpleList.simpleListListWidget.item(i)
+                if item.text() == textSetting.textList["orgInfoEditor"]["noList"]:
+                    continue
                 newPantaList.append(item.text())
             newPantaList.append(textSetting.textList["orgInfoEditor"]["noList"])
             modelInfo["pantaNames"] = newPantaList
+
+            noPantaList = False
+            if len(newPantaList) == 1 and newPantaList[0] == textSetting.textList["orgInfoEditor"]["noList"]:
+                noPantaList = True
+
+            if noPantaList:
+                if len(modelInfo["pantaList"]) > 0:
+                    modelInfo["pantaList"] = []
+            else:
+                if len(modelInfo["pantaList"]) == 0:
+                    modelInfo["pantaList"] = [-1]*len(modelInfo["mdlList"])
 
             newColList = []
             for i in range(self.colModelSimpleList.simpleListListWidget.count()):

@@ -361,6 +361,10 @@ textList = {
         "modified": "(改)",
         "dataCorrupted": "(データ破損)",
         "editStageDefaultTrain": "ステージのデフォルト車両変更",
+        "commonModifyLabel": "の変更",
+        "commonInsertLabel": "の挿入",
+        "posLabel": "挿入する位置",
+        "posValue": ["後", "前"],
     },
     "railEditor": {
         "fileType": "レールデータ",
