@@ -334,6 +334,10 @@ class EditModelDialog(QDialog):
             if self.pantaModelSimpleList.dirtyFlag:
                 pantaModelText = textSetting.textList["orgInfoEditor"]["csvPantaTitle"]
                 pantaModelIndexList = modelInfo["pantaList"]
+                if self.decryptFile.game in ["BS", "CS", "RS"]:
+                    if pantaModelCount == 0:
+                        mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E137"].format(pantaModelText))
+                        return
                 if pantaModelCount > 0:
                     for pantaModelIndex in pantaModelIndexList:
                         if pantaModelIndex != -1 and pantaModelIndex >= pantaModelCount:
