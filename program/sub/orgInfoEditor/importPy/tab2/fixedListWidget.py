@@ -60,10 +60,10 @@ class FixedListWidget(QWidget):
                 valueLabel.setFixedWidth(fixedWidth)
 
     def editVar(self, i):
-        editFixedListDialog = EditFixedListDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.elseList[i], self.ver)
+        editFixedListDialog = EditFixedListDialog(self, textSetting.textList["orgInfoEditor"]["valueModify"], self.elseList[i], self.decryptFile.game, self.ver)
         if editFixedListDialog.exec() == QDialog.Accepted:
             resultValue = editFixedListDialog.lineEdit.text()
-            if self.ver == 1:
+            if self.decryptFile.game == "LS" and self.ver == 1:
                 resultValue = int(resultValue)
             self.elseList[i] = resultValue
             if not self.decryptFile.saveElseList(self.trainIndex, self.ver, self.elseList):
@@ -75,7 +75,7 @@ class FixedListWidget(QWidget):
 
 
 class EditFixedListDialog(QDialog):
-    def __init__(self, parent, title, value, ver):
+    def __init__(self, parent, title, value, game, ver):
         super().__init__(parent)
         self.setWindowTitle(title)
         font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
@@ -88,7 +88,7 @@ class EditFixedListDialog(QDialog):
         self.lineEdit = QLineEdit(font=font2)
         integerValidator = QRegularExpressionValidator(QRegularExpression(r"^-?\d+$"), self)
         self.lineEdit.setText("{0}".format(value))
-        if ver == 1:
+        if game == "LS" and ver == 1:
             self.lineEdit.setValidator(integerValidator)
         layout.addWidget(self.lineEdit)
         # layout - QDialogButtonBox
