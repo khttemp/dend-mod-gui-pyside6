@@ -91,6 +91,9 @@ class SimpleListWidget(QWidget):
             self.simpleListListWidget.clear()
             self.simpleListListWidget.addItems(displaySimpleList)
             self.dirtyFlag = True
+            self.modifyButton.setEnabled(False)
+            self.insertButton.setEnabled(False)
+            self.deleteButton.setEnabled(False)
 
     def insertFunc(self):
         editSimpleListWidget = EditSimpleListWidget(self, self.groupBoxTitle + textSetting.textList["orgInfoEditor"]["commonInsertLabel"], self.decryptFile, "insert")
@@ -100,6 +103,9 @@ class SimpleListWidget(QWidget):
             self.simpleListListWidget.clear()
             self.simpleListListWidget.addItems(displaySimpleList)
             self.dirtyFlag = True
+            self.modifyButton.setEnabled(False)
+            self.insertButton.setEnabled(False)
+            self.deleteButton.setEnabled(False)
 
     def deleteFunc(self):
         msg = textSetting.textList["infoList"]["I25"].format(self.selectIndex + 1)
@@ -110,6 +116,9 @@ class SimpleListWidget(QWidget):
             self.simpleListListWidget.clear()
             self.simpleListListWidget.addItems(displaySimpleList)
             self.dirtyFlag = True
+            self.modifyButton.setEnabled(False)
+            self.insertButton.setEnabled(False)
+            self.deleteButton.setEnabled(False)
 
 
 class EditSimpleListWidget(QDialog):
@@ -265,10 +274,38 @@ class EditModelDialog(QDialog):
         modelInfo = self.decryptFile.trainModelList[self.trainIndex]
         result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I63"], icon="warning")
         if result == mb.OK:
-            trackModelCount = self.trackModelSimpleList.simpleListListWidget.count()
-            trainModelCount = self.trainModelSimpleList.simpleListListWidget.count()
-            pantaModelCount = self.pantaModelSimpleList.simpleListListWidget.count()
-            colModelCount = self.colModelSimpleList.simpleListListWidget.count()
+            newTrackList = []
+            for i in range(self.trackModelSimpleList.simpleListListWidget.count()):
+                item = self.trackModelSimpleList.simpleListListWidget.item(i)
+                if item.text() == textSetting.textList["orgInfoEditor"]["noList"]:
+                    continue
+            newTrackList.append(item.text())
+            trackModelCount = len(newTrackList)
+
+            newTrainList = []
+            for i in range(self.trainModelSimpleList.simpleListListWidget.count()):
+                item = self.trainModelSimpleList.simpleListListWidget.item(i)
+                if item.text() == textSetting.textList["orgInfoEditor"]["noList"]:
+                    continue
+                newTrainList.append(item.text())
+            trainModelCount = len(newTrainList)
+
+            newPantaList = []
+            for i in range(self.pantaModelSimpleList.simpleListListWidget.count()):
+                item = self.pantaModelSimpleList.simpleListListWidget.item(i)
+                if item.text() == textSetting.textList["orgInfoEditor"]["noList"]:
+                    continue
+                newPantaList.append(item.text())
+            pantaModelCount = len(newPantaList)
+
+            newColList = []
+            for i in range(self.colModelSimpleList.simpleListListWidget.count()):
+                item = self.colModelSimpleList.simpleListListWidget.item(i)
+                if item.text() == textSetting.textList["orgInfoEditor"]["noList"]:
+                    continue
+                newColList.append(item.text())
+            colModelCount = len(newColList)
+
             if self.trackModelSimpleList.dirtyFlag:
                 if self.decryptFile.game in ["LS", "BS"]:
                     if trackModelCount <= 1:
@@ -286,6 +323,9 @@ class EditModelDialog(QDialog):
                     if trainModelCount != colModelCount:
                         mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E136"])
                         return
+                if trainModelCount == 0:
+                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E137"].format(trainModelText))
+                    return
                 for trainModelIndex in trainModelIndexList:
                     if trainModelIndex != -1 and trainModelIndex >= trainModelCount:
                         mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E68"].format(trainModelText, trainModelIndex))
@@ -294,10 +334,11 @@ class EditModelDialog(QDialog):
             if self.pantaModelSimpleList.dirtyFlag:
                 pantaModelText = textSetting.textList["orgInfoEditor"]["csvPantaTitle"]
                 pantaModelIndexList = modelInfo["pantaList"]
-                for pantaModelIndex in pantaModelIndexList:
-                    if pantaModelIndex != -1 and pantaModelIndex >= pantaModelCount:
-                        mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E68"].format(pantaModelText, pantaModelIndex))
-                        return
+                if pantaModelCount > 0:
+                    for pantaModelIndex in pantaModelIndexList:
+                        if pantaModelIndex != -1 and pantaModelIndex >= pantaModelCount:
+                            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E68"].format(pantaModelText, pantaModelIndex))
+                            return
 
             if self.colModelSimpleList.dirtyFlag:
                 colModelText = textSetting.textList["orgInfoEditor"]["csvColTitle"]
@@ -306,47 +347,25 @@ class EditModelDialog(QDialog):
                     if trainModelCount != colModelCount:
                         mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E136"])
                         return
+                if colModelCount == 0:
+                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E137"].format(colModelText))
+                    return
                 for colModelIndex in colModelIndexList:
                     if colModelIndex != -1 and colModelIndex >= colModelCount:
                         mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E68"].format(colModelText, colModelIndex))
                         return
 
-            newTrackList = []
-            for i in range(self.trackModelSimpleList.simpleListListWidget.count()):
-                item = self.trackModelSimpleList.simpleListListWidget.item(i)
-                newTrackList.append(item.text())
             modelInfo["trackNames"] = newTrackList
-
-            newTrainList = []
-            for i in range(self.trainModelSimpleList.simpleListListWidget.count()):
-                item = self.trainModelSimpleList.simpleListListWidget.item(i)
-                newTrainList.append(item.text())
             modelInfo["mdlNames"] = newTrainList
 
-            newPantaList = []
-            for i in range(self.pantaModelSimpleList.simpleListListWidget.count()):
-                item = self.pantaModelSimpleList.simpleListListWidget.item(i)
-                if item.text() == textSetting.textList["orgInfoEditor"]["noList"]:
-                    continue
-                newPantaList.append(item.text())
             newPantaList.append(textSetting.textList["orgInfoEditor"]["noList"])
             modelInfo["pantaNames"] = newPantaList
-
-            noPantaList = False
-            if len(newPantaList) == 1 and newPantaList[0] == textSetting.textList["orgInfoEditor"]["noList"]:
-                noPantaList = True
-
-            if noPantaList:
+            if pantaModelCount == 0:
                 if len(modelInfo["pantaList"]) > 0:
                     modelInfo["pantaList"] = []
             else:
                 if len(modelInfo["pantaList"]) == 0:
                     modelInfo["pantaList"] = [-1]*len(modelInfo["mdlList"])
-
-            newColList = []
-            for i in range(self.colModelSimpleList.simpleListListWidget.count()):
-                item = self.colModelSimpleList.simpleListListWidget.item(i)
-                newColList.append(item.text())
             modelInfo["colNames"] = newColList
 
             if not self.decryptFile.saveModelInfo(self.trainIndex, modelInfo):
