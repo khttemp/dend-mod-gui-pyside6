@@ -1,5 +1,3 @@
-from functools import partial
-
 import program.sub.textSetting as textSetting
 
 from program.sub.orgInfoEditor.importPy.tab1.editOrgButtonWidget import EditOrgButtonWidget
@@ -13,7 +11,7 @@ from program.sub.orgInfoEditor.importPy.tab2.trainModelWidget import TrainModelW
 from program.sub.orgInfoEditor.importPy.tab2.editModelWidget import EditModelWidget
 from program.sub.orgInfoEditor.importPy.tab2.fixedListWidget import FixedListWidget
 from program.sub.orgInfoEditor.importPy.tab2.fixedList2Widget import FixedList2Widget
-# from program.orgInfoEditor.importPy.tab2.elsePerfWidget import ElsePerfWidget
+from program.sub.orgInfoEditor.importPy.tab2.elsePerfWidget import ElsePerfWidget
 
 from program.sub.orgInfoEditor.importPy.tab3.lensListWidget import LensListWidget
 from program.sub.orgInfoEditor.importPy.tab3.tailListWidget import TailListWidget
@@ -211,6 +209,7 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget
         trainOrgInfo = decryptFile.trainInfoList[trainIndex]
         if trainOrgInfo is None:
             return
+        selectDefaultData = defaultData[trainIndex]
         # scrollArea
         scrollArea = QScrollArea()
         scrollArea.setWidgetResizable(True)
@@ -237,27 +236,82 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget
         notchCountWidget = NotchCountWidget(trainIndex, notchNum, decryptFile, reloadWidget)
         trainLayout.addWidget(notchCountWidget)
 
-    #     rainPerfLf = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["orgInfoEditor"]["SSRainLfLabel"])
-    #     rainPerfLf.pack(side=tkinter.LEFT, anchor=tkinter.NW, padx=10, pady=3)
-    #     ElsePerfWidget(tabFrame, trainIdx, game, rainPerfLf, "rain", decryptFile.trainRainNameList, trainOrgInfo[2], True, defaultData, decryptFile, rootFrameAppearance, reloadWidget)
+        # contentLayout - elsePerf1Layout
+        elsePerf1Layout = QHBoxLayout()
+        contentLayout.addLayout(elsePerf1Layout)
+        # contentLayout - elsePerf1Layout - rainGroupBox
+        rainGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["trainLfLabel"])
+        elsePerf1Layout.addWidget(rainGroupBox, alignment=defaultAlignment)
+        # contentLayout - elsePerf1Layout - rainGroupBox - rainGroupInLayout
+        rainGroupInLayout = QVBoxLayout()
+        rainGroupInLayout.setContentsMargins(0, 0, 0, 0)
+        rainGroupInLayout.setSpacing(0)
+        rainGroupBox.setLayout(rainGroupInLayout)
+        # contentLayout - elsePerf1Layout - rainGroupBox - rainGroupInLayout - rainPerfWidget
+        rainPerfWidget = ElsePerfWidget(trainIndex, decryptFile, "rain", decryptFile.trainRainNameList, trainOrgInfo[2], True, selectDefaultData,  reloadWidget)
+        rainGroupInLayout.addWidget(rainPerfWidget)
 
-    #     carbPerfLf = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["orgInfoEditor"]["SSCarbLfLabel"])
-    #     carbPerfLf.pack(side=tkinter.LEFT, anchor=tkinter.NW, padx=10, pady=3)
-    #     ElsePerfWidget(tabFrame, trainIdx, game, carbPerfLf, "carb", decryptFile.trainCarbNameList, trainOrgInfo[3], True, defaultData, decryptFile, rootFrameAppearance, reloadWidget)
+        # contentLayout - elsePerf1Layout - carbGroupBox
+        carbGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["SSCarbLfLabel"])
+        elsePerf1Layout.addWidget(carbGroupBox, alignment=defaultAlignment)
+        # contentLayout - elsePerf1Layout - carbGroupBox - carbGroupInLayout
+        carbGroupInLayout = QVBoxLayout()
+        carbGroupInLayout.setContentsMargins(0, 0, 0, 0)
+        carbGroupInLayout.setSpacing(0)
+        carbGroupBox.setLayout(carbGroupInLayout)
+        # contentLayout - elsePerf1Layout - carbGroupBox - carbGroupInLayout - carbPerfWidget
+        carbPerfWidget = ElsePerfWidget(trainIndex, decryptFile, "carb", decryptFile.trainCarbNameList, trainOrgInfo[3], True, selectDefaultData, reloadWidget)
+        carbGroupInLayout.addWidget(carbPerfWidget)
+        # stretch
+        elsePerf1Layout.addStretch()
 
-    #     otherPerfLf = ttkCustomWidget.CustomTtkLabelFrame(scrollFrame, text=textSetting.textList["orgInfoEditor"]["SSOtherLfLabel"])
-    #     otherPerfLf.pack(anchor=tkinter.NW, padx=10, pady=3)
-    #     ElsePerfWidget(tabFrame, trainIdx, game, otherPerfLf, "other", decryptFile.trainOtherNameList, trainOrgInfo[4], True, defaultData, decryptFile, rootFrameAppearance, reloadWidget)
+        # contentLayout - elsePerf2Layout
+        elsePerf2Layout = QHBoxLayout()
+        contentLayout.addLayout(elsePerf2Layout)
+        # contentLayout - elsePerf2Layout - otherGroupBox
+        otherGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["SSOtherLfLabel"])
+        elsePerf2Layout.addWidget(otherGroupBox, alignment=defaultAlignment)
+        # contentLayout - elsePerf2Layout - otherGroupBox - otherGroupInLayout
+        otherGroupInLayout = QVBoxLayout()
+        otherGroupInLayout.setContentsMargins(0, 0, 0, 0)
+        otherGroupInLayout.setSpacing(0)
+        otherGroupBox.setLayout(otherGroupInLayout)
+        # contentLayout - elsePerf1Layout - otherGroupBox - otherGroupInLayout - otherPerfWidget
+        otherPerfWidget = ElsePerfWidget(trainIndex, decryptFile, "other", decryptFile.trainOtherNameList, trainOrgInfo[4], True, selectDefaultData, reloadWidget)
+        otherGroupInLayout.addWidget(otherPerfWidget)
+        # stretch
+        elsePerf2Layout.addStretch()
 
-    #     sidePackFrame2 = ttkCustomWidget.CustomTtkFrame(scrollFrame)
-    #     sidePackFrame2.pack(anchor=tkinter.NW)
-    #     hurikoPerfLf = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame2, text=textSetting.textList["orgInfoEditor"]["SSHurikoLfLabel"])
-    #     hurikoPerfLf.pack(side=tkinter.LEFT, anchor=tkinter.NW, padx=8, pady=3)
-    #     ElsePerfWidget(tabFrame, trainIdx, game, hurikoPerfLf, "huriko", decryptFile.trainHurikoNameList, trainOrgInfo[5], False, defaultData, decryptFile, rootFrameAppearance, reloadWidget)
+        # contentLayout - elsePerf3Layout
+        elsePerf3Layout = QHBoxLayout()
+        contentLayout.addLayout(elsePerf3Layout)
+        # contentLayout - elsePerf3Layout - hurikoGroupBox
+        hurikoGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["SSHurikoLfLabel"])
+        elsePerf3Layout.addWidget(hurikoGroupBox, alignment=defaultAlignment)
+        # contentLayout - elsePerf3Layout - hurikoGroupBox - hurikoGroupInLayout
+        hurikoGroupInLayout = QVBoxLayout()
+        hurikoGroupInLayout.setContentsMargins(0, 0, 0, 0)
+        hurikoGroupInLayout.setSpacing(0)
+        hurikoGroupBox.setLayout(hurikoGroupInLayout)
+        # contentLayout - elsePerf3Layout - hurikoGroupBox - hurikoGroupInLayout - hurikoPerfWidget
+        hurikoPerfWidget = ElsePerfWidget(trainIndex, decryptFile, "huriko", decryptFile.trainHurikoNameList, trainOrgInfo[5], False, selectDefaultData, reloadWidget)
+        hurikoGroupInLayout.addWidget(hurikoPerfWidget)
 
-    #     oneWheelPerfLf = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame2, text=textSetting.textList["orgInfoEditor"]["SSOneWheelLfLabel"])
-    #     oneWheelPerfLf.pack(side=tkinter.LEFT, anchor=tkinter.NW, padx=8, pady=3)
-    #     ElsePerfWidget(tabFrame, trainIdx, game, oneWheelPerfLf, "oneWheel", decryptFile.trainOneWheelNameList, trainOrgInfo[6], False, defaultData, decryptFile, rootFrameAppearance, reloadWidget)
+        # contentLayout - elsePerf3Layout - oneWheelGroupBox
+        oneWheelGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["SSOneWheelLfLabel"])
+        elsePerf3Layout.addWidget(oneWheelGroupBox, alignment=defaultAlignment)
+        # contentLayout - elsePerf3Layout - oneWheelGroupBox - oneWheelGroupInLayout
+        oneWheelGroupInLayout = QVBoxLayout()
+        oneWheelGroupInLayout.setContentsMargins(0, 0, 0, 0)
+        oneWheelGroupInLayout.setSpacing(0)
+        oneWheelGroupBox.setLayout(oneWheelGroupInLayout)
+        # contentLayout - elsePerf3Layout - oneWheelGroupBox - oneWheelGroupInLayout - oneWheelPerfWidget
+        oneWheelPerfWidget = ElsePerfWidget(trainIndex, decryptFile, "oneWheel", decryptFile.trainOneWheelNameList, trainOrgInfo[6], False, selectDefaultData, reloadWidget)
+        oneWheelGroupInLayout.addWidget(oneWheelPerfWidget)
+        # stretch
+        elsePerf3Layout.addStretch()
+        # stretch
+        contentLayout.addStretch()
 
 
 def tab3AllWidget(mainLayout, decryptFile, trainIndex, reloadWidget):
