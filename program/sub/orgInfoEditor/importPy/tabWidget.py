@@ -16,8 +16,6 @@ from program.sub.orgInfoEditor.importPy.tab2.elsePerfWidget import ElsePerfWidge
 from program.sub.orgInfoEditor.importPy.tab3.lensListWidget import LensListWidget
 from program.sub.orgInfoEditor.importPy.tab3.tailListWidget import TailListWidget
 
-
-
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QGroupBox, QScrollArea,
     QFrame, QWidget,
