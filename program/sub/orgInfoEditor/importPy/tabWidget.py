@@ -15,14 +15,14 @@ from program.sub.orgInfoEditor.importPy.tab2.fixedListWidget import FixedListWid
 from program.sub.orgInfoEditor.importPy.tab2.fixedList2Widget import FixedList2Widget
 # from program.orgInfoEditor.importPy.tab2.elsePerfWidget import ElsePerfWidget
 
-# from program.orgInfoEditor.importPy.tab3.lensListWidget import LensListWidget
-# from program.orgInfoEditor.importPy.tab3.tailListWidget import TailListWidget
+from program.sub.orgInfoEditor.importPy.tab3.lensListWidget import LensListWidget
+from program.sub.orgInfoEditor.importPy.tab3.tailListWidget import TailListWidget
 
 
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QGroupBox, QScrollArea, QFrame,
-    QWidget, QStackedWidget, QPushButton
+    QVBoxLayout, QHBoxLayout, QGroupBox, QScrollArea,
+    QFrame, QWidget,
 )
 from PySide6.QtCore import Qt
 
@@ -237,19 +237,6 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget
         notchCountWidget = NotchCountWidget(trainIndex, notchNum, decryptFile, reloadWidget)
         trainLayout.addWidget(notchCountWidget)
 
-    #     mainFrame = ttkCustomWidget.CustomTtkFrame(tabFrame)
-    #     mainFrame.pack(fill=tkinter.BOTH, expand=True)
-    #     scrollMainFrame = ScrollbarFrame(mainFrame, bgColor=rootFrameAppearance.bgColor)
-    #     scrollMainFrame.pack(expand=True, fill=tkinter.BOTH)
-    #     scrollFrame = scrollMainFrame.interior
-
-    #     countModelLf = ttkCustomWidget.CustomTtkLabelFrame(scrollFrame, text=textSetting.textList["orgInfoEditor"]["SSTrainLfLabel"])
-    #     countModelLf.pack(anchor=tkinter.NW, padx=10, pady=3)
-
-    #     countWidget = CountWidget(tabFrame, trainIdx, game, countModelLf, decryptFile, rootFrameAppearance, reloadWidget)
-
-    #     sidePackFrame = ttkCustomWidget.CustomTtkFrame(scrollFrame)
-    #     sidePackFrame.pack(anchor=tkinter.NW)
     #     rainPerfLf = ttkCustomWidget.CustomTtkLabelFrame(sidePackFrame, text=textSetting.textList["orgInfoEditor"]["SSRainLfLabel"])
     #     rainPerfLf.pack(side=tkinter.LEFT, anchor=tkinter.NW, padx=10, pady=3)
     #     ElsePerfWidget(tabFrame, trainIdx, game, rainPerfLf, "rain", decryptFile.trainRainNameList, trainOrgInfo[2], True, defaultData, decryptFile, rootFrameAppearance, reloadWidget)
@@ -274,12 +261,18 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget
 
 
 def tab3AllWidget(mainLayout, decryptFile, trainIndex, reloadWidget):
-    pass
-    # tab3frame = ttkCustomWidget.CustomTtkFrame(tabFrame)
-    # tab3frame.pack(anchor=tkinter.NW, fill=tkinter.BOTH, expand=True)
+    contentWidget = QWidget()
+    mainLayout.addWidget(contentWidget)
 
-    # lensList = decryptFile.trainModelList[trainIdx]["lensList"]
-    # LensListWidget(tab3frame, decryptFile, trainIdx, lensList, rootFrameAppearance, reloadWidget)
+    contentInLayout = QVBoxLayout()
+    contentInLayout.setContentsMargins(0, 0, 0, 0)
+    contentInLayout.setSpacing(0)
+    contentWidget.setLayout(contentInLayout)
 
-    # tailList = decryptFile.trainModelList[trainIdx]["tailList"]
-    # TailListWidget(tab3frame, decryptFile, trainIdx, tailList, rootFrameAppearance, reloadWidget)
+    lensList = decryptFile.trainModelList[trainIndex]["lensList"]
+    lensListWidget = LensListWidget(decryptFile, trainIndex, lensList, reloadWidget)
+    contentInLayout.addWidget(lensListWidget, 1)
+
+    tailList = decryptFile.trainModelList[trainIndex]["tailList"]
+    tailListWidget = TailListWidget(decryptFile, trainIndex, tailList, reloadWidget)
+    contentInLayout.addWidget(tailListWidget, 1)
