@@ -5,21 +5,21 @@ import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from PySide6.QtWidgets import (
     QWidget, QGroupBox, QVBoxLayout, QHBoxLayout, QScrollArea,
-    QFrame, QGridLayout, QLabel,
-    QPushButton, QDialog, QLineEdit, QDialogButtonBox, QSizePolicy
+    QFrame, QGridLayout, QLabel, QPushButton, QDialog,
+    QLineEdit, QDialogButtonBox
 )
-from PySide6.QtGui import QFont, QPalette, QColor, QRegularExpressionValidator
+from PySide6.QtGui import QFont, QRegularExpressionValidator
 from PySide6.QtCore import Qt, QRegularExpression
 
 mb = customMessageBoxWidget.CustomMessageBox()
 
 
 class LensListWidget(QWidget):
-    def __init__(self, decryptFile, trainIndex, lensList, reloadWidget):
+    def __init__(self, decryptFile, trainIndex, reloadWidget):
         super().__init__()
         self.decryptFile = decryptFile
         self.trainIndex = trainIndex
-        self.lensList = lensList
+        self.lensList = decryptFile.trainModelList[trainIndex]["lensList"]
         self.reloadWidget = reloadWidget
         fixedWidth = 86
         fixedHeight = 36
@@ -69,6 +69,7 @@ class LensListWidget(QWidget):
         lensCountGridLayout.addWidget(lensCountLabel, 0, 1)
         # lensCountButton
         lensCountButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
+        lensCountButton.clicked.connect(self.editLensCount)
         lensCountGridLayout.addWidget(lensCountButton, 0, 2)
         # stretch
         lensCountLayout.addStretch()
@@ -82,6 +83,7 @@ class LensListWidget(QWidget):
             lensElementLayout.addLayout(buttonLayout)
             # contentLayout - lensElementLayout - buttonLayout - lensElementButton
             lensElementButton = QPushButton(textSetting.textList["orgInfoEditor"]["modifyBtnLabel"], font=font6)
+            lensElementButton.clicked.connect(partial(self.editLensList, i))
             buttonLayout.addWidget(lensElementButton)
             # stretch
             buttonLayout.addStretch()
@@ -132,7 +134,7 @@ class LensListWidget(QWidget):
             elementGridLayout.addWidget(f1TextLabel, 0, 0)
             for j in range(2):
                 # fLabel
-                fLabel = QLabel("{0}".format(self.lensList[i][j + 2]), font=font6)
+                fLabel = QLabel("{0}".format(round(float(self.lensList[i][j + 2]), 3)), font=font6)
                 fLabel.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Plain)
                 fLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 fLabel.setFixedSize(fixedWidth, fixedHeight)
@@ -161,145 +163,157 @@ class LensListWidget(QWidget):
         # stretch
         contentLayout.addStretch()
 
-    def editLensCnt(self, val):
-        result = EditLensCntWidget(self.frame, textSetting.textList["orgInfoEditor"]["lensEditCntLabel"], self.decryptFile, val, self.rootFrameAppearance)
-        if result.reloadFlag:
-            if not self.decryptFile.saveLensCnt(self.trainIdx, result.resultValue):
+    def editLensCount(self):
+        editLensCountWidget = EditLensCountWidget(self, textSetting.textList["orgInfoEditor"]["lensEditCntLabel"], len(self.lensList))
+        if editLensCountWidget.exec() == QDialog.Accepted:
+            resultValue = int(editLensCountWidget.lineEdit.text())
+            if not self.decryptFile.saveLensCnt(self.trainIndex, resultValue):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I65"])
-            self.reloadFunc()
+            self.reloadWidget()
 
-    def editLensList(self, i, valList):
-        result = EditLensWidget(self.frame, textSetting.textList["orgInfoEditor"]["lensEditLabel"], self.decryptFile, valList, self.rootFrameAppearance)
-        if result.reloadFlag:
-            self.lensList[i] = result.resultValueList
-            if not self.decryptFile.saveLensList(self.trainIdx, self.lensList):
+    def editLensList(self, i):
+        editLensWidget = EditLensWidget(self, textSetting.textList["orgInfoEditor"]["lensEditLabel"], self.lensList[i])
+        if editLensWidget.exec() == QDialog.Accepted:
+            self.lensList[i] = editLensWidget.resultValueList
+            if not self.decryptFile.saveLensList(self.trainIndex, self.lensList):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I66"])
-            self.reloadFunc()
+            self.reloadWidget()
 
 
-# class EditLensCntWidget(CustomSimpleDialog):
-#     def __init__(self, master, title, decryptFile, val, rootFrameAppearance):
-#         self.decryptFile = decryptFile
-#         self.val = val
-#         self.resultValue = 0
-#         self.reloadFlag = False
-#         super().__init__(master, title, rootFrameAppearance.bgColor)
+class EditLensCountWidget(QDialog):
+    def __init__(self, parent, title, val):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.val = val
+        self.resultValue = None
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
 
-#     def body(self, master):
-#         self.resizable(False, False)
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
+        # layout - LineEdit
+        self.lineEdit = QLineEdit(font=font2)
+        self.lineEdit.setValidator(integerValidator)
+        self.lineEdit.setText("{0}".format(self.val))
+        layout.addWidget(self.lineEdit)
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
-#         self.valLb = ttkCustomWidget.CustomTtkLabel(master, text=textSetting.textList["infoList"]["I44"], font=textSetting.textList["font2"], anchor=tkinter.CENTER)
-#         self.valLb.pack()
+    def validate(self):
+        if not self.lineEdit.hasAcceptableInput():
+            mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+            return
 
-#         self.varLensCnt = tkinter.IntVar()
-#         self.varLensCnt.set(self.val)
-#         self.valEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varLensCnt, font=textSetting.textList["font2"], width=16)
-#         self.valEt.pack()
-#         super().body(master)
+        resultValue = int(self.lineEdit.text())
+        if resultValue < self.val:
+            msg = textSetting.textList["infoList"]["I20"] + textSetting.textList["infoList"]["I21"]
+            result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
+            if result == mb.OK:
+                return True
+        else:
+            return True
 
-#     def validate(self):
-#         result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"], parent=self)
+    def accept(self):
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
 
-#         if result:
-#             try:
-#                 try:
-#                     res = int(self.varLensCnt.get())
-#                     if res <= 0:
-#                         errorMsg = textSetting.textList["errorList"]["E61"].format(1)
-#                         mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-#                         return False
-#                     self.resultValue = res
-#                 except Exception:
-#                     errorMsg = textSetting.textList["errorList"]["E60"]
-#                     mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-#             except Exception:
-#                 errorMsg = textSetting.textList["errorList"]["E14"]
-#                 mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-
-#             if self.resultValue < self.val:
-#                 msg = textSetting.textList["infoList"]["I20"] + textSetting.textList["infoList"]["I21"]
-#                 result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning", parent=self)
-#                 if result:
-#                     return True
-#             else:
-#                 return True
-
-#     def apply(self):
-#         self.reloadFlag = True
+        if not self.validate():
+            return
+        super().accept()
 
 
-# class EditLensWidget(CustomSimpleDialog):
-#     def __init__(self, master, title, decryptFile, lensInfo, rootFrameAppearance):
-#         self.decryptFile = decryptFile
-#         self.lensInfo = lensInfo
-#         self.varList = []
-#         self.varCnt = 0
-#         self.resultValueList = []
-#         self.reloadFlag = False
-#         super().__init__(master, title, rootFrameAppearance.bgColor)
+class EditLensWidget(QDialog):
+    def __init__(self, parent, title, lensInfo):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.lensInfo = lensInfo
+        self.resultValueList = []
+        font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
+        integerValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+$"), self)
+        numberValidator = QRegularExpressionValidator(QRegularExpression(r"^\d+(\.\d+)?"), self)
 
-#     def body(self, master):
-#         self.resizable(False, False)
+        # layout
+        layout = QVBoxLayout(self)
+        # layout - Label
+        label = QLabel(textSetting.textList["infoList"]["I44"], font=font2)
+        layout.addWidget(label)
+        # layout - QGridLayout
+        lensGridLayout = QGridLayout()
+        layout.addLayout(lensGridLayout)
+        self.lineEditList = []
+        lensInfoLbList = textSetting.textList["orgInfoEditor"]["lensInfoLabelList"]
+        for i in range(len(self.lensInfo)):
+            if i in [0, 1]:
+                # layout - QGridLayout - lensNameLabel
+                lensNameLabel = QLabel(lensInfoLbList[i], font=font2)
+                lensGridLayout.addWidget(lensNameLabel, i, 0)
+                # layout - QGridLayout - lensLineEdit
+                lensLineEdit = QLineEdit(font=font2)
+                lensLineEdit.setText("{0}".format(self.lensInfo[i]))
+                self.lineEditList.append(lensLineEdit)
+                lensGridLayout.addWidget(lensLineEdit, i, 1)
+            elif i in [2, 3]:
+                # layout - QGridLayout - lensNameLabel
+                lensNameLabel = QLabel(lensInfoLbList[i], font=font2)
+                lensGridLayout.addWidget(lensNameLabel, i, 0)
+                # layout - QGridLayout - lensLineEdit
+                lensLineEdit = QLineEdit(font=font2)
+                lensLineEdit.setValidator(numberValidator)
+                lensLineEdit.setText("{0}".format(round(float(self.lensInfo[i]), 3)))
+                self.lineEditList.append(lensLineEdit)
+                lensGridLayout.addWidget(lensLineEdit, i, 1)
+            elif i == 4:
+                for j in range(len(self.lensInfo[i])):
+                    # layout - QGridLayout - lensNameLabel
+                    lensNameLabel = QLabel(lensInfoLbList[i], font=font2)
+                    lensGridLayout.addWidget(lensNameLabel, i + j, 0)
+                    # layout - QGridLayout - lensLineEdit
+                    lensLineEdit = QLineEdit(font=font2)
+                    lensLineEdit.setValidator(integerValidator)
+                    lensLineEdit.setText("{0}".format(self.lensInfo[i][j]))
+                    self.lineEditList.append(lensLineEdit)
+                    lensGridLayout.addWidget(lensLineEdit, i + j, 1)
 
-#         lensInfoLbList = textSetting.textList["orgInfoEditor"]["lensInfoLabelList"]
-#         for i in range(len(self.lensInfo)):
-#             if i in [0, 1]:
-#                 self.lensLb = ttkCustomWidget.CustomTtkLabel(master, text=lensInfoLbList[i], font=textSetting.textList["font2"])
-#                 self.lensLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-#                 self.varList.append(tkinter.StringVar(value=self.lensInfo[i]))
-#                 self.lensEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[self.varCnt], font=textSetting.textList["font2"])
-#                 self.lensEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-#                 self.varCnt += 1
-#             elif i in [2, 3]:
-#                 self.lensLb = ttkCustomWidget.CustomTtkLabel(master, text=lensInfoLbList[i], font=textSetting.textList["font2"])
-#                 self.lensLb.grid(row=i, column=0, sticky=tkinter.W + tkinter.E)
-#                 self.varList.append(tkinter.DoubleVar(value=round(float(self.lensInfo[i]), 3)))
-#                 self.lensEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=self.varList[self.varCnt], font=textSetting.textList["font2"])
-#                 self.lensEt.grid(row=i, column=1, sticky=tkinter.W + tkinter.E)
-#                 self.varCnt += 1
-#             elif i == 4:
-#                 varList = []
-#                 for j in range(len(self.lensInfo[i])):
-#                     self.lensLb = ttkCustomWidget.CustomTtkLabel(master, text=lensInfoLbList[i + j], font=textSetting.textList["font2"])
-#                     self.lensLb.grid(row=i + j, column=0, sticky=tkinter.W + tkinter.E)
-#                     varList.append(tkinter.IntVar(value=self.lensInfo[i][j]))
-#                     self.lensEt = ttkCustomWidget.CustomTtkEntry(master, textvariable=varList[j], font=textSetting.textList["font2"])
-#                     self.lensEt.grid(row=i + j, column=1, sticky=tkinter.W + tkinter.E)
-#                     self.varCnt += 1
-#                 self.varList.append(varList)
-#         super().body(master)
+        # layout - QDialogButtonBox
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
 
-#     def validate(self):
-#         self.resultValueList = []
-#         result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"], parent=self)
-#         if result:
-#             try:
-#                 try:
-#                     for i in range(len(self.varList)):
-#                         if i in [0, 1]:
-#                             res = self.varList[i].get()
-#                         elif i in [2, 3]:
-#                             res = float(self.varList[i].get())
-#                         elif i == 4:
-#                             res = []
-#                             varList = self.varList[i]
-#                             for j in range(len(varList)):
-#                                 var = int(varList[j].get())
-#                                 res.append(var)
-#                         self.resultValueList.append(res)
-#                     return True
-#                 except Exception:
-#                     errorMsg = textSetting.textList["errorList"]["E3"]
-#                     mb.showerror(title=textSetting.textList["numberError"], message=errorMsg)
-#             except Exception:
-#                 errorMsg = textSetting.textList["errorList"]["E14"]
-#                 mb.showerror(title=textSetting.textList["error"], message=errorMsg)
+    def validate(self):
+        self.resultValueList = []
+        varList = []
+        for i, lineEdit in enumerate(self.lineEditList):
+            if not lineEdit.hasAcceptableInput():
+                mb.showerror(title=textSetting.textList["numberError"], message=textSetting.textList["errorList"]["E3"])
+                return
+            if i in [0, 1]:
+                self.resultValueList.append(lineEdit.text())
+            if i in [2, 3]:
+                self.resultValueList.append(float(lineEdit.text()))
+            elif i >= 4:
+                varList.append(int(lineEdit.text()))
+        self.resultValueList.append(varList)
+        return True
 
-#     def apply(self):
-#         self.reloadFlag = True
+    def accept(self):
+        result = mb.askokcancel(title=textSetting.textList["confirm"], message=textSetting.textList["infoList"]["I21"])
+        if result != mb.OK:
+            return
+
+        if not self.validate():
+            return
+        super().accept()

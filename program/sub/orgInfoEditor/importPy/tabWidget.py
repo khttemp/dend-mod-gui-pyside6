@@ -269,10 +269,8 @@ def tab3AllWidget(mainLayout, decryptFile, trainIndex, reloadWidget):
     contentInLayout.setSpacing(0)
     contentWidget.setLayout(contentInLayout)
 
-    lensList = decryptFile.trainModelList[trainIndex]["lensList"]
-    lensListWidget = LensListWidget(decryptFile, trainIndex, lensList, reloadWidget)
+    lensListWidget = LensListWidget(decryptFile, trainIndex, reloadWidget)
     contentInLayout.addWidget(lensListWidget, 1)
 
-    tailList = decryptFile.trainModelList[trainIndex]["tailList"]
-    tailListWidget = TailListWidget(decryptFile, trainIndex, tailList, reloadWidget)
+    tailListWidget = TailListWidget(decryptFile, trainIndex, reloadWidget)
     contentInLayout.addWidget(tailListWidget, 1)
