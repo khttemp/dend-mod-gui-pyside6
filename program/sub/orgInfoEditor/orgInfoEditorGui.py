@@ -1,5 +1,3 @@
-import os
-import sys
 import copy
 import program.sub.textSetting as textSetting
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
