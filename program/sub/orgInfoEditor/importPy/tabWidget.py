@@ -220,7 +220,7 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget
         scrollAreaFrame.setLayout(contentLayout)
 
         # trainGroupBox
-        trainGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["trainLfLabel"])
+        trainGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["SSTrainLfLabel"])
         contentLayout.addWidget(trainGroupBox, alignment=defaultAlignment)
         # trainGroupBox - QVBoxLayout
         trainLayout = QVBoxLayout()
@@ -238,7 +238,7 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget
         elsePerf1Layout = QHBoxLayout()
         contentLayout.addLayout(elsePerf1Layout)
         # contentLayout - elsePerf1Layout - rainGroupBox
-        rainGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["trainLfLabel"])
+        rainGroupBox = QGroupBox(textSetting.textList["orgInfoEditor"]["SSRainLfLabel"])
         elsePerf1Layout.addWidget(rainGroupBox, alignment=defaultAlignment)
         # contentLayout - elsePerf1Layout - rainGroupBox - rainGroupInLayout
         rainGroupInLayout = QVBoxLayout()
