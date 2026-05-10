@@ -246,7 +246,7 @@ def tab2AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget
         rainGroupInLayout.setSpacing(0)
         rainGroupBox.setLayout(rainGroupInLayout)
         # contentLayout - elsePerf1Layout - rainGroupBox - rainGroupInLayout - rainPerfWidget
-        rainPerfWidget = ElsePerfWidget(trainIndex, decryptFile, "rain", decryptFile.trainRainNameList, trainOrgInfo[2], True, selectDefaultData,  reloadWidget)
+        rainPerfWidget = ElsePerfWidget(trainIndex, decryptFile, "rain", decryptFile.trainRainNameList, trainOrgInfo[2], True, selectDefaultData, reloadWidget)
         rainGroupInLayout.addWidget(rainPerfWidget)
 
         # contentLayout - elsePerf1Layout - carbGroupBox
