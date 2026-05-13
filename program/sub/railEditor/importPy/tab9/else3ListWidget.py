@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QFileDialog
 )
 from PySide6.QtGui import QFont, QRegularExpressionValidator
-from PySide6.QtCore import Qt, QRegularExpression
+from PySide6.QtCore import Qt, QRegularExpression, QTimer
 
 
 mb = customMessageBoxWidget.CustomMessageBox()
@@ -564,6 +564,7 @@ class Else3ElementWidget(QDialog):
         self.else3ElementList = item[-1]
         self.copyElse3ElementInfo = []
         self.resultValueList = []
+        self.selectId = None
         self.dirtyFlag = False
 
         labelWidth = 66
@@ -714,11 +715,11 @@ class Else3ElementWidget(QDialog):
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.contentTable.setItem(rowCount, j, item)
 
-    def jumpToSelect(self, selectId):
-        if selectId is not None:
-            if selectId >= len(self.else3ElementList):
-                selectId = len(self.else3ElementList) - 1
-            self.contentTable.selectRow(selectId)
+    def jumpToSelect(self):
+        if self.selectId is not None:
+            if self.selectId >= len(self.else3ElementList):
+                self.selectId = len(self.else3ElementList) - 1
+            self.contentTable.selectRow(self.selectId)
 
     def onSelectionChanged(self):
         selectedItems = self.contentTable.selectedItems()
@@ -743,12 +744,13 @@ class Else3ElementWidget(QDialog):
         self.contentTable.setRowCount(0)
         self.contentTable.setColumnCount(0)
 
-    def reloadFunc(self, selectId=None):
+    def reloadFunc(self):
         self.decryptFile = self.decryptFile.reload()
         self.else3ElementList = self.decryptFile.else3List[self.selectNum][-1]
         self.clearTable()
         self.createElse3ElementTable()
-        self.jumpToSelect(selectId)
+
+        QTimer.singleShot(0, self.jumpToSelect)
 
     def editLineFunc(self):
         selectedItems = self.contentTable.selectedItems()
@@ -767,7 +769,8 @@ class Else3ElementWidget(QDialog):
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.title))
-            self.reloadFunc(num)
+            self.selectId = num
+            self.reloadFunc()
             self.dirtyFlag = True
 
     def insertLineFunc(self):
@@ -787,7 +790,8 @@ class Else3ElementWidget(QDialog):
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.title))
-            self.reloadFunc(num)
+            self.selectId = num + editElse3ElementWidget.insertPos
+            self.reloadFunc()
             self.dirtyFlag = True
 
     def deleteLineFunc(self):
@@ -810,6 +814,7 @@ class Else3ElementWidget(QDialog):
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I92"].format(self.title))
+            self.selectId = num
             self.reloadFunc()
             self.dirtyFlag = True
 
@@ -831,7 +836,8 @@ class Else3ElementWidget(QDialog):
         num = selectedItems[0].row()
         pasteElse3ElementDialog = PasteElse3ElementDialog(self, textSetting.textList["railEditor"]["pasteElse3InfoLabel"].format(self.title), self.decryptFile, self.selectNum, num, self.copyElse3ElementInfo)
         if pasteElse3ElementDialog.exec() == QDialog.Accepted:
-            self.reloadFunc(num)
+            self.selectId = num + pasteElse3ElementDialog.insertPos
+            self.reloadFunc()
             self.dirtyFlag = True
 
 
@@ -948,6 +954,7 @@ class PasteElse3ElementDialog(QDialog):
         self.setWindowTitle(title)
         self.decryptFile = decryptFile
         self.selectNum = selectNum
+        self.insertPos = 0
         self.num = num
         self.copyElse3ElementInfo = copyElse3ElementInfo
 
@@ -977,6 +984,7 @@ class PasteElse3ElementDialog(QDialog):
     def frontInsert(self):
         super().accept()
         else3List = self.decryptFile.else3List
+        self.insertPos = 0
         else3List[self.selectNum][-1].insert(self.num, self.copyElse3ElementInfo)
         if not self.decryptFile.saveElse3List(else3List):
             self.decryptFile.printError()
@@ -987,6 +995,7 @@ class PasteElse3ElementDialog(QDialog):
     def backInsert(self):
         super().accept()
         else3List = self.decryptFile.else3List
+        self.insertPos = 1
         else3List[self.selectNum][-1].insert(self.num + 1, self.copyElse3ElementInfo)
         if not self.decryptFile.saveElse3List(else3List):
             self.decryptFile.printError()

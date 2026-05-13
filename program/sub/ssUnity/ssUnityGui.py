@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QFileDialog, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView
 )
 from PySide6.QtGui import QFont, QColor
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 
 errObj = errorLogClass.ErrorLogObj()
 mb = customMessageBoxWidget.CustomMessageBox()
@@ -27,6 +27,7 @@ class SSUnityWindow(QWidget):
         super().__init__()
         self.importDict = importDict
         self.decryptFile = None
+        self.selectId = None
 
         font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
         font7 = QFont(textSetting.textList["font7"][0], textSetting.textList["font7"][1])
@@ -162,6 +163,7 @@ class SSUnityWindow(QWidget):
         if not isChecked:
             return
 
+        self.selectId = None
         self.fileNameLabel.setText("")
         self.searchLineEdit.setText("")
         self.searchLineEdit.setReadOnly(True)
@@ -275,6 +277,12 @@ class SSUnityWindow(QWidget):
                         item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                         self.contentTable.setItem(rowCount, colIdx, item)
 
+    def jumpToSelect(self):
+        if self.selectId is not None:
+            if self.selectId >= self.contentTable.rowCount():
+                self.selectId = self.contentTable.rowCount() - 1
+            self.contentTable.selectRow(self.selectId)
+
     def onSelectionChanged(self):
         selectedItems = self.contentTable.selectedItems()
         if not selectedItems:
@@ -384,6 +392,7 @@ class SSUnityWindow(QWidget):
 
             if self.searchLineEdit.text() != "":
                 self.tableFilterFunc()
+            QTimer.singleShot(0, self.jumpToSelect)
         except Exception:
             errObj.write(traceback.format_exc())
             mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
@@ -489,6 +498,7 @@ class SSUnityWindow(QWidget):
                     return
                 ssUnityProcess.saveDenFile(data, self.decryptFile, script)
                 mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I51"])
+                self.selectId = row
                 self.reloadFile()
             except Exception:
                 errObj.write(traceback.format_exc())
