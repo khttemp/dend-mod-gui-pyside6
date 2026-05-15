@@ -8,7 +8,7 @@ import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 from program.sub.mdlinfo.dendDecrypt.decrypt import MdlDecrypt
 from program.sub.mdlinfo.importPy.mdlDetailWidget import MdlDetailDialog
 from program.sub.mdlinfo.importPy.smfDetailWidget import SmfDetailDialog
-from program.sub.smf.importPy.decrypt import SmfDecrypt
+from program.sub.smf.dendDecrypt.decrypt import SmfDecrypt
 
 from PySide6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QFrame, QComboBox, QGroupBox,
