@@ -330,7 +330,7 @@ class MdlinfoWindow(QWidget):
             if not self.decryptFile.updateType(num, resultValue):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-                return False
+                return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I120"])
             self.selectId = num
             self.reloadFile()
@@ -358,7 +358,7 @@ class MdlinfoWindow(QWidget):
             if not self.decryptFile.updateBinFileOrFlag(num, binFileOrFlagEditDialog.resultValueList):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
-                return False
+                return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I36"])
             self.selectId = num
             self.reloadFile()
@@ -405,6 +405,7 @@ class MdlinfoWindow(QWidget):
             if not self.decryptFile.delete(num):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
+                return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I26"])
             self.selectId = num
             self.reloadFile()
