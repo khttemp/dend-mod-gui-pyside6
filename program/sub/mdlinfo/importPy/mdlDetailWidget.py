@@ -209,6 +209,7 @@ class MdlDetailDialog(QDialog):
         self.deleteElementButton.setEnabled(True)
 
     def reloadWidget(self):
+        self.dirtyFlag = True
         self.decryptFile = self.decryptFile.reload()
         self.detailMdlList = self.decryptFile.allInfoList[self.num]["detailMdlList"]
         self.clearTable()
