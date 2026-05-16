@@ -286,6 +286,8 @@ class MdlinfoWindow(QWidget):
         self.createMdlinfoTable()
         self.copyAnotherMdlinfoButton.setEnabled(True)
         self.addSmfModelButton.setEnabled(True)
+        self.copyInfoByteArr = None
+        self.mdlinfoPasteButton.setEnabled(False)
 
     def jumpToSelect(self):
         if self.selectId is not None:
