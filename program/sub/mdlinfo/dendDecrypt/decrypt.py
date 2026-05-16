@@ -190,7 +190,7 @@ class MdlDecrypt:
                 index = self.allInfoList[smfNum]["detailMdlList"][detailInfoNum]["detailMtrlIndex"]
                 newByteArr = self.byteArr[0:index]
             elif mode == "insert":
-                if detailInfoNum >= len(self.allInfoList[smfNum]["detailMdlList"]) - 1:
+                if detailInfoNum >= len(self.allInfoList[smfNum]["detailMdlList"]):
                     index = self.allInfoList[smfNum]["smfDetailListIndex"]
                 else:
                     index = self.allInfoList[smfNum]["detailMdlList"][detailInfoNum]["detailMtrlIndex"]
@@ -240,7 +240,7 @@ class MdlDecrypt:
                 if mode == "insert":
                     newByteArr.append(0)
             elif mode == "delete":
-                if detailInfoNum >= len(self.allInfoList[smfNum]["detailMdlList"]) - 1:
+                if detailInfoNum + 1 >= len(self.allInfoList[smfNum]["detailMdlList"]):
                     index = self.allInfoList[smfNum]["smfDetailListIndex"]
                 else:
                     index = self.allInfoList[smfNum]["detailMdlList"][detailInfoNum + 1]["detailMtrlIndex"]
