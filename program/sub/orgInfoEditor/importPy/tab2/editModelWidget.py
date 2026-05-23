@@ -14,10 +14,9 @@ mb = customMessageBoxWidget.CustomMessageBox()
 
 
 class SimpleListWidget(QWidget):
-    def __init__(self, groupBoxTitle, decryptFile, simpleList):
+    def __init__(self, groupBoxTitle, simpleList):
         super().__init__()
         self.groupBoxTitle = groupBoxTitle
-        self.decryptFile = decryptFile
         self.simpleList = copy.deepcopy(simpleList)
         self.dirtyFlag = False
 
@@ -84,7 +83,7 @@ class SimpleListWidget(QWidget):
 
     def modifyFunc(self):
         item = self.simpleList[self.selectIndex]
-        editSimpleListWidget = EditSimpleListWidget(self, self.groupBoxTitle + textSetting.textList["orgInfoEditor"]["commonModifyLabel"], self.decryptFile, "modify", item)
+        editSimpleListWidget = EditSimpleListWidget(self, self.groupBoxTitle + textSetting.textList["orgInfoEditor"]["commonModifyLabel"], "modify", item)
         if editSimpleListWidget.exec() == QDialog.Accepted:
             self.simpleList[self.selectIndex] = editSimpleListWidget.simpleInfoLineEdit.text()
             displaySimpleList = self.setListboxInfo(self.simpleList)
@@ -96,7 +95,7 @@ class SimpleListWidget(QWidget):
             self.deleteButton.setEnabled(False)
 
     def insertFunc(self):
-        editSimpleListWidget = EditSimpleListWidget(self, self.groupBoxTitle + textSetting.textList["orgInfoEditor"]["commonInsertLabel"], self.decryptFile, "insert")
+        editSimpleListWidget = EditSimpleListWidget(self, self.groupBoxTitle + textSetting.textList["orgInfoEditor"]["commonInsertLabel"], "insert")
         if editSimpleListWidget.exec() == QDialog.Accepted:
             self.simpleList.insert(self.selectIndex + editSimpleListWidget.insertPos, editSimpleListWidget.simpleInfoLineEdit.text())
             displaySimpleList = self.setListboxInfo(self.simpleList)
@@ -122,10 +121,9 @@ class SimpleListWidget(QWidget):
 
 
 class EditSimpleListWidget(QDialog):
-    def __init__(self, parent, title, decryptFile, mode, item=None):
+    def __init__(self, parent, title, mode, item=None):
         super().__init__(parent)
         self.setWindowTitle(title)
-        self.decryptFile = decryptFile
         self.mode = mode
         self.font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
         self.insertPos = None
@@ -227,7 +225,7 @@ class EditModelDialog(QDialog):
         layout.addLayout(listLayout)
         noText = textSetting.textList["orgInfoEditor"]["noList"]
         # listLayout - trackModelList
-        self.trackModelSimpleList = SimpleListWidget(textSetting.textList["orgInfoEditor"]["csvDaishaTitle"], decryptFile, modelInfo["trackNames"])
+        self.trackModelSimpleList = SimpleListWidget(textSetting.textList["orgInfoEditor"]["csvDaishaTitle"], modelInfo["trackNames"])
         listLayout.addWidget(self.trackModelSimpleList, 0, 0)
         # LS、BSの場合、台車の数は変更不可
         if self.decryptFile.game in ["LS", "BS"]:
@@ -238,7 +236,7 @@ class EditModelDialog(QDialog):
         if noText in trainModelList:
             noIndex = trainModelList.index(noText)
             trainModelList.pop(noIndex)
-        self.trainModelSimpleList = SimpleListWidget(textSetting.textList["orgInfoEditor"]["csvMdlTitle"], decryptFile, trainModelList)
+        self.trainModelSimpleList = SimpleListWidget(textSetting.textList["orgInfoEditor"]["csvMdlTitle"], trainModelList)
         listLayout.addWidget(self.trainModelSimpleList, 0, 1)
         # LSの場合、モデルの数は変更不可
         if self.decryptFile.game == "LS":
@@ -250,14 +248,14 @@ class EditModelDialog(QDialog):
         if noText in pantaModelList:
             noIndex = pantaModelList.index(noText)
             pantaModelList.pop(noIndex)
-        self.pantaModelSimpleList = SimpleListWidget(textSetting.textList["orgInfoEditor"]["csvPantaTitle"], decryptFile, pantaModelList)
+        self.pantaModelSimpleList = SimpleListWidget(textSetting.textList["orgInfoEditor"]["csvPantaTitle"], pantaModelList)
         listLayout.addWidget(self.pantaModelSimpleList, 1, 0)
         # listLayout - colModelList
         colModelList = copy.deepcopy(modelInfo["colNames"])
         if noText in colModelList:
             noIndex = colModelList.index(noText)
             colModelList.pop(noIndex)
-        self.colModelSimpleList = SimpleListWidget(textSetting.textList["orgInfoEditor"]["csvColTitle"], decryptFile, colModelList)
+        self.colModelSimpleList = SimpleListWidget(textSetting.textList["orgInfoEditor"]["csvColTitle"], colModelList)
         listLayout.addWidget(self.colModelSimpleList, 1, 1)
         # LSの場合、COLの数は変更不可
         if self.decryptFile.game == "LS":
@@ -279,7 +277,7 @@ class EditModelDialog(QDialog):
                 item = self.trackModelSimpleList.simpleListListWidget.item(i)
                 if item.text() == textSetting.textList["orgInfoEditor"]["noList"]:
                     continue
-            newTrackList.append(item.text())
+                newTrackList.append(item.text())
             trackModelCount = len(newTrackList)
 
             newTrainList = []
@@ -308,11 +306,11 @@ class EditModelDialog(QDialog):
 
             if self.trackModelSimpleList.dirtyFlag:
                 if self.decryptFile.game in ["LS", "BS"]:
-                    if trackModelCount <= 1:
+                    if trackModelCount < 1:
                         mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E67"].format(1))
                         return
                 elif self.decryptFile.game in ["CS", "RS"]:
-                    if trackModelCount <= 2:
+                    if trackModelCount < 2:
                         mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E67"].format(2))
                         return
 
