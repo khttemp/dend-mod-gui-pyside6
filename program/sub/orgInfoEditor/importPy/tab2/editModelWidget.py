@@ -27,7 +27,6 @@ class SimpleListWidget(QWidget):
         mainLayout = QVBoxLayout(self)
         # mainLayout - QGroupBox
         simpleGroupBox = QGroupBox(groupBoxTitle)
-        simpleGroupBox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         mainLayout.addWidget(simpleGroupBox)
         # mainLayout - QGroupBox - simpleListLayout
         simpleListLayout = QVBoxLayout()
