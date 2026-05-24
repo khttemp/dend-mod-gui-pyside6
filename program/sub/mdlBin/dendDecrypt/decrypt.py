@@ -409,9 +409,7 @@ class MdlBinDecrypt:
 
             index = self.allListIndex
             newByteArr.extend(self.byteArr[index:])
-
-            self.byteArr = newByteArr
-            self.save()
+            self.save(newByteArr)
             return True
         except Exception:
             self.error = traceback.format_exc()

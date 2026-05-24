@@ -8,6 +8,7 @@ import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from program.sub.cmdList import cmdList
 from program.sub.mdlBin.dendDecrypt.decrypt import MdlBinDecrypt
+from program.sub.mdlBin.importPy.headerDialogWidget import EditHeaderDialog
 
 from PySide6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QFrame, QComboBox, QGroupBox,
@@ -20,16 +21,6 @@ from PySide6.QtCore import Qt, QRegularExpression, QTimer
 
 mb = customMessageBoxWidget.CustomMessageBox()
 errObj = ErrorLogObj()
-
-
-def headerFileEdit():
-    global root
-    global rootFrameAppearance
-    global decryptFile
-    global frame
-    result = HeaderDialog(root, textSetting.textList["mdlBin"]["headerInfo"], decryptFile, rootFrameAppearance)
-    if result.reloadFlag:
-        reloadFile()
 
 
 def csvExtract():
@@ -567,7 +558,9 @@ class MdlBinWindow(QWidget):
             self.reloadFile()
 
     def headerEditFunc(self):
-        pass
+        editHeaderDialog = EditHeaderDialog(self, textSetting.textList["mdlBin"]["headerInfo"], self.decryptFile)
+        if editHeaderDialog.exec() == QDialog.Accepted:
+            self.reloadFile()
 
     def listHeaderModifyFunc(self):
         selectedItems = self.contentTable.selectedItems()
