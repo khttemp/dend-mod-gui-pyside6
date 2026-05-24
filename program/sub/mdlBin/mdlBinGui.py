@@ -272,8 +272,8 @@ class MdlBinWindow(QWidget):
             self.insertButton.setEnabled(False)
             self.deleteButton.setEnabled(False)
             self.copyButton.setEnabled(False)
-            self.listNumModifyButton.setEnabled(False)
             self.listHeaderModifyButton.setEnabled(False)
+            self.listNumModifyButton.setEnabled(False)
             self.numModifyButton.setEnabled(False)
             return
 
@@ -285,15 +285,15 @@ class MdlBinWindow(QWidget):
             self.modifyButton.setEnabled(False)
             self.deleteButton.setEnabled(False)
             self.copyButton.setEnabled(False)
-            self.listNumModifyButton.setEnabled(True)
             self.listHeaderModifyButton.setEnabled(True)
+            self.listNumModifyButton.setEnabled(True)
             self.numModifyButton.setEnabled(True)
         else:
             self.modifyButton.setEnabled(True)
             self.deleteButton.setEnabled(True)
             self.copyButton.setEnabled(True)
-            self.listNumModifyButton.setEnabled(False)
             self.listHeaderModifyButton.setEnabled(False)
+            self.listNumModifyButton.setEnabled(False)
             self.numModifyButton.setEnabled(False)
         self.insertButton.setEnabled(True)
 
