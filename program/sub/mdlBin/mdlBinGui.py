@@ -376,7 +376,7 @@ class MdlBinWindow(QWidget):
                 mb.showerror(title=textSetting.textList["saveError"], message=textSetting.textList["errorList"]["E4"])
                 return
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I3"])
-            self.selectId = num + editMdlBinDialog.insertPos
+            self.selectId = num
             self.reloadFile()
 
     def insertFunc(self):
