@@ -484,8 +484,7 @@ class MdlBinDecrypt:
 
                         for paramByte in paramByteList:
                             newByteArr.extend(paramByte)
-            self.byteArr = newByteArr
-            self.save()
+            self.save(newByteArr)
             return True
         except Exception:
             self.error = traceback.format_exc()

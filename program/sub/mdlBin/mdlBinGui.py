@@ -9,6 +9,7 @@ import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 from program.sub.cmdList import cmdList
 from program.sub.mdlBin.dendDecrypt.decrypt import MdlBinDecrypt
 from program.sub.mdlBin.importPy.headerDialogWidget import EditHeaderDialog
+import program.sub.mdlBin.mdlBinProcess as mdlBinProcess
 
 from PySide6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QFrame, QComboBox, QGroupBox,
@@ -21,107 +22,6 @@ from PySide6.QtCore import Qt, QRegularExpression, QTimer
 
 mb = customMessageBoxWidget.CustomMessageBox()
 errObj = ErrorLogObj()
-
-
-def csvExtract():
-    global v_fileName
-    global decryptFile
-
-    file = v_fileName.get()
-    filename = os.path.splitext(os.path.basename(file))[0]
-    file_path = fd.asksaveasfilename(initialfile=filename, defaultextension="csv", filetypes=[("mdlbin_csv", "*.csv")])
-    errorMsg = textSetting.textList["errorList"]["E7"]
-    if file_path:
-        try:
-            w = open(file_path, "w")
-            num = 0
-            for scriptDataInfoList in decryptFile.scriptDataAllInfoList:
-                listNum = 0
-                for scriptDataInfo in scriptDataInfoList:
-                    headerInfo = "#{0}-{1},".format(num, listNum)
-                    headerInfo += ",".join(str(n) for n in scriptDataInfo[0])
-                    headerInfo += "\n"
-                    w.write(headerInfo)
-                    for scriptData in scriptDataInfo[1:]:
-                        data = "{0},{1},".format(scriptData[0], cmdList[scriptData[1]])
-                        paramCnt = scriptData[2]
-                        paramList = []
-                        for i in range(paramCnt):
-                            paramList.append(scriptData[4 + i])
-                        data += ",".join(str(p) for p in paramList)
-                        data += "\n"
-                        w.write(data)
-                    listNum += 1
-                num += 1
-            w.close()
-            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
-        except Exception:
-            errObj.write(traceback.format_exc())
-            mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-
-
-def csvLoadAndSave():
-    global decryptFile
-    file_path = fd.askopenfilename(defaultextension="csv", filetypes=[("mdlbin_csv", "*.csv")])
-    if not file_path:
-        return
-    f = open(file_path)
-    csvLines = f.readlines()
-    f.close()
-
-    csvScriptDataAllInfoList = []
-    csvScriptDataInfoList = []
-    csvScriptDataInfo = []
-    csvScriptData = []
-    curNum = -1
-    curListNum = -1
-    for i in range(len(csvLines)):
-        try:
-            csvLine = csvLines[i].strip()
-            arr = csvLine.split(",")
-
-            if "#" in arr[0]:
-                section = arr[0].strip("#").split("-")
-                num = int(section[0])
-                listNum = int(section[1])
-
-                if curNum != num:
-                    curNum = num
-                    curListNum = listNum
-                    csvScriptDataInfoList = []
-                    csvScriptDataAllInfoList.append(csvScriptDataInfoList)
-                    csvScriptDataInfo = []
-                    csvScriptDataInfoList.append(csvScriptDataInfo)
-                elif curListNum != listNum:
-                    curListNum = listNum
-                    csvScriptDataInfo = []
-                    csvScriptDataInfoList.append(csvScriptDataInfo)
-                csvScriptDataInfo.append(arr[1:])
-                csvScriptData = []
-                csvScriptDataInfo.append(csvScriptData)
-            else:
-                cmdName = arr[1]
-                if cmdName not in cmdList:
-                    errorMsg = textSetting.textList["errorList"]["E8"].format(i + 1, cmdName)
-                    mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                    return
-                csvScriptData.append(arr)
-        except Exception:
-            errorMsg = textSetting.textList["errorList"]["E15"].format(i + 1)
-            mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-            return
-
-    msg = textSetting.textList["infoList"]["I15"].format(i + 1)
-    result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
-
-    if result:
-        if not decryptFile.saveCsv(csvScriptDataAllInfoList):
-            decryptFile.printError()
-            errorMsg = textSetting.textList["errorList"]["E4"]
-            mb.showerror(title=textSetting.textList["saveError"], message=errorMsg)
-            return
-        mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I16"])
-        reloadFile()
 
 
 class MdlBinWindow(QWidget):
@@ -492,7 +392,7 @@ class MdlBinWindow(QWidget):
             scriptDataInfoList = self.decryptFile.scriptDataAllInfoList[itemIdArr[0]]
             scriptDataInfo = scriptDataInfoList[itemIdArr[1]]
             if len(scriptDataInfo[1:]) >= 255:
-                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E142"])
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E142"].format(itemIdArr[0], itemIdArr[1]))
                 return
 
             itemIdArr[2] += editMdlBinDialog.insertPos
@@ -545,7 +445,7 @@ class MdlBinWindow(QWidget):
             scriptDataInfoList = self.decryptFile.scriptDataAllInfoList[itemIdArr[0]]
             scriptDataInfo = scriptDataInfoList[itemIdArr[1]]
             if len(scriptDataInfo[1:]) >= 255:
-                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E142"])
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E142"].format(itemIdArr[0], itemIdArr[1]))
                 return
 
             itemIdArr[2] += pasteMdlBinDialog.insertPos
@@ -566,7 +466,7 @@ class MdlBinWindow(QWidget):
         selectedItems = self.contentTable.selectedItems()
         if not selectedItems:
             return
-        
+
         num = selectedItems[0].row()
         itemId = selectedItems[0].data(Qt.UserRole)
         itemIdArr = [int(x) for x in itemId.split(",")]
@@ -585,7 +485,7 @@ class MdlBinWindow(QWidget):
         selectedItems = self.contentTable.selectedItems()
         if not selectedItems:
             return
-        
+
         num = selectedItems[0].row()
         itemId = selectedItems[0].data(Qt.UserRole)
         itemIdArr = [int(x) for x in itemId.split(",")]
@@ -604,7 +504,7 @@ class MdlBinWindow(QWidget):
         selectedItems = self.contentTable.selectedItems()
         if not selectedItems:
             return
-        
+
         num = selectedItems[0].row()
         numCount = len(self.decryptFile.scriptDataAllInfoList)
         editNumDialog = EditNumDialog(self, textSetting.textList["mdlBin"]["numModifyLabel"], numCount)
@@ -618,10 +518,48 @@ class MdlBinWindow(QWidget):
             self.reloadFile()
 
     def csvExtractFunc(self):
-        pass
+        filename = os.path.splitext(os.path.basename(self.decryptFile.filePath))[0] + ".csv"
+        fileTypes = "{0} ({1})".format("mdlbin_csv", "*.csv")
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "",
+            filename,
+            fileTypes
+        )
+        if not file_path:
+            return
+
+        try:
+            mdlBinProcess.writeCsv(file_path, self.decryptFile.scriptDataAllInfoList, cmdList)
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
+        except Exception:
+            errObj.write(traceback.format_exc())
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E7"])
 
     def csvLoadAndSaveFunc(self):
-        pass
+        fileTypes = "{0} ({1})".format("mdlbin_csv", "*.csv")
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "",
+            "",
+            fileTypes
+        )
+        if not file_path:
+            return
+
+        processResult, obj = mdlBinProcess.loadCsvData(file_path, cmdList)
+        if not processResult:
+            mb.showerror(title=textSetting.textList["error"], message=obj["message"])
+            return
+        msg = textSetting.textList["infoList"]["I15"].format(obj["csvLines"])
+        result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
+        if result == mb.OK:
+            if not self.decryptFile.saveCsv(obj["data"]):
+                self.decryptFile.printError()
+                mb.showerror(title=textSetting.textList["saveError"], message=textSetting.textList["errorList"]["E4"])
+                return
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I16"])
+            self.reloadFile()
 
 
 class EditMdlBinDialog(QDialog):
