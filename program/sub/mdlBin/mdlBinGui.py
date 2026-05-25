@@ -732,8 +732,9 @@ class EditMdlBinDialog(QDialog):
 
         if self.ver == 2:
             if self.cmdCombo.currentText() not in ["MDL_GETINDEX", "SET_LENSFLEAR_MT"]:
-                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E140"])
-                return
+                if strCount > 0:
+                    mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E140"])
+                    return
             else:
                 errorMsg = textSetting.textList["errorList"]["E141"].format(self.cmdCombo.currentText())
                 if strCount != 1:
