@@ -386,7 +386,7 @@ class MdlBinWindow(QWidget):
 
         num = selectedItems[0].row()
         itemId = selectedItems[0].data(Qt.UserRole)
-        editMdlBinDialog = EditMdlBinDialog(self, textSetting.textList["mdlBin"]["cmdModify"], self.decryptFile.ver, itemId, None, cmdList)
+        editMdlBinDialog = EditMdlBinDialog(self, textSetting.textList["mdlBin"]["cmdInsert"], self.decryptFile.ver, itemId, None, cmdList)
         if editMdlBinDialog.exec() == QDialog.Accepted:
             itemIdArr = [int(x) for x in itemId.split(",")]
             scriptDataInfoList = self.decryptFile.scriptDataAllInfoList[itemIdArr[0]]
