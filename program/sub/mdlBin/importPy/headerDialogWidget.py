@@ -1138,7 +1138,6 @@ class EditHeaderDialog(QDialog):
         listLayout = QGridLayout()
         listLayout.setContentsMargins(0, 0, 0, 0)
         layout.addLayout(listLayout)
-        noText = textSetting.textList["mdlBin"]["noList"]
         # listLayout - imageList
         self.imageSimpleList = ImageListWidget(textSetting.textList["mdlBin"]["imgInfo"], self.imgList, decryptFile.ver)
         listLayout.addWidget(self.imageSimpleList, 0, 0)

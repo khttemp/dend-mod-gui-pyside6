@@ -782,15 +782,15 @@ class PasteMdlBinDialog(QDialog):
         buttonLayout = QHBoxLayout()
         layout.addLayout(buttonLayout)
         # layout - buttonLayout - frontButton
-        frontButton = QPushButton(textSetting.textList["mdlinfo"]["pasteFront"], font=font2)
+        frontButton = QPushButton(textSetting.textList["mdlBin"]["pasteFront"], font=font2)
         frontButton.clicked.connect(self.frontInsert)
         buttonLayout.addWidget(frontButton)
         # layout - buttonLayout - backButton
-        backButton = QPushButton(textSetting.textList["mdlinfo"]["pasteBack"], font=font2)
+        backButton = QPushButton(textSetting.textList["mdlBin"]["pasteBack"], font=font2)
         backButton.clicked.connect(self.backInsert)
         buttonLayout.addWidget(backButton)
         # layout - buttonLayout - cancelButton
-        cancelButton = QPushButton(textSetting.textList["mdlinfo"]["pasteCancel"], font=font2)
+        cancelButton = QPushButton(textSetting.textList["mdlBin"]["pasteCancel"], font=font2)
         cancelButton.clicked.connect(self.reject)
         buttonLayout.addWidget(cancelButton)
 
