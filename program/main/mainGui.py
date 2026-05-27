@@ -10,6 +10,7 @@ import program.sub.ssUnity.ssUnityGui as ssUnityGui
 import program.sub.orgInfoEditor.orgInfoEditorGui as orgInfoEditorGui
 import program.sub.mdlBin.mdlBinGui as mdlBinGui
 import program.sub.mdlinfo.mdlinfoGui as mdlinfoGui
+import program.sub.comicscript.comicscriptGui as comicscriptGui
 import program.sub.railEditor.railEditorGui as railEditorGui
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMenu
@@ -27,6 +28,8 @@ class MainWindow(QMainWindow):
         self.selectedProgram = None
         self.version = mainProcess.getUpdateVer(self.importDict["rootPath"])
         self.onlineVersion = mainProcess.getOnlineUpdateVer(self.importDict["configPath"])
+        cmdJsonInfo = mainProcess.readCmdJsonInfo(self.importDict["rootPath"])
+        self.importDict["cmdJsonInfo"] = cmdJsonInfo
         self.checkConfig()
         self.drawMenu()
 
@@ -117,6 +120,8 @@ class MainWindow(QMainWindow):
             newWidget = mdlBinGui.MdlBinWindow(self.importDict)
         elif self.selectedProgram == "mdlinfo":
             newWidget = mdlinfoGui.MdlinfoWindow(self.importDict)
+        elif self.selectedProgram == "comicscript":
+            newWidget = comicscriptGui.ComicscriptWindow(self.importDict)
         elif self.selectedProgram == "railEditor":
             newWidget = railEditorGui.RailEditorWindow(self.importDict)
 
@@ -134,6 +139,9 @@ class MainWindow(QMainWindow):
 
         if selectedProgram in ["SSUnity", "railEditor"]:
             self.configMenu = self.addXlsxWriteOptionMenu()
+            self.menuBar().addMenu(self.configMenu)
+        elif selectedProgram in ["comicscript"]:
+            self.configMenu = self.addComicscriptOptionMenu()
             self.menuBar().addMenu(self.configMenu)
 
     def addXlsxWriteOptionMenu(self):
@@ -170,6 +178,22 @@ class MainWindow(QMainWindow):
         self.configActionDict["model"][model].setChecked(True)
         self.configActionDict["flag"][flag].setChecked(True)
         self.configActionDict["amb"][amb].setChecked(True)
+
+        return configMenu
+
+    def addComicscriptOptionMenu(self):
+        configPath = self.importDict["configPath"]
+
+        configMenu = QMenu(textSetting.textList["menu"]["comicscript"]["name"], self)
+        modelRadioGroup = QActionGroup(self)
+        modelRadioGroup.setExclusive(True)
+        self.configActionDict["comicscript"] = []
+        for i in range(5):
+            modelAction = self.createRadioAction(configMenu, textSetting.textList["menu"]["comicscript"]["gameList"][i], modelRadioGroup, partial(mainProcess.writeComicscriptConfig, configPath, i))
+            self.configActionDict["comicscript"].append(modelAction)
+
+        game = mainProcess.readComicscriptConfig(configPath)
+        self.configActionDict["comicscript"][game].setChecked(True)
 
         return configMenu
 
