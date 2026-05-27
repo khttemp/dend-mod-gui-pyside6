@@ -1,5 +1,4 @@
 import os
-import copy
 import traceback
 
 import program.sub.textSetting as textSetting
@@ -10,7 +9,6 @@ from program.sub.cmdList import cmdList
 from program.sub.comicscript.dendDecrypt.decrypt import ComicDecrypt
 import program.sub.comicscript.comicscriptProcess as comicscriptProcess
 from program.sub.comicscript.importPy.headerDialogWidget import EditHeaderDialog
-
 
 from PySide6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QFrame, QComboBox, QGroupBox,
