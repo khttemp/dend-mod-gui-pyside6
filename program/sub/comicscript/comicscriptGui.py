@@ -10,7 +10,6 @@ from program.sub.cmdList import cmdList
 from program.sub.comicscript.dendDecrypt.decrypt import ComicDecrypt
 import program.sub.comicscript.comicscriptProcess as comicscriptProcess
 from program.sub.comicscript.importPy.headerDialogWidget import EditHeaderDialog
-# from program.comicscript.importPy.tkinterEditClass import InputDialog, PasteDialog, HeaderFileInfo
 
 
 from PySide6.QtWidgets import (
@@ -24,92 +23,6 @@ from PySide6.QtCore import Qt, QRegularExpression, QTimer
 
 mb = customMessageBoxWidget.CustomMessageBox()
 errObj = ErrorLogObj()
-
-
-def csvExtract():
-    global v_fileName
-    global decryptFile
-    file = v_fileName.get()
-    filename = os.path.splitext(os.path.basename(file))[0]
-    file_path = fd.asksaveasfilename(initialfile=filename, defaultextension="csv", filetypes=[("comicscript_csv", "*.csv")])
-    errorMsg = textSetting.textList["errorList"]["E7"]
-    if file_path:
-        try:
-            w = open(file_path, "w")
-            for comicData in decryptFile.comicDataList:
-                w.write("{0},".format(comicData[0]))
-                cmdParaCnt = comicData[1]
-                for i in range(cmdParaCnt):
-                    w.write("{0}".format(comicData[2 + i]))
-                    if i < cmdParaCnt-1:
-                        w.write(",")
-                w.write("\n")
-            w.close()
-            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
-        except Exception:
-            errObj.write(traceback.format_exc())
-            mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-
-
-def csvLoadAndSave():
-    global decryptFile
-    file_path = fd.askopenfilename(defaultextension="csv", filetypes=[("comicscript_csv", "*.csv")])
-    if not file_path:
-        return
-    f = open(file_path)
-    csvLines = f.readlines()
-    f.close()
-
-    csvComicDataList = []
-    for i in range(len(csvLines)):
-        csvComicData = []
-        csvLine = csvLines[i].strip()
-        arr = csvLine.split(",")
-        cmdName = arr[0]
-        if cmdName not in cmdList:
-            errorMsg = textSetting.textList["errorList"]["E8"].format(i+1, cmdName)
-            mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-            return
-
-        comicDataParaList = []
-        for j in range(1, len(arr)):
-            if arr[j] == "":
-                break
-            try:
-                comicDataParaList.append(float(arr[j]))
-            except Exception:
-                errObj.write(traceback.format_exc())
-                errorMsg = textSetting.textList["errorList"]["E9"].format(i+1, arr[j])
-                mb.showerror(title=textSetting.textList["error"], message=errorMsg)
-                return
-
-        csvComicData.append(cmdName)
-        cmdParaCnt = len(comicDataParaList)
-        csvComicData.append(cmdParaCnt)
-        for j in range(len(comicDataParaList)):
-            csvComicData.append(comicDataParaList[j])
-
-        csvComicDataList.append(csvComicData)
-    warnMsg = textSetting.textList["infoList"]["I11"]
-    result = mb.askokcancel(title=textSetting.textList["warning"], message=warnMsg, icon="warning")
-
-    if result:
-        if not decryptFile.saveComicList(csvComicDataList):
-            decryptFile.printError()
-            errorMsg = textSetting.textList["errorList"]["E4"]
-            mb.showerror(title=textSetting.textList["saveError"], message=errorMsg)
-            return
-        mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I3"])
-        reloadFile()
-
-
-def headerFileEdit():
-    global root
-    global rootFrameAppearance
-    global decryptFile
-    result = HeaderFileInfo(root, textSetting.textList["comicscript"]["headerInfo"], decryptFile, rootFrameAppearance)
-    if result.reloadFlag:
-        reloadFile()
 
 
 class ComicscriptWindow(QWidget):
@@ -451,10 +364,48 @@ class ComicscriptWindow(QWidget):
             self.reloadFile()
 
     def csvExtractFunc(self):
-        pass
+        filename = os.path.splitext(os.path.basename(self.decryptFile.filePath))[0] + ".csv"
+        fileTypes = "{0} ({1})".format("comicscript_csv", "*.csv")
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "",
+            filename,
+            fileTypes
+        )
+        if not file_path:
+            return
+
+        try:
+            comicscriptProcess.writeCsv(file_path, self.decryptFile.comicDataList)
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I10"])
+        except Exception:
+            errObj.write(traceback.format_exc())
+            mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E7"])
 
     def csvLoadAndSaveFunc(self):
-        pass
+        fileTypes = "{0} ({1})".format("comicscript_csv", "*.csv")
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "",
+            "",
+            fileTypes
+        )
+        if not file_path:
+            return
+
+        processResult, obj = comicscriptProcess.loadCsvData(file_path, cmdList)
+        if not processResult:
+            mb.showerror(title=textSetting.textList["error"], message=obj["message"])
+            return
+        msg = textSetting.textList["infoList"]["I15"].format(obj["csvLines"])
+        result = mb.askokcancel(title=textSetting.textList["warning"], message=msg, icon="warning")
+        if result == mb.OK:
+            if not self.decryptFile.saveComicList(obj["data"]):
+                self.decryptFile.printError()
+                mb.showerror(title=textSetting.textList["saveError"], message=textSetting.textList["errorList"]["E4"])
+                return
+            mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I16"])
+            self.reloadFile()
 
     def headerEditFunc(self):
         editHeaderDialog = EditHeaderDialog(self, textSetting.textList["comicscript"]["headerInfo"], self.decryptFile)
