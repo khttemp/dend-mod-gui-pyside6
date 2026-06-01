@@ -302,7 +302,8 @@ class SmfWindow(QWidget):
         self.treeWidget.setHeaderLabels(["{0}".format(self.decryptFile.filename)])
 
         itemDict = {}
-        for frameNo, frameObj in enumerate(self.decryptFile.frameList):
+        for frameObj in self.decryptFile.frameList:
+            frameIdx = frameObj["frameNo"]
             fName = frameObj["name"]
             meshNo = frameObj["meshNo"]
             name = fName
@@ -311,11 +312,12 @@ class SmfWindow(QWidget):
             item = QTreeWidgetItem()
             item.setData(0, Qt.UserRole, frameObj)
             item.setText(0, name)
-            itemDict[frameNo] = item
+            itemDict[frameIdx] = item
 
-        for frameNo, frameObj in enumerate(self.decryptFile.frameList):
+        for frameObj in self.decryptFile.frameList:
+            frameIdx = frameObj["frameNo"]
             parentFrameNo = frameObj["parentFrameNo"]
-            item = itemDict[frameNo]
+            item = itemDict[frameIdx]
             if parentFrameNo == -1:
                 self.treeWidget.addTopLevelItem(item)
             else:
