@@ -12,6 +12,7 @@ import program.sub.mdlBin.mdlBinGui as mdlBinGui
 import program.sub.mdlinfo.mdlinfoGui as mdlinfoGui
 import program.sub.comicscript.comicscriptGui as comicscriptGui
 import program.sub.railEditor.railEditorGui as railEditorGui
+import program.sub.smf.smfGui as smfGui
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMenu
 from PySide6.QtGui import QAction, QActionGroup
@@ -85,6 +86,14 @@ class MainWindow(QMainWindow):
         radioGroup.addAction(action)
         return action
 
+    def createCheckAction(self, menu, text, callback, *args):
+        action = QAction(text, self)
+        action.setCheckable(True)
+        action.setChecked(False)
+        action.triggered.connect(lambda checked: callback(checked, *args))
+        menu.addAction(action)
+        return action
+
     def createDefaultAction(self, menu, text, callback):
         action = QAction(text, self)
         action.triggered.connect(callback)
@@ -124,6 +133,8 @@ class MainWindow(QMainWindow):
             newWidget = comicscriptGui.ComicscriptWindow(self.importDict)
         elif self.selectedProgram == "railEditor":
             newWidget = railEditorGui.RailEditorWindow(self.importDict)
+        elif self.selectedProgram == "smf":
+            newWidget = smfGui.SmfWindow(self.importDict)
 
         self.setConfigMenu(self.selectedProgram)
 
@@ -142,6 +153,9 @@ class MainWindow(QMainWindow):
             self.menuBar().addMenu(self.configMenu)
         elif selectedProgram in ["comicscript"]:
             self.configMenu = self.addComicscriptOptionMenu()
+            self.menuBar().addMenu(self.configMenu)
+        elif selectedProgram in ["smf"]:
+            self.configMenu = self.addSmfWriteOptionMenu()
             self.menuBar().addMenu(self.configMenu)
 
     def addXlsxWriteOptionMenu(self):
@@ -194,6 +208,39 @@ class MainWindow(QMainWindow):
 
         game = mainProcess.readComicscriptConfig(configPath)
         self.configActionDict["comicscript"][game].setChecked(True)
+
+        return configMenu
+
+    def addSmfWriteOptionMenu(self):
+        configPath = self.importDict["configPath"]
+
+        configMenu = QMenu(textSetting.textList["menu"]["smf"]["name"], self)
+        frameAction = self.createCheckAction(configMenu, textSetting.textList["menu"]["smf"]["write"]["opt1"], mainProcess.writeSmfFlagConfig, configPath, "frame")
+        meshAction = self.createCheckAction(configMenu, textSetting.textList["menu"]["smf"]["write"]["opt2"], mainProcess.writeSmfFlagConfig, configPath, "mesh")
+        xyzAction = self.createCheckAction(configMenu, textSetting.textList["menu"]["smf"]["write"]["opt3"], mainProcess.writeSmfFlagConfig, configPath, "xyz")
+        mtrlAction = self.createCheckAction(configMenu, textSetting.textList["menu"]["smf"]["write"]["opt4"], mainProcess.writeSmfFlagConfig, configPath, "mtrl")
+        checkActionList = [
+            frameAction,
+            meshAction,
+            xyzAction,
+            mtrlAction
+        ]
+
+        glbWriteGroup = QActionGroup(self)
+        glbWriteGroup.setExclusive(True)
+        self.configActionDict["glbWrite"] = []
+        glbLabelList = [
+            textSetting.textList["menu"]["smf"]["glb"]["opt1"],
+            textSetting.textList["menu"]["smf"]["glb"]["opt2"]
+        ]
+        for i in range(2):
+            modelAction = self.createRadioAction(configMenu, glbLabelList[i], glbWriteGroup, partial(mainProcess.writeGlbConfig, configPath, i))
+            self.configActionDict["glbWrite"].append(modelAction)
+
+        flagList, glb = mainProcess.readSmfWriteConfig(configPath)
+        for idx, flag in enumerate(flagList):
+            checkActionList[idx].setChecked(flag)
+        self.configActionDict["glbWrite"][glb].setChecked(True)
 
         return configMenu
 
