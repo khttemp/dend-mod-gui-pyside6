@@ -388,10 +388,6 @@ class SmfWindow(QWidget):
     def reloadWidget(self):
         try:
             self.decryptFile = self.decryptFile.reload()
-            if not self.decryptFile.open():
-                self.decryptFile.printError()
-                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E19"])
-                return
             self.deleteWidget()
             self.createWidget()
         except Exception:
