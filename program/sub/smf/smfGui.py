@@ -43,6 +43,7 @@ class SmfWindow(QWidget):
         leftLayout = QVBoxLayout()
         mainLayout.addLayout(leftLayout, 1)
         # leftLayout - progressBar
+        self.processDouble = 0.0
         self.progressBar = QProgressBar()
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(100)
@@ -268,8 +269,10 @@ class SmfWindow(QWidget):
 
     def progressBarUpdate(self, value, flag=False):
         if flag:
-            self.progressBar.setValue(round(self.progressBar.value() + value))
+            self.processDouble += value
+            self.progressBar.setValue(round(self.processDouble))
         else:
+            self.processDouble = value
             self.progressBar.setValue(int(value))
 
     def deleteWidget(self):
