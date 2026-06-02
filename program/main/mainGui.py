@@ -11,6 +11,7 @@ import program.sub.orgInfoEditor.orgInfoEditorGui as orgInfoEditorGui
 import program.sub.mdlBin.mdlBinGui as mdlBinGui
 import program.sub.mdlinfo.mdlinfoGui as mdlinfoGui
 import program.sub.comicscript.comicscriptGui as comicscriptGui
+import program.sub.musicEditor.musicEditorGui as musicEditorGui
 import program.sub.railEditor.railEditorGui as railEditorGui
 import program.sub.smf.smfGui as smfGui
 
@@ -131,6 +132,8 @@ class MainWindow(QMainWindow):
             newWidget = mdlinfoGui.MdlinfoWindow(self.importDict)
         elif self.selectedProgram == "comicscript":
             newWidget = comicscriptGui.ComicscriptWindow(self.importDict)
+        elif self.selectedProgram == "musicEditor":
+            newWidget = musicEditorGui.MusicEditorWindow(self.importDict)
         elif self.selectedProgram == "railEditor":
             newWidget = railEditorGui.RailEditorWindow(self.importDict)
         elif self.selectedProgram == "smf":
