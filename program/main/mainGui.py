@@ -12,6 +12,7 @@ import program.sub.mdlBin.mdlBinGui as mdlBinGui
 import program.sub.mdlinfo.mdlinfoGui as mdlinfoGui
 import program.sub.comicscript.comicscriptGui as comicscriptGui
 import program.sub.musicEditor.musicEditorGui as musicEditorGui
+import program.sub.fvtMaker.fvtMakerGui as fvtMakerGui
 import program.sub.railEditor.railEditorGui as railEditorGui
 import program.sub.smf.smfGui as smfGui
 
@@ -32,6 +33,10 @@ class MainWindow(QMainWindow):
         self.onlineVersion = mainProcess.getOnlineUpdateVer(self.importDict["configPath"])
         cmdJsonInfo = mainProcess.readCmdJsonInfo(self.importDict["rootPath"])
         self.importDict["cmdJsonInfo"] = cmdJsonInfo
+        fvtInfo = mainProcess.readFvtInfo(self.importDict["rootPath"])
+        self.importDict["fvtInfo"] = fvtInfo
+        fvtImageInfo = mainProcess.readFvtImagePath(self.importDict["rootPath"])
+        self.importDict["fvtImageInfo"] = fvtImageInfo
         self.checkConfig()
         self.drawMenu()
 
@@ -134,6 +139,8 @@ class MainWindow(QMainWindow):
             newWidget = comicscriptGui.ComicscriptWindow(self.importDict)
         elif self.selectedProgram == "musicEditor":
             newWidget = musicEditorGui.MusicEditorWindow(self.importDict)
+        elif self.selectedProgram == "fvtMaker":
+            newWidget = fvtMakerGui.FvtMakerWindow(self.importDict)
         elif self.selectedProgram == "railEditor":
             newWidget = railEditorGui.RailEditorWindow(self.importDict)
         elif self.selectedProgram == "smf":
