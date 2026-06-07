@@ -326,7 +326,7 @@ class MdlinfoWindow(QWidget):
             return
 
         num = selectedItems[0].row()
-        smfTypeDialog = SmfTypeDialog(self, textSetting.textList["mdlinfo"]["binFileOrFlagLabel"], num, self.decryptFile)
+        smfTypeDialog = SmfTypeDialog(self, textSetting.textList["mdlinfo"]["detailModelTypeInfo"], num, self.decryptFile)
         if smfTypeDialog.exec() == QDialog.Accepted:
             resultValue = int(smfTypeDialog.smfTypeLineEdit.text())
             if not self.decryptFile.updateType(num, resultValue):
