@@ -329,7 +329,7 @@ class OrgInfoEditorWindow(QWidget):
             mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E4"])
             return
 
-        result, obj = orgInfoEditorProcess.readDefaultData(self.decryptFile.game)
+        result, obj = orgInfoEditorProcess.readDefaultData(self.importDict["rootPath"], self.decryptFile.game)
         if not result:
             mb.showerror(title=textSetting.textList["error"], message=obj["message"])
             return

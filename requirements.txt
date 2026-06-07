@@ -3,5 +3,5 @@ etcpak==0.9.8
 UnityPy==1.8.20
 openpyxl
 pymem
-pyinstaller==6.5.0
+pyinstaller
 pyside6

@@ -1,5 +1,4 @@
 import os
-import sys
 import configparser
 import datetime
 import traceback
@@ -8,7 +7,6 @@ import requests
 import json
 import csv
 
-import program.sub.textSetting as textSetting
 import program.sub.errorLogClass as errorLogClass
 import program.sub.encodingClass as encodingClass
 
@@ -16,14 +14,9 @@ errObj = errorLogClass.ErrorLogObj()
 encObj = encodingClass.SJISEncodingObject()
 
 
-def resource_path(localDir, relative_path):
-    bundle_dir = getattr(sys, "_MEIPASS", localDir)
-    return os.path.join(bundle_dir, relative_path)
-
-
 def getUpdateVer(rootPath):
     try:
-        path = resource_path(rootPath, "ver.txt")
+        path = os.path.join(rootPath, "ver.txt")
         f = open(path, "r", encoding="utf-8")
         line = f.read()
         f.close()
@@ -223,7 +216,7 @@ def readCmdJsonInfo(rootPath):
             cmdJsonInfo = json.loads(response.text)
         else:
             filePath = os.path.join(rootPath, "program", "sub", "comicscript", "importPy")
-            path = resource_path(filePath, jsonName)
+            path = os.path.join(filePath, jsonName)
             f = open(path, "r", encoding="utf-8")
             cmdJsonInfo = json.load(f)
             f.close()
@@ -314,7 +307,7 @@ def readFvtInfo(rootPath):
         for key in fvtInfo.keys():
             filename = "{0}.csv".format(key)
             filePath = os.path.join(rootPath, "program", "sub", "fvtMaker", "importPy", "resource")
-            path = resource_path(filePath, filename)
+            path = os.path.join(filePath, filename)
             with open(path, mode='r', encoding=encObj.enc, newline='') as f:
                 reader = csv.reader(f)
                 fvtInfo[key] = list(reader)
@@ -335,7 +328,7 @@ def readFvtImagePath(rootPath):
         for key in fvtImageInfo.keys():
             filename = "{0}.png".format(key)
             filePath = os.path.join(rootPath, "program", "sub", "fvtMaker", "importPy", "resource")
-            path = resource_path(filePath, filename)
+            path = os.path.join(filePath, filename)
             fvtImageInfo[key] = path
     except Exception:
         pass

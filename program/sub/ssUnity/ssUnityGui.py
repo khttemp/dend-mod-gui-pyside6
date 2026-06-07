@@ -430,8 +430,9 @@ class SSUnityWindow(QWidget):
             try:
                 data = self.decryptFile.allList[row][-1]
                 if excelFlag and os.path.splitext(file_path)[1].lower() == ".xlsx":
+                    rootPath = self.importDict["rootPath"]
                     configPath = self.importDict["configPath"]
-                    result, message = ssUnityProcess.extractDenFileByExcel(file_path, data, configPath)
+                    result, message = ssUnityProcess.extractDenFileByExcel(file_path, data, rootPath, configPath)
                     if not result:
                         mb.showerror(title=textSetting.textList["error"], message=message)
                         return
@@ -483,8 +484,9 @@ class SSUnityWindow(QWidget):
                 if os.path.splitext(file_path)[1].lower() != ".xlsx":
                     script = ssUnityProcess.getScriptData(file_path)
                 else:
+                    rootPath = self.importDict["rootPath"]
                     configPath = self.importDict["configPath"]
-                    result, obj = ssUnityProcess.loadExcelData(file_path, data, configPath)
+                    result, obj = ssUnityProcess.loadExcelData(file_path, data, rootPath, configPath)
                     if not result:
                         mb.showerror(title=textSetting.textList["error"], message=obj["message"])
                         return
