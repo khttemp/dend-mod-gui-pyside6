@@ -14,6 +14,7 @@ import program.sub.comicscript.comicscriptGui as comicscriptGui
 import program.sub.musicEditor.musicEditorGui as musicEditorGui
 import program.sub.fvtMaker.fvtMakerGui as fvtMakerGui
 import program.sub.railEditor.railEditorGui as railEditorGui
+import program.sub.rsRail.rsRailGui as rsRailGui
 import program.sub.smf.smfGui as smfGui
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMenu
@@ -143,6 +144,8 @@ class MainWindow(QMainWindow):
             newWidget = fvtMakerGui.FvtMakerWindow(self.importDict)
         elif self.selectedProgram == "railEditor":
             newWidget = railEditorGui.RailEditorWindow(self.importDict)
+        elif self.selectedProgram == "rsRail":
+            newWidget = rsRailGui.RsRailWindow(self.importDict)
         elif self.selectedProgram == "smf":
             newWidget = smfGui.SmfWindow(self.importDict)
 
