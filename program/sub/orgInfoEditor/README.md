@@ -29,7 +29,9 @@
 
 ## ステージ情報変更方法
 
-※Burning Stage、Climax Stage、Rising Stageのみできる。
+※Lightning Stage、Burning Stage、Climax Stage、Rising Stageのみできる。
+
+※Lightning Stageは、実行ファイルexeを読み込ませること
 
 ![stage](image/stage.png)
 

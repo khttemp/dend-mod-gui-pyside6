@@ -16,6 +16,7 @@ from program.sub.orgInfoEditor.dendDecrypt import RSdecrypt as dendRs
 from program.sub.orgInfoEditor.dendDecrypt import SSdecrypt as dendSs
 
 from program.sub.orgInfoEditor.importPy.editStageTrainWidget import EditStageTrainDialog
+from program.sub.orgInfoEditor.importPy.editLsStageTrainWidget import EditLsStageTrainDialog
 from program.sub.orgInfoEditor.importPy.tabWidget import (
     tab1AllWidget, tab2AllWidget, tab3AllWidget
 )
@@ -42,7 +43,8 @@ class OrgInfoEditorWindow(QWidget):
         self.editStageTrainList = [
             "Rising Stage",
             "Climax Stage",
-            "Burning Stage"
+            "Burning Stage",
+            "Lightning Stage"
         ]
         self.oldGameList = ["RS", "CS", "BS", "LS"]
 
@@ -141,9 +143,29 @@ class OrgInfoEditorWindow(QWidget):
             tab3AllWidget(self.mainLayout, self.decryptFile, trainIndex, self.reloadWidget)
 
     def editStageTrain(self):
-        editStageTrainDialog = EditStageTrainDialog(self, textSetting.textList["orgInfoEditor"]["editStageLabel"], self.decryptFile)
-        if editStageTrainDialog.exec() == QDialog.Accepted:
-            self.reloadWidget()
+        if self.decryptFile.game in ["BS", "CS", "RS"]:
+            editStageTrainDialog = EditStageTrainDialog(self, textSetting.textList["orgInfoEditor"]["editStageLabel"], self.decryptFile)
+            if editStageTrainDialog.exec() == QDialog.Accepted:
+                self.reloadWidget()
+        elif self.decryptFile.game == "LS":
+            fileTypes = "{0} ({1})"
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "",
+                "",
+                fileTypes.format("Lightning Stage", "*.exe")
+            )
+            if not file_path:
+                return
+            editLsStageTrainDialog = EditLsStageTrainDialog(self, textSetting.textList["orgInfoEditor"]["editStageLabel"], self.decryptFile, file_path)
+            result = editLsStageTrainDialog.showDialog()
+
+            if editLsStageTrainDialog.errorFlag:
+                mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E145"])
+                return
+
+            if result == QDialog.Accepted:
+                self.reloadWidget()
 
     def modifiedTrainNameList(self):
         copyTrainNameList = copy.deepcopy(self.decryptFile.trainNameList)
