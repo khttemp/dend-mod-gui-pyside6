@@ -20,7 +20,10 @@ def writeCsv(filePath, comicDataList):
         writer = csv.writer(f)
 
         for comicData in comicDataList:
-            writer.writerow(comicData)
+            # pCountは除外
+            csvComicData = [comicData[0]]
+            csvComicData.extend(comicData[2:])
+            writer.writerow(csvComicData)
 
 
 def loadCsvData(filePath, cmdList):
