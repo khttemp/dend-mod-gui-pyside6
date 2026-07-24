@@ -1,3 +1,5 @@
+*[English](README.en.md)*
+
 # dend-mod-gui-pyside6
 PySide6バージョンの、電車でDのプログラム統合版
 

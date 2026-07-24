@@ -1,3 +1,5 @@
+*[English](script.en.md)*
+
 # コミックスクリプトの仕組み
 
 ![comic40068](image/comic40068.png)

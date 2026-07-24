@@ -1,3 +1,5 @@
+*[English](TEXINFO.en.md)*
+
 # SetTexInfoの解説（SS）
 
 SSのSetTexInfoついて解説する。
