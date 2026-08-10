@@ -40,7 +40,7 @@ class EditOrgButtonWidget(QWidget):
             extractCsvButtonText = textSetting.textList["orgInfoEditor"]["saveCsv"]
         else:
             extractCsvButtonText = textSetting.textList["orgInfoEditor"]["saveText"]
-        self.saveCsvTrainInfoButton = QPushButton(textSetting.textList["orgInfoEditor"]["saveText"])
+        self.saveCsvTrainInfoButton = QPushButton(extractCsvButtonText)
         self.saveCsvTrainInfoButton.clicked.connect(self.saveCsvTrainInfo)
         buttonLayout.addWidget(self.saveCsvTrainInfoButton, 1)
         # editTrainInfoButton
