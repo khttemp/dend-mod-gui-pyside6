@@ -2091,15 +2091,6 @@ class SmfDecrypt:
         w.close()
         return True
 
-    def saveSwap(self, frameIdx, parentIdx):
-        if not self.deleteFrame(frameIdx, parentIdx, False):
-            return False
-        if not self.open():
-            return False
-        if not self.deleteAfterAddFrame(self.lastParentIdx, parentIdx):
-            return False
-        return True
-
     def deleteFrame(self, frameIdx, parentIdx, flag=True):
         newByteArr = bytearray()
         self.lastParentIdx = parentIdx
@@ -2169,83 +2160,6 @@ class SmfDecrypt:
                 return False
             if meshNo == deleteMeshNo and flag:
                 continue
-            insertByteArr = copy.deepcopy(self.byteArr[startIdx:self.index])
-            newByteArr.extend(insertByteArr)
-        w = open(self.filePath, "wb")
-        w.write(newByteArr)
-        w.close()
-        return True
-
-    def deleteAfterAddFrame(self, frameIdx, parentIdx):
-        newByteArr = bytearray()
-        self.index = self.frameStartIdx
-        newByteArr.extend(self.byteArr[0:self.index])
-
-        addFrameNo = self.frameCount + 1
-        addFrameCount = 0
-        for frameNo in range(self.frameCount):
-            self.frameList = []
-            startIdx = self.index
-            nameAndLength = self.getStructNameAndLength()
-            if nameAndLength[1] == -1:
-                return False
-
-            if not self.readFRM(frameNo, nameAndLength[1]):
-                return False
-            insertByteArr = copy.deepcopy(self.byteArr[startIdx:self.index])
-            frameInfo = self.frameList[0]
-            meshNo = frameInfo["meshNo"]
-            parentNo = frameInfo["parentFrameNo"]
-            if parentNo >= addFrameNo:
-                parentNo += addFrameCount
-            startIdx = 8
-            startIdx += (64 + 64)
-            iMeshNo = struct.pack("<i", meshNo)
-            for iM in iMeshNo:
-                insertByteArr[startIdx] = iM
-                startIdx += 1
-            iParentNo = struct.pack("<i", parentNo)
-            for iP in iParentNo:
-                insertByteArr[startIdx] = iP
-                startIdx += 1
-            newByteArr.extend(insertByteArr)
-            if frameNo == frameIdx:
-                startIdx = 8
-                startIdx += (64 + 64)
-                meshNo = struct.unpack("<i", self.popFrameByteArr[startIdx:startIdx + 4])[0]
-                parentNo = parentIdx
-                addFrameNo = frameIdx + 1
-                addFrameCount += 1
-
-                iMeshNo = struct.pack("<i", meshNo)
-                for iM in iMeshNo:
-                    self.popFrameByteArr[startIdx] = iM
-                    startIdx += 1
-                iParentNo = struct.pack("<i", parentNo)
-                for iP in iParentNo:
-                    self.popFrameByteArr[startIdx] = iP
-                    startIdx += 1
-                newByteArr.extend(self.popFrameByteArr)
-
-        startIdx = 12
-        iNewAllMeshCount = struct.pack("<i", self.meshCount)
-        for iN in iNewAllMeshCount:
-            newByteArr[startIdx] = iN
-            startIdx += 1
-        newAllFrameCount = self.frameCount + addFrameCount
-        iNewAllFrameCount = struct.pack("<i", newAllFrameCount)
-        for iN in iNewAllFrameCount:
-            newByteArr[startIdx] = iN
-            startIdx += 1
-
-        for meshNo in range(self.meshCount):
-            startIdx = self.index
-            nameAndLength = self.getStructNameAndLength()
-            if nameAndLength[1] == -1:
-                return False
-
-            if not self.readMESH(meshNo, nameAndLength[1]):
-                return False
             insertByteArr = copy.deepcopy(self.byteArr[startIdx:self.index])
             newByteArr.extend(insertByteArr)
         w = open(self.filePath, "wb")
