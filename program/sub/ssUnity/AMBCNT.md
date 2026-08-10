@@ -1,3 +1,5 @@
+*[English](AMBCNT.en.md)*
+
 # AMBの要素（SS）
 
 SSのAMBについて解説する。

@@ -1,3 +1,5 @@
+*[English](RAILCNT.en.md)*
+
 # レールデータの要素（SS）
 
 SSのレールデータについて解説する。

@@ -1,12 +1,12 @@
-*[English](AMBLIST.en.md)*
+*[日本語](AMBLIST.md)*
 
-# AMBに出来るモデルリスト
+# List of Models Usable as AMB
 
-モデルのリストは下記の通り。
+The list of models is as follows.
 
-ここにないリストは、AMBとして置けないので注意すること。
+Note that anything not in this list cannot be placed as an AMB.
 
-| モデル名 |
+| Model Name |
 | --- |
 | 1Rail_HQ_Konkuri100_AMB | 
 | 1Rail_HQ_Konkuri25_AMB | 

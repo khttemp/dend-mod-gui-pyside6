@@ -81,8 +81,21 @@ class MainWindow(QMainWindow):
         filemenu = menubar.addMenu(textSetting.textList["menu"]["file"]["name"])
         self.createDefaultAction(filemenu, textSetting.textList["menu"]["file"]["loadFile"], self.loadFile)
 
+        langmenu = menubar.addMenu("言語 / Language")
+        langRadioGroup = QActionGroup(self)
+        langRadioGroup.setExclusive(True)
+        currentLang = mainProcess.readLanguageConfig(self.importDict["configPath"])
+        jaAction = self.createRadioAction(langmenu, "日本語", langRadioGroup, partial(self.changeLanguage, "ja"))
+        enAction = self.createRadioAction(langmenu, "English", langRadioGroup, partial(self.changeLanguage, "en"))
+        jaAction.setChecked(currentLang == "ja")
+        enAction.setChecked(currentLang == "en")
+
         self.configMenu = None
         self.configActionDict = {}
+
+    def changeLanguage(self, lang):
+        mainProcess.writeLanguageConfig(self.importDict["configPath"], lang)
+        mb.showinfo(title=textSetting.textList["app"]["title"].format(self.version), message="Please restart the application for the language change to take effect.\n言語の変更は再起動後に反映されます。")
 
     def createRadioAction(self, menu, text, radioGroup, callback):
         action = QAction(text, self)

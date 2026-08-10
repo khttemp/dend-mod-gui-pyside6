@@ -1,104 +1,104 @@
-*[English](ambdata.en.md)*
+*[日本語](ambdata.md)*
 
-# AMBデータの要素(RS)
+# AMB Data Elements (RS)
 
 ## 1. index
 
-レールの番号。RSでCSVで上書きする際、この情報は読み込まない。
+The rail number. When overwriting with CSV in RS, this information is not read.
 
 ## 2. type
 
-未詳
+Unknown.
 
 ## 3. length
 
-AMBとの距離。距離が指定した範囲内の場合、表示する。
+Distance to the AMB. Displayed when the distance is within the specified range.
 
-1000が普通。
+1000 is normal.
 
 ## 4. rail_no
 
-AMBを置く基準レールNo
+The reference rail number where the AMB is placed.
 
 ## 5. rail_pos
 
-AMBを置く基準レールNoからボーン数分ずらす
+Offsets by a number of bones from the reference rail number where the AMB is placed.
 
 ## 6. base_pos_x
 
-4と5によって置かれた始点を基準にx軸に平行移動する。下記の図を参照
+Translates along the x-axis based on the starting point set by 4 and 5. See the diagram below.
 
-| デフォルト | base_pos_x (+10) | base_pos_x (-10) |
+| Default | base_pos_x (+10) | base_pos_x (-10) |
 | --- | --- | --- | 
 | ![default](/program/sub/railEditor/image/amb_default.png) | ![base_pos_x_10](/program/sub/railEditor/image/amb_base_pos_x_10.png) | ![base_pos_x_-10](/program/sub/railEditor/image/amb_base_pos_x_-10.png) |
 
 ## 7. base_pos_y
 
-4と5によって置かれた始点を基準にy軸に平行移動する。下記の図を参照
+Translates along the y-axis based on the starting point set by 4 and 5. See the diagram below.
 
-| デフォルト | base_pos_y (+10) | base_pos_y (-5) |
+| Default | base_pos_y (+10) | base_pos_y (-5) |
 | --- | --- | --- | 
 | ![default](/program/sub/railEditor/image/amb_default.png) | ![base_pos_y_10](/program/sub/railEditor/image/amb_base_pos_y_10.png) | ![base_pos_y_-5](/program/sub/railEditor/image/amb_base_pos_y_-5.png) |
 
 ## 8. base_pos_z
 
-4と5によって置かれた始点を基準にz軸に平行移動する。下記の図を参照
+Translates along the z-axis based on the starting point set by 4 and 5. See the diagram below.
 
-| デフォルト | base_pos_z (+10) | base_pos_z (-10) |
+| Default | base_pos_z (+10) | base_pos_z (-10) |
 | --- | --- | --- | 
 | ![default](/program/sub/railEditor/image/amb_default.png) | ![base_pos_z_10](/program/sub/railEditor/image/amb_base_pos_z_10.png) | ![base_pos_z_-10](/program/sub/railEditor/image/amb_base_pos_z_-10.png) |
 
 ## 9. base_dir_x
 
-4と5によって置かれた始点を基準にモデル全体を上下に回転する。下記の図を参照
+Rotates the entire model up/down based on the starting point set by 4 and 5. See the diagram below.
 
-| デフォルト | base_dir_x (+10) | base_dir_x (-10) |
+| Default | base_dir_x (+10) | base_dir_x (-10) |
 | --- | --- | --- | 
 | ![default](/program/sub/railEditor/image/amb_default.png) | ![base_dir_x_10](/program/sub/railEditor/image/amb_base_dir_x_10.png) | ![base_dir_x_-10](/program/sub/railEditor/image/amb_base_dir_x_-10.png) |
 
 ## 10. base_dir_y
 
-4と5によって置かれた始点を基準にモデル全体を左右に回転する。下記の図を参照
+Rotates the entire model left/right based on the starting point set by 4 and 5. See the diagram below.
 
-| デフォルト | base_dir_y (+10) | base_dir_y (-10) |
+| Default | base_dir_y (+10) | base_dir_y (-10) |
 | --- | --- | --- | 
 | ![default](/program/sub/railEditor/image/amb_default.png) | ![base_dir_y_10](/program/sub/railEditor/image/amb_base_dir_y_10.png) | ![base_dir_y_-10](/program/sub/railEditor/image/amb_base_dir_y_-10.png) |
 
 ## 11. base_dir_z
 
-4と5によって置かれた始点を基準にモデル全体を横に傾くように回転する。
+Rotates the entire model so it tilts sideways, based on the starting point set by 4 and 5.
 
-下記の図を参照
+See the diagram below.
 
-| デフォルト | base_dir_z (+10) | base_dir_z (-10) |
+| Default | base_dir_z (+10) | base_dir_z (-10) |
 | --- | --- | --- | 
 | ![default](/program/sub/railEditor/image/amb_default.png) | ![base_dir_z_10](/program/sub/railEditor/image/amb_base_dir_z_10.png) | ![base_dir_z_-10](/program/sub/railEditor/image/amb_base_dir_z_-10.png) |
 
 ## 12. priority
 
-未詳
+Unknown.
 
 ## 13. fog|child
 
-fog→未詳
+fog → Unknown.
 
-child→子モデルの数
+child → number of child models.
 
 ## 14. mdl_no
 
-「smf情報」リストのモデル番号。
+The model number in the "smf info" list.
 
 ## 15. pos_x
 
-6番～11番で設定した座標、向きを基準に
+Based on the coordinates and orientation set in fields 6-11,
 
-x軸に平行移動する。
+translates along the x-axis.
 
-シートの1番目の場合、親モデルの設定、
+For the 1st entry in the sheet, this is the parent model's setting;
 
-2番目以後は子モデルの設定になる。
+from the 2nd entry onward, it's the child model's setting.
 
-下記の図を参照
+See the diagram below.
 
 | base_dir_z(-10) | base_dir_z(-10)<br>pos_x(+10) | base_dir_z (-10)<br>pos_x(-10) |
 | --- | --- | --- | 
@@ -106,15 +106,15 @@ x軸に平行移動する。
 
 ## 16. pos_y
 
-6番～11番で設定した座標、向きを基準に
+Based on the coordinates and orientation set in fields 6-11,
 
-y軸に平行移動する。
+translates along the y-axis.
 
-シートの1番目の場合、親モデルの設定、
+For the 1st entry in the sheet, this is the parent model's setting;
 
-2番目以後は子モデルの設定になる。
+from the 2nd entry onward, it's the child model's setting.
 
-下記の図を参照
+See the diagram below.
 
 | base_dir_z(-10) | base_dir_z(-10)<br>pos_y(+10) | base_dir_z (-10)<br>pos_y(-5) |
 | --- | --- | --- | 
@@ -122,15 +122,15 @@ y軸に平行移動する。
 
 ## 17. pos_z
 
-6番～11番で設定した座標、向きを基準に
+Based on the coordinates and orientation set in fields 6-11,
 
-z軸に平行移動する。
+translates along the z-axis.
 
-シートの1番目の場合、親モデルの設定、
+For the 1st entry in the sheet, this is the parent model's setting;
 
-2番目以後は子モデルの設定になる。
+from the 2nd entry onward, it's the child model's setting.
 
-下記の図を参照
+See the diagram below.
 
 | base_dir_z(-10) | base_dir_z(-10)<br>pos_z(+10) | base_dir_z (-10)<br>pos_z(-10) |
 | --- | --- | --- | 
@@ -138,102 +138,102 @@ z軸に平行移動する。
 
 ## 18. dir_x
 
-6番～11番で設定した座標、向きを基準に
+Based on the coordinates and orientation set in fields 6-11,
 
-モデルを上下に曲げる。
+bends the model up/down.
 
-シートの1番目の場合、親モデルの設定、
+For the 1st entry in the sheet, this is the parent model's setting;
 
-2番目以後は子モデルの設定になる。
+from the 2nd entry onward, it's the child model's setting.
 
-下記の図を参照
+See the diagram below.
 
-| デフォルト | dir_x (+5) | dir_x (-5) |
+| Default | dir_x (+5) | dir_x (-5) |
 | --- | --- | --- | 
 | ![default](/program/sub/railEditor/image/amb_default.png) | ![dir_x_5](/program/sub/railEditor/image/amb_dir_x_5.png) | ![dir_x_-5](/program/sub/railEditor/image/amb_dir_x_-5.png) |
 
 ## 19. dir_y
 
-6番～11番で設定した座標、向きを基準に
+Based on the coordinates and orientation set in fields 6-11,
 
-モデルを左右に曲げる。
+bends the model left/right.
 
-シートの1番目の場合、親モデルの設定、
+For the 1st entry in the sheet, this is the parent model's setting;
 
-2番目以後は子モデルの設定になる。
+from the 2nd entry onward, it's the child model's setting.
 
-下記の図を参照
+See the diagram below.
 
-| デフォルト | dir_y (+5) | dir_y (-5) |
+| Default | dir_y (+5) | dir_y (-5) |
 | --- | --- | --- | 
 | ![default](/program/sub/railEditor/image/amb_default.png) | ![dir_y_5](/program/sub/railEditor/image/amb_dir_y_5.png) | ![dir_y_-5](/program/sub/railEditor/image/amb_dir_y_-5.png) |
 
 ## 20. dir_z
 
-6番～11番で設定した座標、向きを基準に
+Based on the coordinates and orientation set in fields 6-11,
 
-モデルのカントを設定する。
+sets the model's cant.
 
-シートの1番目の場合、親モデルの設定、
+For the 1st entry in the sheet, this is the parent model's setting;
 
-2番目以後は子モデルの設定になる。
+from the 2nd entry onward, it's the child model's setting.
 
-下記の図を参照
+See the diagram below.
 
-| デフォルト | dir_z (+2) | dir_z (-2) |
+| Default | dir_z (+2) | dir_z (-2) |
 | --- | --- | --- | 
 | ![default](/program/sub/railEditor/image/amb_default.png) | ![dir_z_2](/program/sub/railEditor/image/amb_dir_z_2.png) | ![dir_z_-2](/program/sub/railEditor/image/amb_dir_z_-2.png) |
 
 ## 21. dir_x2
 
-6番～20番で設定した座標、向きを基準に
+Based on the coordinates and orientation set in fields 6-20,
 
-モデル全体を上下に回転する。
+rotates the entire model up/down.
 
-シートの1番目の場合、親モデルの設定、
+For the 1st entry in the sheet, this is the parent model's setting;
 
-2番目以後は子モデルの設定になる。
+from the 2nd entry onward, it's the child model's setting.
 
-下記の図を参照(子モデルに適用)
+See the diagram below (applied to a child model).
 
-| 子モデル<br>デフォルト | 子モデル<br>dir_x2 (+5) | 子モデル<br>dir_x2 (-5) |
+| Child model<br>Default | Child model<br>dir_x2 (+5) | Child model<br>dir_x2 (-5) |
 | --- | --- | --- | 
 | ![child_default](/program/sub/railEditor/image/amb_child_default.png) | ![dir_x2_5](/program/sub/railEditor/image/amb_dir_x2_5.png) | ![dir_x2_-5](/program/sub/railEditor/image/amb_dir_x2_-5.png) |
 
 ## 22. dir_y2
 
-6番～20番で設定した座標、向きを基準に
+Based on the coordinates and orientation set in fields 6-20,
 
-モデル全体を左右に回転する。
+rotates the entire model left/right.
 
-シートの1番目の場合、親モデルの設定、
+For the 1st entry in the sheet, this is the parent model's setting;
 
-2番目以後は子モデルの設定になる。
+from the 2nd entry onward, it's the child model's setting.
 
-下記の図を参照(子モデルに適用)
+See the diagram below (applied to a child model).
 
-| 子モデル<br>デフォルト | 子モデル<br>dir_y2 (+5) | 子モデル<br>dir_y2 (-5) |
+| Child model<br>Default | Child model<br>dir_y2 (+5) | Child model<br>dir_y2 (-5) |
 | --- | --- | --- | 
 | ![child_default](/program/sub/railEditor/image/amb_child_default.png) | ![dir_y2_5](/program/sub/railEditor/image/amb_dir_y2_5.png) | ![dir_y2_-5](/program/sub/railEditor/image/amb_dir_y2_-5.png) |
 
 ## 22. dir_z2
 
-6番～20番で設定した座標、向きを基準に
+Based on the coordinates and orientation set in fields 6-20,
 
-モデル全体を横に傾くように回転する。
+rotates the entire model so it tilts sideways.
 
-下記の図を参照(子モデルに適用)
+See the diagram below (applied to a child model).
 
-| 子モデル<br>デフォルト | 子モデル<br>dir_z2 (+5) | 子モデル<br>dir_z2 (-5) |
+| Child model<br>Default | Child model<br>dir_z2 (+5) | Child model<br>dir_z2 (-5) |
 | --- | --- | --- | 
 | ![child_default](/program/sub/railEditor/image/amb_child_default.png) | ![dir_z2_5](/program/sub/railEditor/image/amb_dir_z2_5.png) | ![dir_z2_-5](/program/sub/railEditor/image/amb_dir_z2_-5.png) |
 
 ## 23. per
 
-モデルのperを設定する
+Sets the model's per value.
 
-下記の図を参照
+See the diagram below.
 
-| デフォルト | per(1.5) | per (0.7) |
+| Default | per(1.5) | per (0.7) |
 | --- | --- | --- | 
 | ![default](/program/sub/railEditor/image/amb_default.png) | ![amb_per_1.5](/program/sub/railEditor/image/amb_per_1.5.png) | ![amb_per_0.7](/program/sub/railEditor/image/amb_per_0.7.png) |
