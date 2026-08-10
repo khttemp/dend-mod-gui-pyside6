@@ -2061,6 +2061,36 @@ class SmfDecrypt:
         w.close()
         return True
 
+    def getFrameByteArr(self, frameNo):
+        index = self.frameStartIdx
+        for i in range(frameNo):
+            index += 4
+            length = struct.unpack("<i", self.byteArr[index:index + 4])[0]
+            index += 4
+            index += length
+        startIndex = index
+        index += 4
+        length = struct.unpack("<i", self.byteArr[index:index + 4])[0]
+        index += 4
+        index += length
+        return copy.deepcopy(self.byteArr[startIndex:index])
+
+    def saveAllFrameIndex(self, resultFrameList):
+        newByteArr = bytearray()
+        newByteArr.extend(self.byteArr[0:self.frameStartIdx])
+        for newFrameNo, newParentFrameNo in resultFrameList:
+            newFrameByteArr = self.getFrameByteArr(newFrameNo)
+            index = 4 + 4 + 64 + 64 + 4
+            for b in struct.pack("<i", newParentFrameNo):
+                newFrameByteArr[index] = b
+                index += 1
+            newByteArr.extend(newFrameByteArr)
+        newByteArr.extend(self.byteArr[self.anisStartIdx:])
+        w = open(self.filePath, "wb")
+        w.write(newByteArr)
+        w.close()
+        return True
+
     def saveSwap(self, frameIdx, parentIdx):
         if not self.deleteFrame(frameIdx, parentIdx, False):
             return False

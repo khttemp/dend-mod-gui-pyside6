@@ -16,6 +16,7 @@ from program.sub.smf.importPy.extractX import XObject
 
 from PySide6.QtWidgets import (
     QApplication, QWidget, QProgressBar, QTreeWidget, QTreeWidgetItem,
+    QTreeWidgetItemIterator,
     QLabel, QListWidget, QLineEdit, QFrame, QGroupBox,
     QComboBox, QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog,
     QDialog, QDialogButtonBox, QGridLayout, QHeaderView
@@ -107,12 +108,12 @@ class SmfWindow(QWidget):
         buttonLayout2.addWidget(self.modifyFrameInfoButton)
         # stretch
         buttonLayout2.addStretch(1)
-        # buttonLayout - swapFrameButton
-        self.swapFrameButton = QPushButton(textSetting.textList["smf"]["swapFrameLabel"])
-        self.swapFrameButton.setFixedSize(buttonWidth, buttonHeight)
-        self.swapFrameButton.setEnabled(False)
-        self.swapFrameButton.clicked.connect(self.swapFrameFunc)
-        buttonLayout2.addWidget(self.swapFrameButton)
+        # buttonLayout - dragAndDropFrameButton
+        self.dragAndDropFrameButton = QPushButton(textSetting.textList["smf"]["dragAndDropFrameLabel"])
+        self.dragAndDropFrameButton.setFixedSize(buttonWidth, buttonHeight)
+        self.dragAndDropFrameButton.setEnabled(False)
+        self.dragAndDropFrameButton.clicked.connect(self.dragAndDropFrameFunc)
+        buttonLayout2.addWidget(self.dragAndDropFrameButton)
 
         # space
         allButtonLayout.addSpacing(25)
@@ -281,7 +282,7 @@ class SmfWindow(QWidget):
         self.copyAndPasteFrameButton.setEnabled(False)
         self.deleteFrameButton.setEnabled(False)
         self.modifyFrameInfoButton.setEnabled(False)
-        self.swapFrameButton.setEnabled(False)
+        self.dragAndDropFrameButton.setEnabled(False)
         self.turnModelMeshButton.setEnabled(False)
         self.swapModelMeshButton.setEnabled(False)
         self.meshMaterialCsvSaveButton.setEnabled(False)
@@ -297,6 +298,7 @@ class SmfWindow(QWidget):
     def createWidget(self):
         self.createTreeWidget()
 
+        self.dragAndDropFrameButton.setEnabled(True)
         self.standardButton.setEnabled(True)
         self.extract3dObjButton.setEnabled(True)
 
@@ -349,12 +351,10 @@ class SmfWindow(QWidget):
             self.copyAndPasteFrameButton.setEnabled(True)
             self.deleteFrameButton.setEnabled(True)
             self.modifyFrameInfoButton.setEnabled(True)
-            self.swapFrameButton.setEnabled(True)
         else:
             self.copyAndPasteFrameButton.setEnabled(False)
             self.deleteFrameButton.setEnabled(False)
             self.modifyFrameInfoButton.setEnabled(False)
-            self.swapFrameButton.setEnabled(False)
 
         meshNo = frameObj["meshNo"]
         if meshNo != -1:
@@ -455,16 +455,10 @@ class SmfWindow(QWidget):
             mb.showinfo(title=textSetting.textList["success"], message=textSetting.textList["infoList"]["I131"])
             self.reloadWidget()
 
-    def swapFrameFunc(self):
-        selectedItems = self.treeWidget.selectedItems()
-        if not selectedItems:
-            return
-
-        item = selectedItems[0]
-        frameObj = item.data(0, Qt.UserRole)
-        swapFrameDialog = SwapFrameDialog(self, textSetting.textList["smf"]["swapFrame"], frameObj, self.decryptFile)
-        if swapFrameDialog.exec() == QDialog.Accepted:
-            if not self.decryptFile.saveSwap(swapFrameDialog.frameIdx, swapFrameDialog.parentIdx):
+    def dragAndDropFrameFunc(self):
+        dragAndDropFrameDialog = DragAndDropFrameDialog(self, textSetting.textList["smf"]["dragAndDropFrame"], self.decryptFile)
+        if dragAndDropFrameDialog.exec() == QDialog.Accepted:
+            if not self.decryptFile.saveAllFrameIndex(dragAndDropFrameDialog.resultFrameList):
                 self.decryptFile.printError()
                 mb.showerror(title=textSetting.textList["saveError"], message=textSetting.textList["errorList"]["E4"])
                 return
@@ -521,7 +515,7 @@ class SmfWindow(QWidget):
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E74"])
                 return
 
-            swapMeshDialog = SwapMeshDialog(self, textSetting.textList["smf"]["swapFrame"], swapDecryptFile)
+            swapMeshDialog = SwapMeshDialog(self, textSetting.textList["smf"]["swapMesh"], swapDecryptFile)
             if swapMeshDialog.exec() == QDialog.Accepted:
                 processResult, obj = smfProcess.getSwapMeshByteArr(swapMeshDialog.swapMeshNo, swapDecryptFile)
                 if not processResult:
@@ -913,34 +907,57 @@ class EditFrameInfoDialog(QDialog):
         super().accept()
 
 
-class SwapFrameDialog(QDialog):
-    def __init__(self, parent, title, frameObj, decryptFile):
+class DragAndDropFrameDialog(QDialog):
+    def __init__(self, parent, title, decryptFile):
         super().__init__(parent)
         self.setWindowTitle(title)
-        self.frameObj = frameObj
+        self.setMinimumWidth(500)
         self.decryptFile = decryptFile
-        self.swapFrameList = []
-        swapFrameComboList = []
-        self.frameIdx = -1
-        self.parentIdx = -1
-
-        for index, fObj in enumerate(self.decryptFile.frameList):
-            if index == self.frameObj["frameNo"]:
-                continue
-            self.swapFrameList.append([index, fObj["name"]])
-            swapFrameComboList.append("%02d(%s)" % (index, fObj["name"]))
+        self.resultFrameList = []
 
         font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
 
         # layout
         layout = QVBoxLayout(self)
         # layout - Label
-        swapLabel = QLabel(textSetting.textList["smf"]["locationParentFrame"], font=font2)
-        layout.addWidget(swapLabel)
-        # layout - Combobox
-        self.combobox = QComboBox(font=font2)
-        self.combobox.addItems(swapFrameComboList)
-        layout.addWidget(self.combobox)
+        dragAndDropInfoLabel = QLabel(textSetting.textList["smf"]["dragAndDropFrameInfoLabel"], font=font2)
+        layout.addWidget(dragAndDropInfoLabel)
+        # layout - treeWidget
+        self.treeWidget = QTreeWidget()
+        self.treeWidget.setColumnCount(1)
+        self.treeWidget.setHeaderLabels(["{0}".format(self.decryptFile.filename)])
+        self.treeWidget.header().setDefaultAlignment(Qt.AlignCenter)
+        self.treeWidget.header().setStretchLastSection(False)
+        self.treeWidget.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.treeWidget.setDragEnabled(True)
+        self.treeWidget.setAcceptDrops(True)
+        self.treeWidget.setDropIndicatorShown(True)
+        self.treeWidget.setDragDropMode(QTreeWidget.InternalMove)
+        layout.addWidget(self.treeWidget)
+
+        itemDict = {}
+        for frameObj in self.decryptFile.frameList:
+            frameIdx = frameObj["frameNo"]
+            fName = frameObj["name"]
+            meshNo = frameObj["meshNo"]
+            name = fName
+            if meshNo != -1:
+                name = fName + textSetting.textList["smf"]["treeMeshNumFormat"].format(meshNo)
+            item = QTreeWidgetItem()
+            item.setData(0, Qt.UserRole, frameObj)
+            item.setText(0, name)
+            itemDict[frameIdx] = item
+
+        for frameObj in self.decryptFile.frameList:
+            frameIdx = frameObj["frameNo"]
+            parentFrameNo = frameObj["parentFrameNo"]
+            item = itemDict[frameIdx]
+            if parentFrameNo == -1:
+                self.treeWidget.addTopLevelItem(item)
+            else:
+                itemDict[parentFrameNo].addChild(item)
+        self.treeWidget.expandAll()
+
         # layout - QDialogButtonBox
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttonBox.accepted.connect(self.accept)
@@ -948,15 +965,23 @@ class SwapFrameDialog(QDialog):
         layout.addWidget(buttonBox)
 
     def validate(self):
-        swapCbIdx = self.combobox.currentIndex()
-        self.parentIdx = self.swapFrameList[swapCbIdx][0]
-        parentName = self.swapFrameList[swapCbIdx][1]
-        self.frameIdx = self.frameObj["frameNo"]
-        frameName = self.frameObj["name"]
-        warnMsg = textSetting.textList["infoList"]["I103"].format(frameName, parentName) + textSetting.textList["infoList"]["I102"]
-
+        warnMsg = textSetting.textList["infoList"]["I102"]
         result = mb.askokcancel(title=textSetting.textList["confirm"], message=warnMsg, icon="warning")
         if result == mb.OK:
+            self.resultFrameList = []
+            it = QTreeWidgetItemIterator(self.treeWidget)
+            newIndexList = []
+            while it.value():
+                item = it.value()
+                frameObj = item.data(0, Qt.UserRole)
+                newIndexList.append(frameObj["frameNo"])
+                newParentIndex = -1
+                newParentItem = item.parent()
+                if newParentItem is not None:
+                    newParentFrameObj = newParentItem.data(0, Qt.UserRole)
+                    newParentIndex = newIndexList.index(newParentFrameObj["frameNo"])
+                self.resultFrameList.append([frameObj["frameNo"], newParentIndex])
+                it += 1
             return True
 
     def accept(self):
