@@ -1,14 +1,11 @@
-fontInfo = {
-    "fontFamily": "Yu Gothic UI",
-}
-textList = {
-    "defaultFont": (fontInfo["fontFamily"], 9),
-    "font2": (fontInfo["fontFamily"], 14),
-    "font3": (fontInfo["fontFamily"], 15),
-    "font4": (fontInfo["fontFamily"], 13),
-    "font5": (fontInfo["fontFamily"], 20),
-    "font6": (fontInfo["fontFamily"], 16),
-    "font7": (fontInfo["fontFamily"], 11),
+{
+    "defaultFont": ["Yu Gothic UI", 9],
+    "font2": ["Yu Gothic UI", 14],
+    "font3": ["Yu Gothic UI", 15],
+    "font4": ["Yu Gothic UI", 13],
+    "font5": ["Yu Gothic UI", 20],
+    "font6": ["Yu Gothic UI", 16],
+    "font7": ["Yu Gothic UI", 11],
     "comicscript": {
         "fileType": "COMIC_SCRIPT",
         "cmdLabel": "Command Name",
@@ -56,7 +53,7 @@ textList = {
         "csvSaveLabel": "Overwrite from CSV",
         "scriptLabel": "Script Contents",
         "commonModifyLabel": " Change",
-        "commonInsertLabel": " Insert",
+        "commonInsertLabel": " Insert"
     },
     "fvtMaker": {
         "fileType": "CSV File",
@@ -73,20 +70,13 @@ textList = {
         "faceNumDesc": "Specify the FACE image file number.\nSpecify 0 for no image",
         "faceSize": "FACE Size",
         "faceSizeDesc": "See the diagram on the right for the cropping method.\nDefault is [-1,-1,-1,-1]",
-        "effectDesc": "0 (Normal [follows game speed])\
-            \n1 (Shake [follows game speed])\
-            \n2 (Rises from below [LS only])\
-            \n3 (Image positioned lower [follows game speed])\
-            \n4 (Shake)\
-            \n5 (Image positioned lower)\
-            \n6 (Appears from center of screen [LS only])\
-            \n7 (Normal)",
+        "effectDesc": "0 (Normal [follows game speed])\n1 (Shake [follows game speed])\n2 (Rises from below [LS only])\n3 (Image positioned lower [follows game speed])\n4 (Shake)\n5 (Image positioned lower)\n6 (Appears from center of screen [LS only])\n7 (Normal)",
         "voNum2": "VO No.",
         "voNumDesc": "Specify the VO voice file number.\nSpecify 0 for no voice",
         "textTag": "Text\nTags",
         "textTagDesc": "<BR>, <PAGE>, <WAIT120>\n<FC#255016000></FC>, and so on...",
         "csvLfLabel": "CSV Format (the first row of the CSV is treated as a header and skipped when loading)",
-        "howWrite": "How to Create",
+        "howWrite": "How to Create"
     },
     "mdlBin": {
         "fileType": "MODEL_SCRIPT",
@@ -148,7 +138,7 @@ textList = {
         "anime1Label": "ANIME_1",
         "anime2Label": "ANIME_2",
         "commonModifyLabel": " Change",
-        "commonInsertLabel": " Insert",
+        "commonInsertLabel": " Insert"
     },
     "mdlinfo": {
         "fileType": "MDLINFO",
@@ -216,7 +206,7 @@ textList = {
         "mdlinfoPasteLabel": "Paste at Selected Row",
         "addSmfModelLabel": "Add Model with SMF Info",
         "noList": "(None)",
-        "posValue": ["After", "Before"],
+        "posValue": ["After", "Before"]
     },
     "musicEditor": {
         "fileType": "MUSIC_DATA",
@@ -226,17 +216,13 @@ textList = {
         "bgmNo": "No",
         "bgmFilename": "BGM File Name",
         "bgmName": "BGM Name",
-        "commonTitle": [
-            "start",
-            "loop start",
-            "loop end"
-        ],
+        "commonTitle": ["start", "loop start", "loop end"],
         "changeBgmNum": "BGM Number to Change",
         "bgmModify": "Modify BGM",
         "bgmSwap": "Swap BGM",
         "bgmModifyLabel": "Modify This BGM",
         "bgmSwapLabel": "Swap This BGM",
-        "scriptLabel": "BGM List",
+        "scriptLabel": "BGM List"
     },
     "orgInfoEditor": {
         "fileType": "TRAIN_DATA",
@@ -351,7 +337,7 @@ textList = {
             "b1",
             "b2",
             "b3",
-            "b4",
+            "b4"
         ],
         "tailInfoLabel": "Tail Info",
         "tailCntLabel": "Number of Tail Entries",
@@ -384,6 +370,11 @@ textList = {
         ]
     },
     "railEditor": {
+        "RSradioLabel": "Rising Stage",
+        "CSradioLabel": "Climax Stage",
+        "BSradioLabel": "Burning Stage",
+        "LSradioLabel": "Lightning Stage",
+        "LSTrialradioLabel": "Lightning Stage(Demo)",
         "fileType": "Rail Data",
         "railDataExtractExcel": "Extract Rail Data as Excel",
         "railDataSaveExcel": "Overwrite Rail Data from Excel",
@@ -463,7 +454,7 @@ textList = {
         "editSmfElementList": "Change List",
         "modelFlagList": [
             ["Rail", "Overhead Wire Pole", "Overhead Wire", "Bone Background Object", "Crossing Sound", "Bridge Passing Sound", "Slab Track Sound", "Snow Accumulates"],
-            ["Exclude from Drift Search", "Flag 2", "Flag 3", "Flag 4", "Launch on One-Wheel Drift", "Launch on Left-Side One-Wheel Drift", "Launch on Right-Side One-Wheel Drift", "Launch on Drift"],
+            ["Exclude from Drift Search", "Flag 2", "Flag 3", "Flag 4", "Launch on One-Wheel Drift", "Launch on Left-Side One-Wheel Drift", "Launch on Right-Side One-Wheel Drift", "Launch on Drift"]
         ],
         "setSmfSwitch": "Switch Setting",
         "pasteFront": "Before",
@@ -717,16 +708,16 @@ textList = {
         ],
         "configReadFail": "Failed to read config!",
         "printModelName": {
-            0: "Model: Model names will be read by name",
-            1: "Model: Model names will be read by index"
+            "0": "Model: Model names will be read by name",
+            "1": "Model: Model names will be read by index"
         },
         "printFlagHexMode": {
-            0: "Flag: Flags will be read as decimal",
-            1: "Flag: Flags will be read as hexadecimal"
+            "0": "Flag: Flags will be read as decimal",
+            "1": "Flag: Flags will be read as hexadecimal"
         },
         "printAmbReadMode": {
-            0: "AMB: Read as line-broken AMB info",
-            1: "AMB: Read as single-line AMB info"
+            "0": "AMB: Read as line-broken AMB info",
+            "1": "AMB: Read as single-line AMB info"
         }
     },
     "rsRail": {
@@ -774,7 +765,7 @@ textList = {
         "trainPosStopBtnLabel": "Stop Tracking",
         "saveBtnLabel": "Save",
         "modifyBtnLabel": "Change",
-        "contents": "Contents",
+        "contents": "Contents"
     },
     "smf": {
         "fileType": "SELENE MODEL",
@@ -840,7 +831,7 @@ textList = {
         "refractive": "Reflectivity (higher = stronger reflection)",
         "roughly": "Roughness (higher = softer reflection)",
         "bump": "Parallax for Parallax Map",
-        "locationParentFrame": "Destination Parent Frame",
+        "dragAndDropFrameInfoLabel": "Please change the hierarchy using the mouse",
         "swapToModelMeshNoLabel": "Number of Mesh to Swap With",
         "treeMeshNumFormat": "(Mesh No.{0})",
         "smfFile": "File",
@@ -848,12 +839,12 @@ textList = {
         "fbxFile": "fbx File",
         "xFile": "x File",
         "csvFile": "csv File",
-        "swapFrame": "Swap Frame",
+        "dragAndDropFrame": "Changing Frame Hierarchy",
         "editInfoFrame": "Modify Frame Info",
         "swapMesh": "Swap Mesh",
         "scriptLabel": "Structure",
         "createStandardLabel": "Create RS Standard Gauge",
-        "swapFrameLabel": "Swap Frame Position",
+        "dragAndDropFrameLabel": "Change the frame hierarchy",
         "editInfoFrameLabel": "Modify Frame Info",
         "deleteFrameLabel": "Delete Frame",
         "copyAndPasteFrameLabel": "Copy and Paste Selected Frame",
@@ -904,7 +895,7 @@ textList = {
             "Story/Placement Info", "Line-Specific Image Data", "Image Settings Info",
             "Station Names", "CPU Switching", "Comic Script",
             "Rain Events", "Dosan Line Special",
-            "Model Info", "Rail Info", "Pri Info", "AMB Info",
+            "Model Info", "Rail Info", "Pri Info", "AMB Info"
         ],
         "searchText": "Search"
     },
@@ -1010,7 +1001,7 @@ textList = {
         "I99": "Memory info for rail {0} changed.",
         "I100": "Change the memory info for AMB {0}?\nPressing No cancels the change and switches to search mode.\n(Overwriting may fail due to permission issues)",
         "I101": "Memory info for AMB {0} changed.",
-        "I102": "Are you sure you want to move as-is?",
+        "I102": "Is it okay to change the frame?",
         "I103": "This will move {0} under {1}.\nThis affects all child elements of this element.\n",
         "I104": "SMF modified",
         "I105": "Only the following models can do this",
@@ -1049,7 +1040,7 @@ textList = {
         "I138": "Textures without a TEXC element will be ignored.\n",
         "I139": "Initial station display No info modified",
         "I140": "Duplicate, so assigned to provisional rail number ({0})",
-        "I141": "List count modified",
+        "I141": "List count modified"
     },
     "modify": "Modify",
     "insert": "Insert",
@@ -1208,7 +1199,7 @@ textList = {
         "E142": "The command count for section {0},{1} has reached its limit",
         "E143": "There is a duplicate section ({0},{1})",
         "E144": "Cannot change existing mesh number ({0}) to a different number ({1})",
-        "E145": "This is not a recognized executable file",
+        "E145": "This is not a recognized executable file"
     },
     "excel": {
         "errorColor": "FF0000",
@@ -1228,23 +1219,23 @@ textList = {
             "railEditor": "Rail Editor",
             "rsRail": "RS Rail/AMB",
             "smf": "SMF",
-            "exit": "Exit",
+            "exit": "Exit"
         },
         "file": {
             "name": "File",
-            "loadFile": "Open File",
+            "loadFile": "Open File"
         },
         "csv": {
             "name": "CSV Options",
             "rail": {
                 "opt1": "Always Confirm Rail CSV",
                 "opt2": "Always Overwrite Rail CSV",
-                "opt3": "Never Overwrite Rail CSV",
+                "opt3": "Never Overwrite Rail CSV"
             },
             "amb": {
                 "opt1": "Always Confirm AMB CSV",
                 "opt2": "Always Overwrite AMB CSV",
-                "opt3": "Never Overwrite AMB CSV",
+                "opt3": "Never Overwrite AMB CSV"
             }
         },
         "comicscript": {
@@ -1257,7 +1248,7 @@ textList = {
                 "opt1": "Write FRM",
                 "opt2": "Write MESH",
                 "opt3": "Write MESH Detail Sections",
-                "opt4": "Write MTRL",
+                "opt4": "Write MTRL"
             },
             "glb": {
                 "opt1": "Reference Textures When Writing glb",
@@ -1272,11 +1263,11 @@ textList = {
                 "flag1": "Flags as Decimal",
                 "flag2": "Flags as Hexadecimal",
                 "ambRead1": "AMB Info Line-Broken",
-                "ambRead2": "AMB Info as Single Line",
+                "ambRead2": "AMB Info as Single Line"
             }
         },
         "appearance": {
-            "rootFrame": "Appearance Settings",
+            "rootFrame": "Appearance Settings"
         }
     },
     "appearance": {
@@ -1309,7 +1300,7 @@ textList = {
             "comboboxLabel": "Combo Box (*Theme-dependent)\nDropdown applies after restart",
             "radioThemeLabel": "Radio Button (*Theme-dependent)",
             "radioButtonColorLabel": "Button Color",
-            "radioButtonSelColorLabel": "Selected\nButton Color",
+            "radioButtonSelColorLabel": "Selected\nButton Color"
         }
     },
     "update": {

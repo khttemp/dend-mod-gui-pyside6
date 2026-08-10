@@ -1,5 +1,7 @@
 import os
 import sys
+import json
+import subprocess
 from functools import partial
 
 import program.main.mainProcess as mainProcess
@@ -84,18 +86,19 @@ class MainWindow(QMainWindow):
         langmenu = menubar.addMenu("言語 / Language")
         langRadioGroup = QActionGroup(self)
         langRadioGroup.setExclusive(True)
-        currentLang = mainProcess.readLanguageConfig(self.importDict["configPath"])
         jaAction = self.createRadioAction(langmenu, "日本語", langRadioGroup, partial(self.changeLanguage, "ja"))
         enAction = self.createRadioAction(langmenu, "English", langRadioGroup, partial(self.changeLanguage, "en"))
-        jaAction.setChecked(currentLang == "ja")
-        enAction.setChecked(currentLang == "en")
+        jaAction.setChecked(self.importDict["lang"] == "ja")
+        enAction.setChecked(self.importDict["lang"] == "en")
 
         self.configMenu = None
         self.configActionDict = {}
 
     def changeLanguage(self, lang):
         mainProcess.writeLanguageConfig(self.importDict["configPath"], lang)
-        mb.showinfo(title=textSetting.textList["app"]["title"].format(self.version), message="Please restart the application for the language change to take effect.\n言語の変更は再起動後に反映されます。")
+        # 再起動
+        self.close()
+        QApplication.exit(self.importDict["EXIT_CODE_RESTART"])
 
     def createRadioAction(self, menu, text, radioGroup, callback):
         action = QAction(text, self)
@@ -285,4 +288,10 @@ def guiMain(importDict):
     window = MainWindow(importDict)
     importDict["window"] = window
     window.show()
-    sys.exit(app.exec())
+    exit_code = app.exec()
+
+    if exit_code == importDict["EXIT_CODE_RESTART"]:
+        subprocess.Popen([sys.executable] + sys.argv)
+        sys.exit(0)
+    else:
+        sys.exit(exit_code)

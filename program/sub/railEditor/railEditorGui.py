@@ -87,10 +87,10 @@ class RailEditorWindow(QWidget):
         gameListLayout.addLayout(lsRadioLayout)
         gameListLayout.addStretch()
         # headerRight - gameListLayout - lsRadioLayout - lsRadio
-        lsRadioButton = QRadioButton("Lightning Stage")
+        lsRadioButton = QRadioButton(textSetting.textList["railEditor"]["LSradioLabel"])
         lsRadioLayout.addWidget(lsRadioButton, 1)
         # headerRight - gameListLayout - lsRadioLayout - lsTrialRadio
-        lsTrialRadioButton = QRadioButton("Lightning Stage(体験版)")
+        lsTrialRadioButton = QRadioButton(textSetting.textList["railEditor"]["LSTrialradioLabel"])
         lsRadioLayout.addWidget(lsTrialRadioButton, 1)
 
         # headerRight - gameListLayout - bsRaioLayout
@@ -99,7 +99,7 @@ class RailEditorWindow(QWidget):
         gameListLayout.addLayout(bsRadioLayout)
         gameListLayout.addStretch()
         # headerRight - gameListLayout - bsRaioLayout - bsRadio
-        bsRadioButton = QRadioButton("Burning Stage")
+        bsRadioButton = QRadioButton(textSetting.textList["railEditor"]["BSradioLabel"])
         bsRadioLayout.addWidget(bsRadioButton, 1)
 
         # headerRight - gameListLayout - csRaioLayout
@@ -108,7 +108,7 @@ class RailEditorWindow(QWidget):
         gameListLayout.addLayout(csRadioLayout)
         gameListLayout.addStretch()
         # headerRight - gameListLayout - csRaioLayout - csRadio
-        csRadioButton = QRadioButton("Climax Stage")
+        csRadioButton = QRadioButton(textSetting.textList["railEditor"]["CSradioLabel"])
         csRadioLayout.addWidget(csRadioButton, 1)
 
         # headerRight - gameListLayout - rsRaioLayout
@@ -117,7 +117,7 @@ class RailEditorWindow(QWidget):
         gameListLayout.addLayout(rsRadioLayout)
         gameListLayout.addSpacing(30)
         # headerRight - gameListLayout - rsRaioLayout - rsRadio
-        rsRadioButton = QRadioButton("Rising Stage")
+        rsRadioButton = QRadioButton(textSetting.textList["railEditor"]["RSradioLabel"])
         rsRadioButton.setChecked(True)
         rsRadioLayout.addWidget(rsRadioButton, 1)
 

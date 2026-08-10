@@ -1,14 +1,11 @@
-fontInfo = {
-    "fontFamily": "Yu Gothic UI",
-}
-textList = {
-    "defaultFont": (fontInfo["fontFamily"], 9),
-    "font2": (fontInfo["fontFamily"], 14),
-    "font3": (fontInfo["fontFamily"], 15),
-    "font4": (fontInfo["fontFamily"], 13),
-    "font5": (fontInfo["fontFamily"], 20),
-    "font6": (fontInfo["fontFamily"], 16),
-    "font7": (fontInfo["fontFamily"], 11),
+{
+    "defaultFont": ["Yu Gothic UI", 9],
+    "font2": ["Yu Gothic UI", 14],
+    "font3": ["Yu Gothic UI", 15],
+    "font4": ["Yu Gothic UI", 13],
+    "font5": ["Yu Gothic UI", 20],
+    "font6": ["Yu Gothic UI", 16],
+    "font7": ["Yu Gothic UI", 11],
     "comicscript": {
         "fileType": "COMIC_SCRIPT",
         "cmdLabel": "コマンド名",
@@ -56,7 +53,7 @@ textList = {
         "csvSaveLabel": "CSVで上書きする",
         "scriptLabel": "スクリプト内容",
         "commonModifyLabel": "の変更",
-        "commonInsertLabel": "の挿入",
+        "commonInsertLabel": "の挿入"
     },
     "fvtMaker": {
         "fileType": "CSVファイル",
@@ -73,20 +70,13 @@ textList = {
         "faceNumDesc": "FACEのイメージファイルの番号を指定する。\n0を指定すれば画像なし",
         "faceSize": "FACEサイズ",
         "faceSizeDesc": "切り取り方法は右の図を参照。\nデフォは[-1,-1,-1,-1]",
-        "effectDesc": "0（普通【ゲームの速度に合わせて】）\
-            \n1（揺らす【ゲームの速度に合わせて】）\
-            \n2（下から出る【LSのみ使われた】）\
-            \n3（画像がもっと下の位置【ゲームの速度に合わせて】）\
-            \n4（揺らす）\
-            \n5（画像がもっと下の位置）\
-            \n6（画面の中央から現れる【LSのみ使われた】）\
-            \n7（普通）",
+        "effectDesc": "0（普通【ゲームの速度に合わせて】）\n1（揺らす【ゲームの速度に合わせて】）\n2（下から出る【LSのみ使われた】）\n3（画像がもっと下の位置【ゲームの速度に合わせて】）\n4（揺らす）\n5（画像がもっと下の位置）\n6（画面の中央から現れる【LSのみ使われた】）\n7（普通）",
         "voNum2": "VO番号",
         "voNumDesc": "VOの音声ファイルの番号を指定する。\n0を指定すれば音声なし",
         "textTag": "テキストの\nタグ",
         "textTagDesc": "<BR>、<PAGE>、<WAIT120>\n<FC#255016000></FC>などなど・・・",
         "csvLfLabel": "CSVの様式（CSVの1行目はヘッダー扱いになり、読み込みを省略する）",
-        "howWrite": "作成方法",
+        "howWrite": "作成方法"
     },
     "mdlBin": {
         "fileType": "MODEL_SCRIPT",
@@ -148,7 +138,7 @@ textList = {
         "anime1Label": "ANIME_1",
         "anime2Label": "ANIME_2",
         "commonModifyLabel": "の変更",
-        "commonInsertLabel": "の挿入",
+        "commonInsertLabel": "の挿入"
     },
     "mdlinfo": {
         "fileType": "MDLINFO",
@@ -216,7 +206,7 @@ textList = {
         "mdlinfoPasteLabel": "選択した行に貼り付けする",
         "addSmfModelLabel": "SMF情報でモデル追加",
         "noList": "(なし)",
-        "posValue": ["後", "前"],
+        "posValue": ["後", "前"]
     },
     "musicEditor": {
         "fileType": "MUSIC_DATA",
@@ -226,17 +216,13 @@ textList = {
         "bgmNo": "No",
         "bgmFilename": "BGM ファイル名",
         "bgmName": "BGM名",
-        "commonTitle": [
-            "start",
-            "loop start",
-            "loop end"
-        ],
+        "commonTitle": ["start", "loop start", "loop end"],
         "changeBgmNum": "変えるbgm番号",
         "bgmModify": "BGM修正",
         "bgmSwap": "BGM入れ替え",
         "bgmModifyLabel": "このBGMを修正する",
         "bgmSwapLabel": "このBGMを入れ替える",
-        "scriptLabel": "BGMリスト",
+        "scriptLabel": "BGMリスト"
     },
     "orgInfoEditor": {
         "fileType": "TRAIN_DATA",
@@ -351,7 +337,7 @@ textList = {
             "b1",
             "b2",
             "b3",
-            "b4",
+            "b4"
         ],
         "tailInfoLabel": "tail情報",
         "tailCntLabel": "tail情報数",
@@ -384,6 +370,11 @@ textList = {
         ]
     },
     "railEditor": {
+        "RSradioLabel": "Rising Stage",
+        "CSradioLabel": "Climax Stage",
+        "BSradioLabel": "Burning Stage",
+        "LSradioLabel": "Lightning Stage",
+        "LSTrialradioLabel": "Lightning Stage(体験版)",
         "fileType": "レールデータ",
         "railDataExtractExcel": "レールデータをエクセルで取り出す",
         "railDataSaveExcel": "レールデータをエクセルで上書きする",
@@ -463,7 +454,7 @@ textList = {
         "editSmfElementList": "リストの変更",
         "modelFlagList": [
             ["レール", "架線柱", "架線", "ボーン背景オブジェクト", "踏切音", "橋通過音", "スラブ軌道音", "雪が積もる"],
-            ["ドリフト検索除外", "フラグ2", "フラグ3", "フラグ4", "片輪ドリフト時飛ぶ", "左側線路片輪ドリフト時飛ぶ", "右側線路片輪ドリフト時飛ぶ", "ドリフト時吹っ飛ぶ"],
+            ["ドリフト検索除外", "フラグ2", "フラグ3", "フラグ4", "片輪ドリフト時飛ぶ", "左側線路片輪ドリフト時飛ぶ", "右側線路片輪ドリフト時飛ぶ", "ドリフト時吹っ飛ぶ"]
         ],
         "setSmfSwitch": "switch設定",
         "pasteFront": "前",
@@ -717,16 +708,16 @@ textList = {
         ],
         "configReadFail": "config読込失敗！",
         "printModelName": {
-            0: "モデル：モデル名を名称で読み込みます",
-            1: "モデル：モデル名をindexで読み込みます"
+            "0": "モデル：モデル名を名称で読み込みます",
+            "1": "モデル：モデル名をindexで読み込みます"
         },
         "printFlagHexMode": {
-            0: "フラグ：フラグを10進数で読み込みます",
-            1: "フラグ：フラグを16進数で読み込みます"
+            "0": "フラグ：フラグを10進数で読み込みます",
+            "1": "フラグ：フラグを16進数で読み込みます"
         },
         "printAmbReadMode": {
-            0: "AMB：改行されたAMB情報として読み込みます",
-            1: "AMB：1行のみのAMB情報として読み込みます"
+            "0": "AMB：改行されたAMB情報として読み込みます",
+            "1": "AMB：1行のみのAMB情報として読み込みます"
         }
     },
     "rsRail": {
@@ -774,7 +765,7 @@ textList = {
         "trainPosStopBtnLabel": "追跡終了",
         "saveBtnLabel": "保存",
         "modifyBtnLabel": "変更",
-        "contents": "内容",
+        "contents": "内容"
     },
     "smf": {
         "fileType": "SELENE MODEL",
@@ -840,7 +831,7 @@ textList = {
         "refractive": "反射率（大きいほど強い反射）",
         "roughly": "荒さ（大きいほどソフトな反射）",
         "bump": "視差マップ用の視差",
-        "locationParentFrame": "移動先親フレーム",
+        "dragAndDropFrameInfoLabel": "マウスで階層を変更してください",
         "swapToModelMeshNoLabel": "入れ替える対象のメッシュの番号",
         "treeMeshNumFormat": "(Mesh No.{0})",
         "smfFile": "ファイル",
@@ -848,12 +839,12 @@ textList = {
         "fbxFile": "fbxファイル",
         "xFile": "xファイル",
         "csvFile": "csvファイル",
-        "swapFrame": "フレーム入れ替え",
+        "dragAndDropFrame": "フレームの階層変更",
         "editInfoFrame": "フレーム情報修正",
         "swapMesh": "メッシュ入れ替え",
         "scriptLabel": "構成",
         "createStandardLabel": "RSの標準軌を作成する",
-        "swapFrameLabel": "フレームの位置を入れ替える",
+        "dragAndDropFrameLabel": "フレームの階層を変更する",
         "editInfoFrameLabel": "フレームの情報を修正する",
         "deleteFrameLabel": "フレームを消す",
         "copyAndPasteFrameLabel": "選択したフレームをコピペする",
@@ -904,7 +895,7 @@ textList = {
             "ストーリー、配置情報", "路線別画像データ", "画像設定情報",
             "駅名", "ＣＰＵ切り替え", "コミックスクリプト",
             "雨イベント", "土讃線スペシャル",
-            "モデル情報", "レール情報", "Pri情報", "AMB情報",
+            "モデル情報", "レール情報", "Pri情報", "AMB情報"
         ],
         "searchText": "検索"
     },
@@ -1010,7 +1001,7 @@ textList = {
         "I99": "レール{0}のメモリー情報を変更しました。",
         "I100": "AMB {0}のメモリー情報を変更しますか？\nいいえを押すと変更をやめ、検索モードへ移行します。\n(権限問題で上書き失敗することもあります)",
         "I101": "AMB {0}のメモリー情報を変更しました。",
-        "I102": "このまま移してもよろしいですか？",
+        "I102": "フレームを変更してもよろしいですか？",
         "I103": "{0}を{1}の子に移します。\nこの要素の全ての子要素に影響が及びます。\n",
         "I104": "SMFを修正しました",
         "I105": "下記のモデルのみ出来ます",
@@ -1049,7 +1040,7 @@ textList = {
         "I138": "TEXC要素がないテクスチャーは無視されます。\n",
         "I139": "初期駅表示No情報を修正しました",
         "I140": "重複するため、暫定のレール番号({0})に付与しました",
-        "I141": "リストの数を修正しました",
+        "I141": "リストの数を修正しました"
     },
     "modify": "修正",
     "insert": "挿入",
@@ -1208,7 +1199,7 @@ textList = {
         "E142": "セクション{0},{1}のコマンド数が上限に達しています",
         "E143": "重複するセクション（{0},{1}）があります",
         "E144": "既存のメッシュ番号({0})を別の番号へ({1})の変更はできません",
-        "E145": "認識できない実行ファイルです",
+        "E145": "認識できない実行ファイルです"
     },
     "excel": {
         "errorColor": "FF0000",
@@ -1228,23 +1219,23 @@ textList = {
             "railEditor": "レールエディター",
             "rsRail": "RSのレール・AMB",
             "smf": "SMF",
-            "exit": "終了",
+            "exit": "終了"
         },
         "file": {
             "name": "ファイル",
-            "loadFile": "ファイルを開く",
+            "loadFile": "ファイルを開く"
         },
         "csv": {
             "name": "CSVオプション",
             "rail": {
                 "opt1": "レールCSVを常に確認",
                 "opt2": "レールCSVを常に上書きする",
-                "opt3": "レールCSVを上書きしない",
+                "opt3": "レールCSVを上書きしない"
             },
             "amb": {
                 "opt1": "AMBのCSVを常に確認",
                 "opt2": "AMBのCSVを常に上書きする",
-                "opt3": "AMBのCSVを上書きしない",
+                "opt3": "AMBのCSVを上書きしない"
             }
         },
         "comicscript": {
@@ -1257,7 +1248,7 @@ textList = {
                 "opt1": "FRMを書込む",
                 "opt2": "MESHを書込む",
                 "opt3": "MESHの詳しい箇所まで書込む",
-                "opt4": "MTRLを書込む",
+                "opt4": "MTRLを書込む"
             },
             "glb": {
                 "opt1": "glbを書込む時、テクスチャを参照型にする",
@@ -1272,11 +1263,11 @@ textList = {
                 "flag1": "フラグを10進数",
                 "flag2": "フラグを16進数",
                 "ambRead1": "AMB情報を改行",
-                "ambRead2": "AMB情報を１行",
+                "ambRead2": "AMB情報を１行"
             }
         },
         "appearance": {
-            "rootFrame": "外観設定",
+            "rootFrame": "外観設定"
         }
     },
     "appearance": {
@@ -1309,7 +1300,7 @@ textList = {
             "comboboxLabel": "コンボボックス(※テーマ依存)\nプルダウンは再起動後、適用されます",
             "radioThemeLabel": "ラジオボタン(※テーマ依存)",
             "radioButtonColorLabel": "ボタンの色",
-            "radioButtonSelColorLabel": "選択時\nボタンの色",
+            "radioButtonSelColorLabel": "選択時\nボタンの色"
         }
     },
     "update": {

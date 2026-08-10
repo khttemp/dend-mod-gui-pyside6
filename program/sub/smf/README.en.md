@@ -35,9 +35,9 @@ Note that this affects all child elements of the specified element.
 
 You can modify the name, position info, and rotation info of the selected frame.
 
-### Swap frame position
+### Change the frame hierarchy
 
-Moves the frame to become a "child element" of a specified element.
+You can change the frame hierarchy using the mouse.
 
 ## Mesh-Related Functions
 
