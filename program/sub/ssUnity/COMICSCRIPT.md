@@ -1,3 +1,5 @@
+*[English](COMICSCRIPT.en.md)*
+
 # ComicScript読込の解説（SS）
 
 SSのComicScriptの読込について解説する。

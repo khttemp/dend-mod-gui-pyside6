@@ -1,3 +1,5 @@
+*[English](AMBLIST.en.md)*
+
 # AMBに出来るモデルリスト
 
 モデルのリストは下記の通り。

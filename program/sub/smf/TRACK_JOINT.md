@@ -1,3 +1,5 @@
+*[English](TRACK_JOINT.en.md)*
+
 # 台車の位置、号車同士の距離調整
 
 ![title](image/joint.png)

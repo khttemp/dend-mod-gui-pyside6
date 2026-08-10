@@ -97,6 +97,9 @@ def writeDefaultConfig(configPath):
         config.add_section("UPDATE")
         config.set("UPDATE", "time", "2000/01/01")
 
+        config.add_section("LANGUAGE")
+        config.set("LANGUAGE", "lang", "ja")
+
         f = open(configPath, "w", encoding="utf-8")
         config.write(f)
         f.close()
@@ -197,6 +200,32 @@ def writeComicscriptConfig(configPath, value):
     configRead.read(configPath, encoding="utf-8")
 
     configRead.set("COMICSCRIPT_GAME", "mode", str(value))
+
+    try:
+        f = open(configPath, "w", encoding="utf-8")
+        configRead.write(f)
+        f.close()
+    except PermissionError:
+        errObj.write(traceback.format_exc())
+
+
+def readLanguageConfig(configPath):
+    if not os.path.exists(configPath):
+        writeDefaultConfig(configPath)
+
+    configCheckOption(configPath, "LANGUAGE", "lang", "ja")
+
+    configRead = configparser.ConfigParser()
+    configRead.read(configPath, encoding="utf-8")
+
+    return configRead.get("LANGUAGE", "lang")
+
+
+def writeLanguageConfig(configPath, lang):
+    configRead = configparser.ConfigParser()
+    configRead.read(configPath, encoding="utf-8")
+
+    configRead.set("LANGUAGE", "lang", lang)
 
     try:
         f = open(configPath, "w", encoding="utf-8")

@@ -1,3 +1,5 @@
+*[English](STAGEDATA.en.md)*
+
 # stagedataの要素
 
 SSのステージデータについて解説する。
