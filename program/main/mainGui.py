@@ -86,10 +86,9 @@ class MainWindow(QMainWindow):
         langmenu = menubar.addMenu("言語 / Language")
         langRadioGroup = QActionGroup(self)
         langRadioGroup.setExclusive(True)
-        jaAction = self.createRadioAction(langmenu, "日本語", langRadioGroup, partial(self.changeLanguage, "ja"))
-        enAction = self.createRadioAction(langmenu, "English", langRadioGroup, partial(self.changeLanguage, "en"))
-        jaAction.setChecked(self.importDict["lang"] == "ja")
-        enAction.setChecked(self.importDict["lang"] == "en")
+        for langTitle, langCode in self.importDict["langList"]:
+            langAction = self.createRadioAction(langmenu, langTitle, langRadioGroup, partial(self.changeLanguage, langCode))
+            langAction.setChecked(self.importDict["lang"] == langCode)
 
         self.configMenu = None
         self.configActionDict = {}

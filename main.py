@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import glob
 import platform
 
 import program.main.mainProcess as mainProcess
@@ -10,6 +11,7 @@ importDict = {
     "configPath": "config.ini",
     "window": None,
     "lang": "ja",
+    "langList": [["日本語", "ja"]],
     "EXIT_CODE_RESTART": 99
 }
 
@@ -23,14 +25,28 @@ if platform.system() == "Windows":
 
 importDict["lang"] = mainProcess.readLanguageConfig(importDict["configPath"])
 readTextFileName = "textSetting_{}.json".format(importDict["lang"])
-readTextFilePath = os.path.join(importDict["rootPath"], "program", "sub", readTextFileName)
-if not os.path.exists(readTextFilePath):
-    readTextFileName = "textSetting_ja.json"
-    readTextFilePath = os.path.join(importDict["rootPath"], "program", "sub", readTextFileName)
-with open(readTextFilePath, "r", encoding="utf-8") as f:
-    textList = json.load(f)
+findFlag = False
+
+importDict["langList"] = [["日本語", "ja"]]
 textSetting.textList = {}
-textSetting.textList.update(textList)
+
+readTextFilePath = os.path.join(importDict["rootPath"], "program", "sub", "textSetting_*.json")
+findTextFileList = glob.glob(readTextFilePath)
+for textFile in findTextFileList:
+    with open(textFile, "r", encoding="utf-8") as f:
+        textList = json.load(f)
+    if textList["langCode"] != "ja":
+        importDict["langList"].append([textList["langTitle"], textList["langCode"]])
+    if os.path.basename(textFile).lower() == readTextFileName.lower():
+        findFlag = True
+        textSetting.textList.update(textList)
+
+if not findFlag:
+    importDict["lang"] = "ja"
+    readTextFilePath = os.path.join(importDict["rootPath"], "program", "sub", "textSetting_ja.json")
+    with open(textFile, "r", encoding="utf-8") as f:
+        textList = json.load(f)
+    textSetting.textList.update(textList)
 
 if __name__ == "__main__":
     import program.main.mainGui as mainGui

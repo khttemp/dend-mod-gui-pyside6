@@ -1,4 +1,6 @@
 {
+    "langTitle": "日本語",
+    "langCode": "ja",
     "defaultFont": ["Yu Gothic UI", 9],
     "font2": ["Yu Gothic UI", 14],
     "font3": ["Yu Gothic UI", 15],
