@@ -76,7 +76,7 @@ For an explanation of binaries related to things other than train cars, see [【
 | 0-0 | Initial processing |
 | 0-1 | Unknown details (compressor value?) |
 | 0-2 | ANIME setting for the destination sign based on the course |
-| 0-3 | Unknown details |
+| 0-3 | The ANIME destination roll sign for the Hankyu 2800 series used on the CS |
 | 1-0 | START_WIPER processing |
 | 1-1 | STOP_WIPER processing |
 | 2-0 ~ 2-2 | JR2000 SMOKE generation processing |
