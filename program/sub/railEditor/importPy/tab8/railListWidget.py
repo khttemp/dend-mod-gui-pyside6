@@ -7,7 +7,7 @@ import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 from PySide6.QtWidgets import (
     QWidget, QFrame, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QLineEdit, QPushButton, QGroupBox, QButtonGroup,
-    QComboBox, QCheckBox, QSizePolicy, QFileDialog
+    QComboBox, QCheckBox, QSizePolicy
 )
 from PySide6.QtGui import QFont, QRegularExpressionValidator
 from PySide6.QtCore import Qt, QRegularExpression
@@ -16,8 +16,9 @@ mb = customMessageBoxWidget.CustomMessageBox()
 
 
 class RailListWidget(QWidget):
-    def __init__(self, decryptFile, reloadFunc):
+    def __init__(self, decryptFile, fileDialog, reloadFunc):
         super().__init__()
+        self.fileDialog = fileDialog
         self.decryptFile = decryptFile
         self.smfList = [smfInfo[0] for smfInfo in decryptFile.smfList]
         self.railList = decryptFile.railList
@@ -1033,9 +1034,7 @@ class RailListWidget(QWidget):
     def extractCsv(self):
         filename = self.decryptFile.filename + ".csv"
         fileTypes = "{0} ({1})".format(textSetting.textList["railEditor"]["railCsvFileType"], "*.csv")
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "",
+        file_path = self.fileDialog.getSaveFileName(
             filename,
             fileTypes
         )
@@ -1050,12 +1049,7 @@ class RailListWidget(QWidget):
 
     def saveCsv(self):
         fileTypes = "{0} ({1})".format(textSetting.textList["railEditor"]["railCsvFileType"], "*.csv")
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileTypes
-        )
+        file_path = self.fileDialog.getOpenFileName(fileTypes)
         if not file_path:
             return
 
@@ -1078,9 +1072,7 @@ class RailListWidget(QWidget):
     def saveRevRailCsv(self):
         filename = self.decryptFile.filename + "_rev.BIN"
         fileTypes = "{0} ({1})".format(textSetting.textList["railEditor"]["fileType"], "*.bin")
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "",
+        file_path = self.fileDialog.getSaveFileName(
             filename,
             fileTypes
         )
@@ -1102,9 +1094,7 @@ class RailListWidget(QWidget):
     def csToRs(self):
         filename = self.decryptFile.filename + "_RS.BIN"
         fileTypes = "{0} ({1})".format(textSetting.textList["railEditor"]["railCsToRsBinType"], "*.bin")
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "",
+        file_path = self.fileDialog.getSaveFileName(
             filename,
             fileTypes
         )

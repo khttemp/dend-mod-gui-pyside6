@@ -10,6 +10,7 @@ import program.sub.textSetting as textSetting
 importDict = {
     "configPath": "config.ini",
     "window": None,
+    "fileDialog": None,
     "lang": "ja",
     "langList": [["日本語", "ja"]],
     "EXIT_CODE_RESTART": 99

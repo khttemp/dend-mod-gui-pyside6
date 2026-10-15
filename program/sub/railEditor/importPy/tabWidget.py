@@ -149,21 +149,21 @@ def tab7AllWidget(contentFrame, decryptFile, reloadFunc):
         tab7Layout.addWidget(dosansenListWidget, stretch=7)
 
 
-def tab8AllWidget(contentFrame, decryptFile, reloadFunc):
+def tab8AllWidget(contentFrame, decryptFile, fileDialog, reloadFunc):
     tab8Layout = QHBoxLayout()
     tab8Layout.setContentsMargins(0, 0, 0, 0)
     contentFrame.setLayout(tab8Layout)
 
-    railListWidget = RailListWidget(decryptFile, reloadFunc)
+    railListWidget = RailListWidget(decryptFile, fileDialog, reloadFunc)
     tab8Layout.addWidget(railListWidget)
 
 
-def tab9AllWidget(contentFrame, decryptFile, reloadFunc, selectId):
+def tab9AllWidget(contentFrame, decryptFile, fileDialog, reloadFunc, selectId):
     tab9Layout = QHBoxLayout()
     tab9Layout.setContentsMargins(0, 0, 0, 0)
     contentFrame.setLayout(tab9Layout)
 
-    else3ListWidget = Else3ListWidget(decryptFile, reloadFunc, selectId)
+    else3ListWidget = Else3ListWidget(decryptFile, fileDialog, reloadFunc, selectId)
     tab9Layout.addWidget(else3ListWidget)
 
 
@@ -176,10 +176,10 @@ def tab10AllWidget(contentFrame, decryptFile, reloadFunc):
     tab10Layout.addWidget(else4ListWidget)
 
 
-def tab11AllWidget(contentFrame, decryptFile, reloadFunc):
+def tab11AllWidget(contentFrame, decryptFile, fileDialog, reloadFunc):
     tab11Layout = QHBoxLayout()
     tab11Layout.setContentsMargins(0, 0, 0, 0)
     contentFrame.setLayout(tab11Layout)
 
-    ambListWidget = AmbListWidget(decryptFile, reloadFunc)
+    ambListWidget = AmbListWidget(decryptFile, fileDialog, reloadFunc)
     tab11Layout.addWidget(ambListWidget)

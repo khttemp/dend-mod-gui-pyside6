@@ -8,15 +8,15 @@ import program.sub.orgInfoEditor.importPy.tab1.trainInfoProcess as trainInfoProc
 
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QStackedWidget, QPushButton, QDialog,
-    QFileDialog
 )
 
 mb = customMessageBoxWidget.CustomMessageBox()
 
 
 class EditOrgButtonWidget(QWidget):
-    def __init__(self, decryptFile, defaultData, reloadWidget):
+    def __init__(self, decryptFile, defaultData, fileDialog, reloadWidget):
         super().__init__()
+        self.fileDialog = fileDialog
         self.decryptFile = decryptFile
         self.defaultData = defaultData
         self.reloadWidget = reloadWidget
@@ -74,9 +74,7 @@ class EditOrgButtonWidget(QWidget):
         if self.decryptFile.game in self.oldGameList:
             filename = self.decryptFile.trainNameList[trainIndex] + ".csv"
             fileTypes = "traininfo_csv (*.csv)"
-            file_path, _ = QFileDialog.getSaveFileName(
-                self,
-                "",
+            file_path = self.fileDialog.getSaveFileName(
                 filename,
                 fileTypes
             )
@@ -89,9 +87,7 @@ class EditOrgButtonWidget(QWidget):
         else:
             filename = self.decryptFile.trainNameList[trainIndex] + ".txt"
             fileTypes = "traininfo_text (*.txt)"
-            file_path, _ = QFileDialog.getSaveFileName(
-                self,
-                "",
+            file_path = self.fileDialog.getSaveFileName(
                 filename,
                 fileTypes
             )
@@ -108,12 +104,7 @@ class EditOrgButtonWidget(QWidget):
         trainIndex = trainCombo.currentIndex()
         if self.decryptFile.game in self.oldGameList:
             fileTypes = "traininfo_csv (*.csv)"
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
-                fileTypes
-            )
+            file_path = self.fileDialog.getOpenFileName(fileTypes)
             if not file_path:
                 return
 
@@ -130,12 +121,7 @@ class EditOrgButtonWidget(QWidget):
                 self.reloadWidget()
         else:
             fileTypes = "traininfo_text (*.txt)"
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
-                fileTypes
-            )
+            file_path = self.fileDialog.getOpenFileName(fileTypes)
             if not file_path:
                 return
             

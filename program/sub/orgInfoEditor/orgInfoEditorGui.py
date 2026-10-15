@@ -4,7 +4,7 @@ import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from PySide6.QtWidgets import (
     QWidget, QFrame, QVBoxLayout, QHBoxLayout,
-    QComboBox, QPushButton, QFileDialog, QDialog
+    QComboBox, QPushButton, QDialog
 )
 from PySide6.QtGui import QFont
 
@@ -28,6 +28,7 @@ class OrgInfoEditorWindow(QWidget):
     def __init__(self, importDict):
         super().__init__()
         self.importDict = importDict
+        self.fileDialog = importDict["fileDialog"]
         self.decryptFile = None
         self.defaultData = []
         self.allLoadFlag = False
@@ -136,7 +137,7 @@ class OrgInfoEditorWindow(QWidget):
         self.clearContent()
 
         if menuIndex == 0:
-            tab1AllWidget(self.mainLayout, self.decryptFile, trainIndex, self.defaultData, self.reloadWidget)
+            tab1AllWidget(self.mainLayout, self.decryptFile, trainIndex, self.defaultData, self.fileDialog, self.reloadWidget)
         elif menuIndex == 1:
             tab2AllWidget(self.mainLayout, self.decryptFile, trainIndex, self.defaultData, self.reloadWidget)
         elif menuIndex == 2:
@@ -149,10 +150,7 @@ class OrgInfoEditorWindow(QWidget):
                 self.reloadWidget()
         elif self.decryptFile.game == "LS":
             fileTypes = "{0} ({1})"
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
+            file_path = self.fileDialog.getOpenFileName(
                 fileTypes.format("Lightning Stage", "*.exe")
             )
             if not file_path:
@@ -289,10 +287,7 @@ class OrgInfoEditorWindow(QWidget):
     def openFile(self):
         fileTypes = "{0} ({1})"
         if self.gameCombo.currentText() == "Shining Stage":
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
+            file_path = self.fileDialog.getOpenFileName(
                 fileTypes.format(textSetting.textList["orgInfoEditor"]["fileType"], "train_org_data.den")
             )
             if not file_path:
@@ -300,10 +295,7 @@ class OrgInfoEditorWindow(QWidget):
             del self.decryptFile
             self.decryptFile = dendSs.SSdecrypt(file_path)
         elif self.gameCombo.currentText() == "Rising Stage":
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
+            file_path = self.fileDialog.getOpenFileName(
                 fileTypes.format(textSetting.textList["orgInfoEditor"]["fileType"], "TRAIN_DATA4TH.BIN")
             )
             if not file_path:
@@ -311,10 +303,7 @@ class OrgInfoEditorWindow(QWidget):
             del self.decryptFile
             self.decryptFile = dendRs.RSdecrypt(file_path)
         elif self.gameCombo.currentText() == "Climax Stage":
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
+            file_path = self.fileDialog.getOpenFileName(
                 fileTypes.format(textSetting.textList["orgInfoEditor"]["fileType"], "TRAIN_DATA3RD.BIN")
             )
             if not file_path:
@@ -322,10 +311,7 @@ class OrgInfoEditorWindow(QWidget):
             del self.decryptFile
             self.decryptFile = dendCs.CSdecrypt(file_path)
         elif self.gameCombo.currentText() == "Burning Stage":
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
+            file_path = self.fileDialog.getOpenFileName(
                 fileTypes.format(textSetting.textList["orgInfoEditor"]["fileType"], "TRAIN_DATA2ND.BIN")
             )
             if not file_path:
@@ -333,10 +319,7 @@ class OrgInfoEditorWindow(QWidget):
             del self.decryptFile
             self.decryptFile = dendBs.BSdecrypt(file_path)
         elif self.gameCombo.currentText() == "Lightning Stage":
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
+            file_path = self.fileDialog.getOpenFileName(
                 fileTypes.format(textSetting.textList["orgInfoEditor"]["fileType"], "TRAIN_DATA.BIN")
             )
             if not file_path:

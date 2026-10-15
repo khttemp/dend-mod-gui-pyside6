@@ -7,7 +7,7 @@ from program.sub.rsRail.getMemory.getMemory import GetMemory
 from PySide6.QtWidgets import (
     QWidget, QLabel, QScrollArea, QFrame, QVBoxLayout,
     QHBoxLayout, QGroupBox, QGridLayout, QStackedWidget,
-    QPushButton, QLineEdit, QFileDialog
+    QPushButton, QLineEdit
 )
 from PySide6.QtGui import QFont, QRegularExpressionValidator
 from PySide6.QtCore import Qt, QRegularExpression, QTimer
@@ -19,6 +19,7 @@ class RsRailWindow(QWidget):
     def __init__(self, importDict):
         super().__init__()
         self.importDict = importDict
+        self.fileDialog = importDict["fileDialog"]
         self.memoryObj = None
 
         font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
@@ -809,12 +810,7 @@ class RsRailWindow(QWidget):
 
     def openFile(self):
         fileType = "{0} ({1})".format("DEND_RS_EXE", "*.exe")
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileType
-        )
+        file_path = self.fileDialog.getOpenFileName(fileType)
         if not file_path:
             return
 

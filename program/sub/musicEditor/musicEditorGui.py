@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QGroupBox, QComboBox,
     QVBoxLayout, QHBoxLayout, QDialog, QDialogButtonBox,
     QRadioButton, QPushButton, QButtonGroup, QGridLayout,
-    QFileDialog, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView
+    QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView
 )
 from PySide6.QtGui import QFont, QRegularExpressionValidator
 from PySide6.QtCore import Qt, QTimer, QRegularExpression
@@ -22,6 +22,7 @@ class MusicEditorWindow(QWidget):
     def __init__(self, importDict):
         super().__init__()
         self.importDict = importDict
+        self.fileDialog = importDict["fileDialog"]
         self.decryptFile = None
         self.selectId = None
         self.BS = 1
@@ -155,12 +156,7 @@ class MusicEditorWindow(QWidget):
         else:
             fileType = "{0} ({1})".format(textSetting.textList["musicEditor"]["fileType"], "SOUNDTRACK_INFO_4TH.BIN")
 
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileType
-        )
+        file_path = self.fileDialog.getOpenFileName(fileType)
 
         if not file_path:
             return

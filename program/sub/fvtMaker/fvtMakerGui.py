@@ -10,7 +10,7 @@ from program.sub.fvtMaker.importPy.fvtConvert import FvtConvert
 
 from PySide6.QtWidgets import (
     QWidget, QScrollArea, QFrame, QVBoxLayout, QHBoxLayout,
-    QGroupBox, QRadioButton, QButtonGroup, QFileDialog
+    QGroupBox, QRadioButton, QButtonGroup
 )
 from PySide6.QtCore import Qt
 
@@ -21,6 +21,7 @@ class FvtMakerWindow(QWidget):
     def __init__(self, importDict):
         super().__init__()
         self.importDict = importDict
+        self.fileDialog = importDict["fileDialog"]
         self.fvtConvertFile = None
         self.LS = 1
         self.BS = 2
@@ -158,12 +159,7 @@ class FvtMakerWindow(QWidget):
             return
 
         fileType = "{0} ({1})".format(textSetting.textList["fvtMaker"]["fileType"], "*.csv")
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileType
-        )
+        file_path = self.fileDialog.getOpenFileName(fileType)
 
         if not file_path:
             return

@@ -8,6 +8,7 @@ import program.main.mainProcess as mainProcess
 import program.sub.textSetting as textSetting
 
 import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
+import program.sub.appearance.customFileDialogWidget as customFileDialogWidget
 import program.sub.ssUnity.ssUnityGui as ssUnityGui
 import program.sub.orgInfoEditor.orgInfoEditorGui as orgInfoEditorGui
 import program.sub.mdlBin.mdlBinGui as mdlBinGui
@@ -284,6 +285,7 @@ class MainWindow(QMainWindow):
 
 def guiMain(importDict):
     app = QApplication([])
+    importDict["fileDialog"] = customFileDialogWidget.CustomFileDialog()
     window = MainWindow(importDict)
     importDict["window"] = window
     window.show()

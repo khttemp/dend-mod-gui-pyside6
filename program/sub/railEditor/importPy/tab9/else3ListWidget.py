@@ -7,8 +7,7 @@ import program.sub.railEditor.importPy.tab9.else3CsvProcess as else3CsvProcess
 from PySide6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QFrame, QPushButton, QComboBox,
     QVBoxLayout, QHBoxLayout, QGridLayout, QDialog, QDialogButtonBox,
-    QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView,
-    QFileDialog
+    QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView
 )
 from PySide6.QtGui import QFont, QRegularExpressionValidator
 from PySide6.QtCore import Qt, QRegularExpression, QTimer
@@ -18,8 +17,9 @@ mb = customMessageBoxWidget.CustomMessageBox()
 
 
 class Else3ListWidget(QWidget):
-    def __init__(self, decryptFile, reloadFunc, selectId):
+    def __init__(self, decryptFile, fileDialog, reloadFunc, selectId):
         super().__init__()
+        self.fileDialog = fileDialog
         self.decryptFile = decryptFile
         self.else3List = decryptFile.else3List
         self.reloadFunc = reloadFunc
@@ -306,9 +306,7 @@ class Else3ListWidget(QWidget):
 
     def else3ExtractCsv(self):
         filename = self.decryptFile.filename + "_else3.csv"
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "",
+        file_path = self.fileDialog.getSaveFileName(
             filename,
             "else3_csv (*.csv)"
         )
@@ -320,10 +318,7 @@ class Else3ListWidget(QWidget):
                 mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E7"])
 
     def else3LoadAndSaveCsv(self):
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
+        file_path = self.fileDialog.getOpenFileName(
             "else3_csv (*.csv)"
         )
         if not file_path:

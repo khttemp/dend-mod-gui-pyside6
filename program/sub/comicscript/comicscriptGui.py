@@ -12,7 +12,7 @@ from program.sub.comicscript.importPy.headerDialogWidget import EditHeaderDialog
 
 from PySide6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QFrame, QComboBox, QGroupBox,
-    QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog, QSpinBox,
+    QVBoxLayout, QHBoxLayout, QPushButton,
     QDialog, QDialogButtonBox, QGridLayout, QCompleter, QLayout,
     QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView
 )
@@ -27,6 +27,7 @@ class ComicscriptWindow(QWidget):
     def __init__(self, importDict):
         super().__init__()
         self.importDict = importDict
+        self.fileDialog = importDict["fileDialog"]
         self.decryptFile = None
         self.selectId = None
         self.cmdJsonInfo = self.importDict["cmdJsonInfo"]
@@ -243,12 +244,7 @@ class ComicscriptWindow(QWidget):
 
     def openFile(self):
         fileType = "{0} ({1})".format(textSetting.textList["comicscript"]["fileType"], "*.BIN")
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileType
-        )
+        file_path = self.fileDialog.getOpenFileName(fileType)
 
         if not file_path:
             return
@@ -364,9 +360,7 @@ class ComicscriptWindow(QWidget):
     def csvExtractFunc(self):
         filename = os.path.splitext(os.path.basename(self.decryptFile.filePath))[0] + ".csv"
         fileTypes = "{0} ({1})".format("comicscript_csv", "*.csv")
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "",
+        file_path = self.fileDialog.getSaveFileName(
             filename,
             fileTypes
         )
@@ -382,12 +376,7 @@ class ComicscriptWindow(QWidget):
 
     def csvLoadAndSaveFunc(self):
         fileTypes = "{0} ({1})".format("comicscript_csv", "*.csv")
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileTypes
-        )
+        file_path = self.fileDialog.getOpenFileName(fileTypes)
         if not file_path:
             return
 

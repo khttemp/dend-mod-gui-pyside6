@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QProgressBar, QTreeWidget, QTreeWidgetItem,
     QTreeWidgetItemIterator,
     QLabel, QListWidget, QLineEdit, QFrame, QGroupBox,
-    QComboBox, QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog,
+    QComboBox, QVBoxLayout, QHBoxLayout, QPushButton,
     QDialog, QDialogButtonBox, QGridLayout, QHeaderView
 )
 from PySide6.QtGui import QFont, QRegularExpressionValidator
@@ -32,6 +32,7 @@ class SmfWindow(QWidget):
     def __init__(self, importDict):
         super().__init__()
         self.importDict = importDict
+        self.fileDialog = importDict["fileDialog"]
         self.decryptFile = None
         self.noTexList = []
 
@@ -370,12 +371,7 @@ class SmfWindow(QWidget):
 
     def openFile(self):
         fileType = "{0} ({1})".format(textSetting.textList["smf"]["fileType"], "*.SMF")
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileType
-        )
+        file_path = self.fileDialog.getOpenFileName(fileType)
         if not file_path:
             return
 
@@ -498,12 +494,7 @@ class SmfWindow(QWidget):
             textSetting.textList["smf"]["fbxFile"],
             "*.fbx"
         )
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileType
-        )
+        file_path = self.fileDialog.getOpenFileName(fileType)
         if not file_path:
             return
 
@@ -555,9 +546,7 @@ class SmfWindow(QWidget):
         saveName = os.path.splitext(os.path.basename(self.decryptFile.filename))[0]
         saveName += "_mesh{0}".format(meshNo)
 
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "",
+        file_path = self.fileDialog.getSaveFileName(
             saveName,
             "{0} ({1})".format(textSetting.textList["smf"]["csvFile"], "*.csv")
         )
@@ -581,10 +570,7 @@ class SmfWindow(QWidget):
         frameObj = item.data(0, Qt.UserRole)
         meshNo = frameObj["meshNo"]
 
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
+        file_path = self.fileDialog.getOpenFileName(
             "{0} ({1})".format(textSetting.textList["smf"]["csvFile"], "*.csv")
         )
         if not file_path:
@@ -632,12 +618,7 @@ class SmfWindow(QWidget):
             mb.showinfo(title=textSetting.textList["smf"]["smfFile"], message=msg)
 
             fileType = "{0} ({1})".format(textSetting.textList["smf"]["fileType"], "*.SMF")
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
-                fileType
-            )
+            file_path = self.fileDialog.getOpenFileName(fileType)
             if not file_path:
                 return
 
@@ -667,9 +648,7 @@ class SmfWindow(QWidget):
             (textSetting.textList["smf"]["xFile"], "*.x")
         ]
         fileTypes = ";;".join(["{0} ({1})".format(x[0], x[1]) for x in fileTypeList])
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "",
+        file_path = self.fileDialog.getSaveFileName(
             saveName,
             fileTypes
         )
@@ -702,13 +681,10 @@ class SmfWindow(QWidget):
 
     def scanSmfImageFunc(self):
         fileType = "{0} ({1})".format(textSetting.textList["smf"]["fileListType"], "*.SMF")
-        file_paths, _ = QFileDialog.getOpenFileNames(
-            self,
-            "",
-            "",
-            fileType
+        file_paths = self.fileDialog.getOpenFileName(
+            fileType,
+            True
         )
-
 
         if not file_paths:
             return
@@ -743,16 +719,12 @@ class SmfWindow(QWidget):
             self.copyImageButton.setEnabled(False)
 
     def copyImageFunc(self):
-        scanModelPath = self.scanModelPathLabel.text()
-        folderPath = QFileDialog.getExistingDirectory(
-            self,
-            "",
-            scanModelPath
-        )
+        folderPath = self.fileDialog.getExistingDirectory()
 
         if not folderPath:
             return
 
+        scanModelPath = self.scanModelPathLabel.text()
         newNoTexList = []
         self.scanImageListWidget.clear()
         QApplication.processEvents()

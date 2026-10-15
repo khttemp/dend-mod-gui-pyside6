@@ -12,7 +12,7 @@ from program.sub.smf.dendDecrypt.decrypt import SmfDecrypt
 
 from PySide6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QFrame, QComboBox, QGroupBox,
-    QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog,
+    QVBoxLayout, QHBoxLayout, QPushButton,
     QDialog, QDialogButtonBox, QGridLayout,
     QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView
 )
@@ -27,6 +27,7 @@ class MdlinfoWindow(QWidget):
     def __init__(self, importDict):
         super().__init__()
         self.importDict = importDict
+        self.fileDialog = importDict["fileDialog"]
         self.decryptFile = None
         self.selectId = None
         self.copyInfoByteArr = None
@@ -261,12 +262,7 @@ class MdlinfoWindow(QWidget):
 
     def openFile(self):
         fileType = "{0} ({1})".format(textSetting.textList["mdlinfo"]["fileType"], "MDLINFO*.BIN")
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileType
-        )
+        file_path = self.fileDialog.getOpenFileName(fileType)
 
         if not file_path:
             return
@@ -367,12 +363,7 @@ class MdlinfoWindow(QWidget):
 
     def copyAnotherMdlinfoFunc(self):
         fileType = "{0} ({1})".format(textSetting.textList["mdlinfo"]["fileType"], "MDLINFO*.BIN")
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileType
-        )
+        file_path = self.fileDialog.getOpenFileName(fileType)
 
         if not file_path:
             return
@@ -441,12 +432,7 @@ class MdlinfoWindow(QWidget):
 
     def addSmfModelFunc(self):
         fileType = "{0} ({1})".format(textSetting.textList["smf"]["fileType"], "*.SMF")
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileType
-        )
+        file_path = self.fileDialog.getOpenFileName(fileType)
         if not file_path:
             return
 

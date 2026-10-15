@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QFrame, QGroupBox,
     QVBoxLayout, QHBoxLayout,
     QRadioButton, QComboBox, QPushButton, QButtonGroup,
-    QFileDialog, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView
+    QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView
 )
 from PySide6.QtGui import QFont, QColor
 from PySide6.QtCore import Qt, QTimer
@@ -26,6 +26,7 @@ class SSUnityWindow(QWidget):
     def __init__(self, importDict):
         super().__init__()
         self.importDict = importDict
+        self.fileDialog = importDict["fileDialog"]
         self.decryptFile = None
         self.selectId = None
 
@@ -333,10 +334,7 @@ class SSUnityWindow(QWidget):
             return
 
         if selectedRadioId == 1:
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
+            file_path = self.fileDialog.getOpenFileName(
                 "DEND_SS (*.den)"
             )
             if not file_path:
@@ -344,10 +342,7 @@ class SSUnityWindow(QWidget):
             del self.decryptFile
             self.decryptFile = DenDecrypt(file_path)
         else:
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
+            file_path = self.fileDialog.getOpenFileName(
                 "resources.assets (resources.assets)"
             )
             if not file_path:
@@ -360,7 +355,6 @@ class SSUnityWindow(QWidget):
             mb.showerror(title=textSetting.textList["error"], message=textSetting.textList["errorList"]["E14"])
             return
         filename = os.path.basename(file_path)
-        self.lastDir = os.path.dirname(file_path)
         self.fileNameLabel.setText(filename)
         self.searchLineEdit.setReadOnly(False)
 
@@ -420,10 +414,8 @@ class SSUnityWindow(QWidget):
         if excelFlag:
             fileTypes = "{0} (*.xlsx);;{1}".format(textSetting.textList["ssUnity"]["loadSaveFileExcelLabel"], fileTypes)
 
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "",
-            os.path.join(self.lastDir, dataName),
+        file_path = self.fileDialog.getSaveFileName(
+            dataName,
             fileTypes
         )
         if file_path:
@@ -472,12 +464,7 @@ class SSUnityWindow(QWidget):
         if excelFlag:
             fileTypes = "{0} (*.xlsx);;{1}".format(textSetting.textList["ssUnity"]["loadSaveFileExcelLabel"], fileTypes)
 
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileTypes
-        )
+        file_path = self.fileDialog.getOpenFileName(fileTypes)
         if file_path:
             try:
                 data = self.decryptFile.allList[row][-1]
@@ -518,10 +505,8 @@ class SSUnityWindow(QWidget):
             data = self.decryptFile.trainOrgInfoList[trainName]["data"]["monoData"]
             fileTypes = "{0} ({1})".format("trainOrgInfo", "*.csv")
 
-            file_path, _ = QFileDialog.getSaveFileName(
-                self,
-                "",
-                os.path.join(self.lastDir, trainName),
+            file_path = self.fileDialog.getSaveFileName(
+                trainName,
                 fileTypes
             )
             if file_path:
@@ -542,10 +527,8 @@ class SSUnityWindow(QWidget):
 
             filename = "{0}_{1}".format(trainModelName, pathId)
             fileTypes = "{0} ({1})".format("changeMeshTex", "*.csv")
-            file_path, _ = QFileDialog.getSaveFileName(
-                self,
-                "",
-                os.path.join(self.lastDir, filename),
+            file_path = self.fileDialog.getSaveFileName(
+                filename,
                 fileTypes
             )
             if file_path:
@@ -568,10 +551,7 @@ class SSUnityWindow(QWidget):
         if monoComboId == 0:
             trainName = self.contentTable.item(row, 0).text()
 
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
+            file_path = self.fileDialog.getOpenFileName(
                 "trainOrgInfo (*.csv)"
             )
             if not file_path:
@@ -600,10 +580,7 @@ class SSUnityWindow(QWidget):
             pathId = int(self.contentTable.item(row, 0).text())
             trainModelName = self.contentTable.item(row, 1).text()
 
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "",
-                "",
+            file_path = self.fileDialog.getOpenFileName(
                 "changeMeshTex (*.csv)"
             )
             if not file_path:

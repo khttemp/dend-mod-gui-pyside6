@@ -4,7 +4,7 @@ import program.sub.appearance.customMessageBoxWidget as customMessageBoxWidget
 
 from PySide6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QFrame, QComboBox, QCheckBox,
-    QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog,
+    QVBoxLayout, QHBoxLayout, QPushButton,
     QDialog, QDialogButtonBox, QGridLayout, QSizePolicy, QListWidget,
     QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView
 )

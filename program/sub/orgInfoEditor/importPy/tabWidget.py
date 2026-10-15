@@ -24,13 +24,13 @@ from PySide6.QtCore import Qt
 
 defaultAlignment = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
 
-def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, reloadWidget):
+def tab1AllWidget(mainLayout, decryptFile, trainIndex, defaultData, fileDialog, reloadWidget):
     trainInfo = decryptFile.trainInfoList[trainIndex]
     if trainInfo is None:
         return
     selectDefaultData = defaultData[trainIndex]
 
-    editOrgButtonWidget = EditOrgButtonWidget(decryptFile, defaultData, reloadWidget)
+    editOrgButtonWidget = EditOrgButtonWidget(decryptFile, defaultData, fileDialog, reloadWidget)
     mainLayout.addWidget(editOrgButtonWidget, 1)
 
     contentWidget = QWidget()

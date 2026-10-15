@@ -23,8 +23,7 @@ import program.sub.railEditor.dendDecrypt.LSTrialExcelWidget as dendLsTrialExcel
 from PySide6.QtWidgets import (
     QWidget, QFrame, QScrollArea, QLabel, QComboBox,
     QRadioButton, QPushButton, QButtonGroup,
-    QVBoxLayout, QHBoxLayout,
-    QFileDialog
+    QVBoxLayout, QHBoxLayout
 )
 from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt
@@ -35,6 +34,7 @@ class RailEditorWindow(QWidget):
     def __init__(self, importDict):
         super().__init__()
         self.importDict = importDict
+        self.fileDialog = importDict["fileDialog"]
         self.decryptFile = None
         font2 = QFont(textSetting.textList["font2"][0], textSetting.textList["font2"][1])
         labelHeight = 28
@@ -200,13 +200,13 @@ class RailEditorWindow(QWidget):
         elif index == 6:
             tab7AllWidget(contentFrame, self.decryptFile, self.reloadWidget)
         elif index == 7:
-            tab8AllWidget(contentFrame, self.decryptFile, self.reloadWidget)
+            tab8AllWidget(contentFrame, self.decryptFile, self.fileDialog, self.reloadWidget)
         elif index == 8:
-            tab9AllWidget(contentFrame, self.decryptFile, self.reloadWidget, selectId)
+            tab9AllWidget(contentFrame, self.decryptFile, self.fileDialog, self.reloadWidget, selectId)
         elif index == 9:
             tab10AllWidget(contentFrame, self.decryptFile, self.reloadWidget)
         elif index == 10:
-            tab11AllWidget(contentFrame, self.decryptFile, self.reloadWidget)
+            tab11AllWidget(contentFrame, self.decryptFile, self.fileDialog, self.reloadWidget)
 
     def reloadWidget(self, *selectId):
         self.decryptFile = self.decryptFile.reload()
@@ -218,12 +218,7 @@ class RailEditorWindow(QWidget):
 
     def openFile(self):
         fileType = "{0} ({1})".format(textSetting.textList["railEditor"]["fileType"], "*.BIN")
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileType
-        )
+        file_path = self.fileDialog.getOpenFileName(fileType)
         if file_path:
             filename = os.path.basename(file_path)
             self.fileNameLabel.setText(filename)
@@ -265,9 +260,7 @@ class RailEditorWindow(QWidget):
     def excelExtract(self):
         filename = self.decryptFile.filename + ".xlsx"
         fileTypes = "railData (*.xlsx)"
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "",
+        file_path = self.fileDialog.getSaveFileName(
             filename,
             fileTypes
         )
@@ -298,12 +291,7 @@ class RailEditorWindow(QWidget):
 
     def excelSave(self):
         fileTypes = "railData (*.xlsx)"
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "",
-            "",
-            fileTypes
-        )
+        file_path = self.fileDialog.getOpenFileName(fileTypes)
         if not file_path:
             return
 
